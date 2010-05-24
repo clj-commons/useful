@@ -64,19 +64,20 @@
               (Exception. ~exception)
               ~exception))))
 
-(defn- parse-arg [opts arg]
+(defn- parse-arg [default opts arg]
   (if-let [[_ k _ v] (re-matches #"--?([-\w]*)(=([-,\w]*))?" arg)]
     (update opts (keyword k) into-vec (split (or v "") #","))
-    (update opts nil conj-vec arg)))
+    (update opts default conj-vec arg)))
 
 (defn parse-args
   "Parse command line args or the provided argument list. Returns a map of keys to
    vectors of repeated values. Named args begin with -keyname and are mapped to
-   :keyname. Unnamed arguments are mapped to nil. Repeated named values can also
+   :keyname. Unnamed arguments are mapped to nil or default. Repeated named values can also
    be specified using commas in the value. Single and double dash are both supported.
 
    Example:
      (parse-args [\"foo\" \"-v\" \"bar\" \"-color=blue,green\" \"--style=baroque\" \"-color=red\"])
      => {:style \"baroque\", :color [\"blue\" \"green\" \"red\"], :v [\"\"], nil [\"foo\" \"bar\"]}"
-  ([] (parse-args *command-line-args*))
-  ([args] (reduce parse-arg {} args)))
+  ([] (parse-args nil *command-line-args*))
+  ([args] (parse-args nil args))
+  ([default args] (reduce (partial parse-arg default) {} args)))
