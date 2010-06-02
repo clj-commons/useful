@@ -49,6 +49,11 @@
   ([]    clojure.lang.PersistentQueue/EMPTY)
   ([seq] (into (queue) seq)))
 
+(defmacro absorb [val form]
+  `(let [v# ~val]
+     (when-not (nil? v#)
+       (-> v# ~form))))
+
 (defn abort
   "Print message then exit."
   [& message]
