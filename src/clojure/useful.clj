@@ -31,6 +31,11 @@
   [to-coll from-coll]
   (into (vec to-coll) from-coll))
 
+(defn include?
+  "Check if val exists in coll."
+  [val coll]
+  (some (partial = val) coll))
+
 (defn tap
   "Call f on obj, presumably with side effects, then return obj. Useful for debugging when
    you want to print an object inline. e.g. (tap println foo)"
@@ -44,12 +49,23 @@
   [map key f & args]
   (assoc map key (apply f (get map key) args)))
 
+(defmacro while-let
+  "Repeatedly executes body while let binding is true."
+  [bindings & body]
+  (let [[form test] bindings]
+    `(loop [~form ~test]
+       (when ~form
+         ~@body
+         (recur ~test)))))
+
 (defn queue
   "Create an empty persistent queue or a persistent queue from a sequence."
   ([]    clojure.lang.PersistentQueue/EMPTY)
   ([seq] (into (queue) seq)))
 
-(defmacro absorb [val form]
+(defmacro absorb
+  "Thread val through form if val is not nil."
+  [val form]
   `(let [v# ~val]
      (when-not (nil? v#)
        (-> v# ~form))))
@@ -68,6 +84,14 @@
      (throw (if (string? ~exception)
               (Exception. ~exception)
               ~exception))))
+
+(defn trap
+  "Register signal handling function."
+  [signal f]
+  (sun.misc.Signal/handle
+   (sun.misc.Signal. signal)
+   (proxy [sun.misc.SignalHandler] []
+     (handle [sig] (f sig)))))
 
 (defn- parse-arg [default opts arg]
   (if-let [[_ k _ v] (re-matches #"--?([-\w]*)(=([-,\w]*))?" arg)]
