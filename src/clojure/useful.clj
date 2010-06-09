@@ -26,6 +26,12 @@
   [coll item]
   (conj (vec coll) item))
 
+(defmacro defm [name & fdecl]
+  "Define a function with memoization. Takes the same arguments as defn."
+  `(let [var (defn ~name ~@fdecl)]
+     (alter-var-root var #(with-meta (memoize %) (meta %)))
+     var))
+
 (defn into-vec
   "Returns a new vector consisting of to-coll with all of the items of from-coll conjoined."
   [to-coll from-coll]
