@@ -139,8 +139,8 @@
    are assumed to be single character argument flags and are split accordingly.
 
    Example:
-     (parse-args [\"foo\" \"-vD\" \"bar\" \"-no-wrap\" \"-color=blue,green\" \"--style=baroque\" \"-color=red\"])
+     (parse-opts [\"foo\" \"-vD\" \"bar\" \"-no-wrap\" \"-color=blue,green\" \"--style=baroque\" \"-color=red\"])
      => {:style \"baroque\", :color [\"blue\" \"green\" \"red\"], :no-wrap [\"\"], :D [\"\"], :v [\"\"], nil [\"foo\" \"bar\"]}"
-  ([] (parse-args nil *command-line-args*))
-  ([args] (parse-args nil args))
+  ([] (parse-opts nil *command-line-args*))
+  ([args] (parse-opts nil args))
   ([default args] (reduce (partial parse-opt default) {} args)))
