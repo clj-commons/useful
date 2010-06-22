@@ -1,4 +1,4 @@
-(ns clojure.useful)
+(ns useful)
 
 (defmacro assoc-if
   "Create mapping from keys to values in map if test returns true."
@@ -133,14 +133,15 @@
 (defn parse-opts
   "Parse command line args or the provided argument list. Returns a map of keys to
    vectors of repeated values. Named args begin with --keyname and are mapped to
-   :keyname. Unnamed arguments are mapped to nil or default. Repeated named values can
-   also be specified using commas in the value. Single and double dash are both supported
-   though a single dash followed by word characters without internal dashes or equal signs
-   are assumed to be single character argument flags and are split accordingly.
+   :keyname. Unnamed arguments are mapped to nil or default. Repeated named values can be
+   specified by repeating a key or by using commas in the value. Single and double dashes
+   are both supported though a single dash followed by word characters without internal
+   dashes or an equal sign is assumed to be single character argument flags and are split
+   accordingly.
 
    Example:
      (parse-opts [\"foo\" \"-vD\" \"bar\" \"-no-wrap\" \"-color=blue,green\" \"--style=baroque\" \"-color=red\"])
-     => {:style \"baroque\", :color [\"blue\" \"green\" \"red\"], :no-wrap [\"\"], :D [\"\"], :v [\"\"], nil [\"foo\" \"bar\"]}"
+     => {:style [\"baroque\"], :color [\"blue\" \"green\" \"red\"], :no-wrap [\"\"], :D [\"\"], :v [\"\"], nil [\"foo\" \"bar\"]}"
   ([] (parse-opts nil *command-line-args*))
   ([args] (parse-opts nil args))
   ([default args] (reduce (partial parse-opt default) {} args)))
