@@ -126,7 +126,7 @@
   (let [m re-matches, key (comp keyword str)]
     (cond-let
      [[_ ks]  (m #"-(\w*)"                arg)] (apply merge-with into-vec opts (for [k ks] {(key k) [""]}))
-     [[_ k v] (m #"--?([-\w]*)=([-,\w]+)" arg)] (update opts (key k) into-vec (.split #"," v))
+     [[_ k v] (m #"--?([-\w]*)=([-,\S]+)" arg)] (update opts (key k) into-vec (.split #"," v))
      [[_ k]   (m #"--?([-\w]*)"           arg)] (update opts (key k) conj-vec "")
      :else                                      (update opts default conj-vec arg))))
 
