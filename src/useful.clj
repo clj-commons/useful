@@ -102,7 +102,7 @@
 (defmacro defm [name & fdecl]
   "Define a function with memoization. Takes the same arguments as defn."
   `(let [var (defn ~name ~@fdecl)]
-     (alter-var-root var #(with-meta (memoize %) (meta %)))
+     (alter-var-root var (fn [f#] with-meta (memoize f#) (meta f#)))
      var))
 
 (defmacro cond-let
