@@ -122,6 +122,20 @@
        ~then-form
        ~else-form)))
 
+(defn invoke-private
+  "Invoke a private or protected Java method. Be very careful when using this!
+   I take no responsibility for the trouble you get yourself into."
+  [method instance & params]
+  (let [signature (into-array Class (map class params))]
+    (when-let [method (first (remove nil? (for [c (ancestors (.getClass instance))]
+                                            (try (.getDeclaredMethod c method signature)
+                                                 (catch NoSuchMethodException e)))))]
+      (let [accessible (.isAccessible method)]
+        (.setAccessible method true)
+        (let [result (.invoke method instance (into-array params))]
+          (.setAccessible method false)
+          result)))))
+
 (defn- parse-opt [default opts arg]
   (let [m re-matches, key (comp keyword str)]
     (cond-let
