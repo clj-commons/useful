@@ -139,10 +139,10 @@
 (defn- parse-opt [default opts arg]
   (let [m re-matches, key (comp keyword str)]
     (cond-let
-     [[_ ks]  (m #"-(\w*)"                arg)] (apply merge-with into-vec opts (for [k ks] {(key k) [""]}))
-     [[_ k v] (m #"--?([-\w]*)=([-,\S]+)" arg)] (update opts (key k) into-vec (.split #"," v))
-     [[_ k]   (m #"--?([-\w]*)"           arg)] (update opts (key k) conj-vec "")
-     :else                                      (update opts default conj-vec arg))))
+     [[_ ks]  (m #"-(\w+)"              arg)] (apply merge-with into-vec opts (for [k ks] {(key k) [""]}))
+     [[_ k v] (m #"--?([-\w]+)=([\S]+)" arg)] (update opts (key k) into-vec (.split #"," v))
+     [[_ k]   (m #"--?([-\w]+)"         arg)] (update opts (key k) conj-vec "")
+     :else                                    (update opts default conj-vec arg))))
 
 (defn parse-opts
   "Parse command line args or the provided argument list. Returns a map of keys to
