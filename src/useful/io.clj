@@ -1,7 +1,30 @@
 (ns useful.io
   (:use [clojure.java.io :only [copy]])
   (:import [java.net URL URLConnection JarURLConnection]
-           [java.io File FileInputStream]))
+           [java.io File FileInputStream]
+           [clojure.lang Atom]))
+
+(defmacro multi-outstream [var]
+  (letfn [(outs [val] (if (instance? Atom val) (first @val) val))]
+    `(java.io.PrintStream.
+      (proxy [java.io.BufferedOutputStream] [nil]
+        (write
+          ([b#]           (.write (~outs ~var) b#))
+          ([b# off# len#] (.write (~outs ~var) b# off# len#)))
+        (flush [] (.flush (~outs ~var)))))))
+
+(defmacro with-outstream [bindings & forms]
+  `(do (doseq [[var# outs#] (partition 2 ~bindings)]
+         (swap! var# conj outs#))
+       (binding ~bindings ~@forms)
+       (doseq [[var# outs#] (partition 2 ~bindings)]
+         (doall (swap! var# (partial remove #(= outs# %)))))))
+
+(defn default-outstream-push [outs default]
+  (swap! outs conj default))
+
+(defn default-outstream-pop [outs default]
+  (doall (swap! outs (partial remove #(= default %)))))
 
 (defn resource-stream [name]
   (if-let [url (.findResource (.getClassLoader clojure.lang.RT) name)]
