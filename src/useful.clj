@@ -53,7 +53,8 @@
   "Update value in map where f is a function that takes the old value and the
    supplied args and returns the new value."
   [map key f & args]
-  (assoc map key (apply f (get map key) args)))
+  (let [old (get map key), new (apply f old args)]
+    (if (= old new) map (assoc map key new))))
 
 (defmacro while-let
   "Repeatedly executes body while let binding is true."
@@ -122,10 +123,34 @@
        ~then-form
        ~else-form)))
 
+(defn zip
+  "Returns a lazy sequence of vectors of corresponding items from each collection.
+   Stops when the shortest collection runs out."
+  [& colls]
+  (partition
+   (count colls)
+   (apply interleave colls)))
+
+(defn find-with
+  "Returns the val corresponding to the first key where (pred key) returns true."
+  [pred keys vals]
+  (last (first (filter (comp pred first) (zip keys vals)))))
+
+(defn filter-vals
+  "Returns a map that only contains values where (pred value) returns true."
+  [pred map]
+  (if map
+    (select-keys map (for [[key val] map :when (pred val)] key))))
+
+(defn remove-vals
+  "Returns a map that only contains values where (pred value) returns false."
+  [pred map]
+  (filter-vals (comp not pred) map))
+
 (defn invoke-private
   "Invoke a private or protected Java method. Be very careful when using this!
    I take no responsibility for the trouble you get yourself into."
-  [method instance & params]
+  [instance method & params]
   (let [signature (into-array Class (map class params))]
     (when-let [method (first (remove nil? (for [c (ancestors (.getClass instance))]
                                             (try (.getDeclaredMethod c method signature)
