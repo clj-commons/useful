@@ -39,7 +39,9 @@
   "Try to load a namespace reference. If sucessful, evaluate then-form otherwise evaluate else-form."
   `(try (ns ~(.getName *ns*) ~ns-reference)
         (eval '~then-form)
-        (catch java.io.FileNotFoundException e#
+        (catch Exception e#
+          (when (not (instance? java.io.FileNotFoundException e#))
+            (println "Error loading" '~ns-reference (.getMessage e#)))
           (eval '~else-form))))
 
 (defn tap
