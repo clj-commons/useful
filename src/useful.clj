@@ -149,6 +149,58 @@
   [pred map]
   (filter-vals (comp not pred) map))
 
+(defn any
+  "Takes a list of predicates and returns a new predicate that returns true if any do."
+  [& preds]
+  (fn [& args]
+    (some #(apply % args) preds)))
+
+(defn all
+  "Takes a list of predicates and returns a new predicate that returns true if all do."
+  [& preds]
+  (fn [& args]
+    (every? #(apply % args) preds)))
+
+(defn slice
+  "Divide coll into n approximately equal slices."
+  [n coll]
+  (loop [num n, slices [], items (vec coll)]
+    (if (empty? items)
+      slices
+      (let [size (Math/ceil (/ (count items) num))]
+        (recur (dec num) (conj slices (subvec items 0 size)) (subvec items size))))))
+
+(defn pcollect
+  "Like pmap but not lazy and more efficient for less computationally intensive functions
+   because there is less coordination overhead. The collection is sliced among the
+   available processors and f is applied to each sub-collection in parallel using map."
+  [f coll]
+  (let [n (.. Runtime getRuntime availableProcessors)]
+    (mapcat #(deref %)
+            (map #(future (map f %)) (slice n coll)))))
+
+(defn assoc-in!
+  "Associates a value in a nested associative structure, where ks is a sequence of keys
+  and v is the new value and returns a new nested structure. The associative structure
+  can have transients in it, but if any levels do not exist, non-transient hash-maps will
+  be created."
+  [m [k & ks :as keys] v]
+  (let [assoc (if (instance? clojure.lang.ITransientCollection m) assoc! assoc)]
+    (if ks
+      (assoc m k (assoc-in! (get m k) ks v))
+      (assoc m k v))))
+
+(defn update-in!
+  "'Updates' a value in a nested associative structure, where ks is a sequence of keys and
+  f is a function that will take the old value and any supplied args and return the new
+  value, and returns a new nested structure. The associative structure can have transients
+  in it, but if any levels do not exist, non-transient hash-maps will be created."
+  [m [k & ks] f & args]
+  (let [assoc (if (instance? clojure.lang.ITransientCollection m) assoc! assoc)]
+    (if ks
+      (assoc m k (apply update-in! (get m k) ks f args))
+      (assoc m k (apply f (get m k) args)))))
+
 (defn invoke-private
   "Invoke a private or protected Java method. Be very careful when using this!
    I take no responsibility for the trouble you get yourself into."
