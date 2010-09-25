@@ -201,6 +201,25 @@
       (assoc m k (apply update-in! (get m k) ks f args))
       (assoc m k (apply f (get m k) args)))))
 
+(defn args-map [& args]
+  "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
+   maps of keys to values or collections of alternating keys and values."
+  (loop [args args map {}]
+    (if (empty? args)
+      map
+      (let [arg  (first args)
+            args (rest args)]
+       (cond
+         (nil?  arg) (recur args map)
+         (map?  arg) (recur args (merge map arg))
+         (coll? arg) (recur (into args (reverse arg)) map)
+         :else       (recur (rest args) (assoc map arg (first args))))))))
+
+(defn construct
+  "Construct a new instance of class using reflection."
+  [class & args]
+  (clojure.lang.Reflector/invokeConstructor class (into-array Object args)))
+
 (defn invoke-private
   "Invoke a private or protected Java method. Be very careful when using this!
    I take no responsibility for the trouble you get yourself into."
@@ -218,10 +237,10 @@
 (defn- parse-opt [default opts arg]
   (let [m re-matches, key (comp keyword str)]
     (cond-let
-     [[_ ks]  (m #"-(\w+)"              arg)] (apply merge-with into-vec opts (for [k ks] {(key k) [""]}))
-     [[_ k v] (m #"--?([-\w]+)=([\S]+)" arg)] (update opts (key k) into-vec (.split #"," v))
-     [[_ k]   (m #"--?([-\w]+)"         arg)] (update opts (key k) conj-vec "")
-     :else                                    (update opts default conj-vec arg))))
+     [[_ ks]  (m #"-(\w+)"           arg)] (apply merge-with into-vec opts (for [k ks] {(key k) [""]}))
+     [[_ k v] (m #"--?([-\w]+)=(.+)" arg)] (update opts (key k) into-vec (.split #"," v))
+     [[_ k]   (m #"--?([-\w]+)"      arg)] (update opts (key k) conj-vec "")
+     :else                                 (update opts default conj-vec arg))))
 
 (defn parse-opts
   "Parse command line args or the provided argument list. Returns a map of keys to
