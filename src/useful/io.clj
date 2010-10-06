@@ -1,12 +1,12 @@
 (ns useful.io
   (:use [clojure.java.io :only [copy]])
   (:import [java.net URL URLConnection JarURLConnection]
-           [java.io File FileInputStream]
+           [java.io File FileInputStream PrintStream]
            [clojure.lang Atom]))
 
 (defmacro multi-outstream [var]
   (letfn [(outs [val] (if (instance? Atom val) (first @val) val))]
-    `(java.io.PrintStream.
+    `(PrintStream.
       (proxy [java.io.BufferedOutputStream] [nil]
         (write
           ([b#]           (.write (~outs ~var) b#))
