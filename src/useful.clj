@@ -79,9 +79,9 @@
         :else right))
 
 (defn merge-in
-  "Merge two nested associative structures."
+  "Merge two nested maps."
   [left right]
-  (if (associative? left)
+  (if (map? left)
     (merge-with merge-in left right)
     right))
 
