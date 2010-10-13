@@ -175,16 +175,27 @@
   [pred keys vals]
   (last (first (filter (comp pred first) (zip keys vals)))))
 
+(defn filter-keys-by-val
+  "Returns a keys of map for which (pred value) returns true."
+  [pred map]
+  (if map
+    (for [[key val] map :when (pred val)] key)))
+
+(defn remove-keys-by-val
+  "Returns a keys of map for which (pred value) returns false."
+  [pred map]
+  (filter-keys-by-val (complement pred) map))
+
 (defn filter-vals
   "Returns a map that only contains values where (pred value) returns true."
   [pred map]
   (if map
-    (select-keys map (for [[key val] map :when (pred val)] key))))
+    (select-keys map (filter-keys-by-val pred map))))
 
 (defn remove-vals
   "Returns a map that only contains values where (pred value) returns false."
   [pred map]
-  (filter-vals (comp not pred) map))
+  (filter-vals (complement pred) map))
 
 (defn any
   "Takes a list of predicates and returns a new predicate that returns true if any do."
