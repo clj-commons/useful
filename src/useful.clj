@@ -60,8 +60,11 @@
   "Update value in map where f is a function that takes the old value and the
    supplied args and returns the new value."
   [map key f & args]
-  (let [old (get map key), new (apply f old args)]
-    (if (= old new) map (assoc map key new))))
+  (if (sequential? key)
+    (reduce #(apply update %1 %2 f args) map key)
+    (let [old (get map key)
+          new (apply f old args)]
+      (if (= old new) map (assoc map key new)))))
 
 (defn append
   "Merge two data structures by combining the contents. For maps, merge recursively by
@@ -123,13 +126,13 @@
   `(try ~form (catch Exception e# ~error-form)))
 
 (defmacro verify
-  "Execute body if test returns true, otherwise raise exception."
-  [test exception & body]
-  `(if ~test
-     (do ~@body)
-     (throw (if (string? ~exception)
-              (Exception. ~exception)
-              ~exception))))
+  "Raise exception unless test returns true."
+  [test exception]
+  (when *assert*
+    `(when-not ~test
+       (throw (if (string? ~exception)
+                (AssertionError. ~exception)
+                ~exception)))))
 
 (defn trap
   "Register signal handling function."
