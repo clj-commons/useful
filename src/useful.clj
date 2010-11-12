@@ -252,6 +252,22 @@
       (assoc m k (apply update-in! (get m k) ks f args))
       (assoc m k (apply f (get m k) args)))))
 
+(defn thrush
+  "Takes the first argument and applies the remaining arguments to it as functions from left to right.
+   This tiny implementation was written by Chris Houser. http://blog.fogus.me/2010/09/28/thrush-in-clojure-redux"
+  [& args]
+  (reduce #(%2 %1) args))
+
+(defn comp-take
+  "Like comp, but the first n args are passed to every function. The rightmost fn is
+   applied to all arguments. Each fn is then applied left-to-right to the first n args
+   followed by the result of the previous function."
+  [n & fns]
+  (fn [& args]
+    (let [[head tail] (split-at n args)
+          f (apply comp (map #(apply partial % head) fns))]
+      (apply f tail))))
+
 (defn into-map
   "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
    maps of keys to values or collections of alternating keys and values."
