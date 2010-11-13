@@ -258,15 +258,14 @@
   [& args]
   (reduce #(%2 %1) args))
 
-(defn comp-take
-  "Like comp, but the first n args are passed to every function. The rightmost fn is
-   applied to all arguments. Each fn is then applied left-to-right to the first n args
-   followed by the result of the previous function."
-  [n & fns]
+(defn comp-partial
+  "Like comp, except all args but the last are passed to every function with the last arg threaded through
+   these partial functions. So, the rightmost fn is applied to all arguments. Each fn is then applied to the
+   original args with the last arg replaced by the result of the previous fn."
+  [& fns]
   (fn [& args]
-    (let [[head tail] (split-at n args)
-          f (apply comp (map #(apply partial % head) fns))]
-      (apply f tail))))
+    (let [f (apply comp (map #(apply partial % (butlast args)) fns))]
+      (f (last args)))))
 
 (defn into-map
   "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
