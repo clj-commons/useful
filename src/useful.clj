@@ -40,7 +40,7 @@
   [val coll]
   (some (partial = val) coll))
 
-(defmacro if-ns [ns-reference then-form else-form]
+(defmacro if-ns [ns-reference then-form & [else-form]]
   "Try to load a namespace reference. If sucessful, evaluate then-form otherwise evaluate else-form."
   `(try (ns ~(.getName *ns*) ~ns-reference)
         (eval '~then-form)
