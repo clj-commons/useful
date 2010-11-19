@@ -40,6 +40,32 @@
   [val coll]
   (some (partial = val) coll))
 
+(defn extract
+  "Extracts the first item that matches pred from coll, returning a vector of that item
+   followed by coll with the items removed."
+  [pred coll]
+  (loop [head ()
+         tail (seq coll)]
+    (let [item (first tail)
+          tail (next tail)]
+      (if (or (nil? tail) (pred item))
+        [item (into tail head)]
+        (recur (conj head item) tail)))))
+
+(defn separate
+  "Split coll into two sequences, one that matches pred and one that doesn't. Unlike, the
+  version in clojure.contrib.seq-utils, this is not lazy, but pred is only called once per item."
+  [pred coll]
+  (loop [tail (seq coll)
+         yes () no ()]
+    (if (nil? tail)
+      [(reverse yes) (reverse no)]
+      (let [item (first tail)
+            tail (next tail)]
+        (if (pred item)
+          (recur tail (conj yes item) no)
+          (recur tail yes (conj no item)))))))
+
 (defmacro if-ns [ns-reference then-form & [else-form]]
   "Try to load a namespace reference. If sucessful, evaluate then-form otherwise evaluate else-form."
   `(try (ns ~(.getName *ns*) ~ns-reference)
