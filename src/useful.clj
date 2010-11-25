@@ -68,7 +68,7 @@
 
 (defmacro if-ns [ns-reference then-form & [else-form]]
   "Try to load a namespace reference. If sucessful, evaluate then-form otherwise evaluate else-form."
-  `(try (ns ~(.getName *ns*) ~ns-reference)
+  `(try (ns ~(ns-name *ns*) ~ns-reference)
         (eval '~then-form)
         (catch Exception e#
           (when (not (instance? java.io.FileNotFoundException e#))
