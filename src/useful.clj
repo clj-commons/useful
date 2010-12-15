@@ -327,6 +327,14 @@
           (.setAccessible method false)
           result)))))
 
+(defn on-shutdown
+  "Execute the given function on jvm shutdown."
+  [f]
+  (.addShutdownHook
+   (Runtime/getRuntime)
+   (proxy [Thread] []
+     (run [] (f)))))
+
 (defn- parse-opt [default opts arg]
   (let [m re-matches, key (comp keyword str)]
     (cond-let
