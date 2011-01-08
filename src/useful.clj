@@ -38,40 +38,32 @@
 (defn include?
   "Check if val exists in coll."
   [val coll]
-  (some (partial = val) coll))
+  (some #{val} coll))
 
 (defn extract
   "Extracts the first item that matches pred from coll, returning a vector of that item
    followed by coll with the items removed."
   [pred coll]
-  (loop [head ()
-         tail (seq coll)]
-    (let [item (first tail)
-          tail (next tail)]
-      (if (or (nil? tail) (pred item))
-        [item (into tail head)]
-        (recur (conj head item) tail)))))
+  (let [[head [item & tail]] (split-with (complement pred) coll)]
+    [item (concat head tail)]))
 
 (defn separate
   "Split coll into two sequences, one that matches pred and one that doesn't. Unlike, the
   version in clojure.contrib.seq-utils, this is not lazy, but pred is only called once per item."
   [pred coll]
-  (loop [tail (seq coll)
-         yes () no ()]
-    (if (nil? tail)
-      [(reverse yes) (reverse no)]
-      (let [item (first tail)
-            tail (next tail)]
-        (if (pred item)
-          (recur tail (conj yes item) no)
-          (recur tail yes (conj no item)))))))
+  (reduce (fn [[yes no] item]
+            (if (pred item)
+              [(conj yes item) no]
+              [yes (conj no item)]))
+          [[] []]
+          coll))
 
 (defmacro if-ns [ns-reference then-form & [else-form]]
-  "Try to load a namespace reference. If sucessful, evaluate then-form otherwise evaluate else-form."
+  "Try to load a namespace reference. If successful, evaluate then-form otherwise evaluate else-form."
   `(try (ns ~(ns-name *ns*) ~ns-reference)
         (eval '~then-form)
         (catch Exception e#
-          (when (not (instance? java.io.FileNotFoundException e#))
+          (when-not (instance? java.io.FileNotFoundException e#)
             (println "Error loading" '~ns-reference (.getMessage e#)))
           (eval '~else-form))))
 
@@ -195,9 +187,7 @@
   "Returns a lazy sequence of vectors of corresponding items from each collection.
    Stops when the shortest collection runs out."
   [& colls]
-  (partition
-   (count colls)
-   (apply interleave colls)))
+  (apply map vector colls))
 
 (defn find-with
   "Returns the val corresponding to the first key where (pred key) returns true."
@@ -205,9 +195,9 @@
   (last (first (filter (comp pred first) (zip keys vals)))))
 
 (defn filter-keys-by-val
-  "Returns a keys of map for which (pred value) returns true."
+  "Returns all keys in map for which (pred value) returns true."
   [pred map]
-  (if map
+  (when map
     (for [[key val] map :when (pred val)] key)))
 
 (defn remove-keys-by-val
@@ -218,7 +208,7 @@
 (defn filter-vals
   "Returns a map that only contains values where (pred value) returns true."
   [pred map]
-  (if map
+  (when map
     (select-keys map (filter-keys-by-val pred map))))
 
 (defn remove-vals
@@ -261,7 +251,7 @@
   and v is the new value and returns a new nested structure. The associative structure
   can have transients in it, but if any levels do not exist, non-transient hash-maps will
   be created."
-  [m [k & ks :as keys] v]
+  [m [k & ks] v]
   (let [assoc (if (instance? clojure.lang.ITransientCollection m) assoc! assoc)]
     (if ks
       (assoc m k (assoc-in! (get m k) ks v))
