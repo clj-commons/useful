@@ -48,8 +48,8 @@
     [item (concat head tail)]))
 
 (defn separate
-  "Split coll into two sequences, one that matches pred and one that doesn't. Unlike, the
-  version in clojure.contrib.seq-utils, this is not lazy, but pred is only called once per item."
+  "Split coll into two sequences, one that matches pred and one that doesn't. Unlike the
+  version in clojure.contrib.seq-utils, pred is only called once per item."
   [pred coll]
   (let [coll (map (fn [x]
                     [x (pred x)])
