@@ -51,12 +51,11 @@
   "Split coll into two sequences, one that matches pred and one that doesn't. Unlike, the
   version in clojure.contrib.seq-utils, this is not lazy, but pred is only called once per item."
   [pred coll]
-  (reduce (fn [[yes no] item]
-            (if (pred item)
-              [(conj yes item) no]
-              [yes (conj no item)]))
-          [[] []]
-          coll))
+  (let [coll (map (fn [x]
+                    [x (pred x)])
+                  coll)]
+    (vec (map #(map first (% second coll))
+              [filter remove]))))
 
 (defmacro if-ns [ns-reference then-form & [else-form]]
   "Try to load a namespace reference. If successful, evaluate then-form otherwise evaluate else-form."
