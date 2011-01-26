@@ -146,11 +146,10 @@
 (defmacro verify
   "Raise exception unless test returns true."
   [test exception]
-  (when *assert*
-    `(when-not ~test
-       (throw (if (string? ~exception)
-                (AssertionError. ~exception)
-                ~exception)))))
+  `(when-not ~test
+     (throw (if (string? ~exception)
+              (Exception. ~exception)
+              ~exception))))
 
 (defn trap
   "Register signal handling function."
