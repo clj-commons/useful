@@ -1,4 +1,5 @@
-(ns useful)
+(ns useful
+  (:use [clojure.walk :only [walk]]))
 
 (defmacro assoc-if
   "Create mapping from keys to values in map if test returns true."
@@ -307,6 +308,16 @@
   [num singular & [plural]]
   (let [plural (or plural (str singular "s"))]
     (str num " " (if (= 1 num) singular plural))))
+
+(defn syntax-quote ;; from leiningen.core/unquote-project
+  "Syntax quote the given form, wrapping all seqs and symbols in quote."
+  [form]
+  (walk (fn [form]
+          (cond (and (seq? form) (= `unquote (first form))) (second form)
+                (or (seq? form) (symbol? form)) (list 'quote form)
+                :else (syntax-quote form)))
+        identity
+        form))
 
 (defn construct
   "Construct a new instance of class using reflection."
