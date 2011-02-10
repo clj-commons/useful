@@ -297,6 +297,11 @@
          (coll? arg) (recur (into args (reverse arg)) map)
          :else       (recur (rest args) (assoc map arg (first args))))))))
 
+(defn position
+  "Returns a map from item to the position of its first occurance in coll."
+  [coll]
+  (into {} (reverse (map-indexed #(vector %2 %1) coll))))
+
 (defn pluralize
   "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
    For example:
