@@ -1,5 +1,5 @@
 (ns useful.datatypes
-  (:use [useful :only [position into-map]])
+  (:use [useful :only [position into-map update]])
   (:require [clojure.string :as s]))
 
 (defn- normalize-field-name [field]
@@ -20,15 +20,33 @@
   "Construct a record given a pairs of lists and values. Mapping fields into constuctor arguments is
   done an compile time, so this is more efficient than creating an empty record and calling merge."
   [type & attrs]
-  (let [fields  (record-fields type)
+  (let [fields (record-fields type)
+        index  (position fields)
+        vals   (reduce (fn [vals [field val]]
+                         (if-let [i (index (normalize-field-name field))]
+                           (assoc vals i val)
+                           (assoc-in vals
+                             [(index '--extmap) (keyword field)] val)))
+                       (vec (repeat (count fields) nil))
+                       (into-map attrs))]
+    `(new ~type ~@vals)))
+
+(defmacro assoc-record
+  "Assoc attrs into a record. Mapping fields into constuctor arguments is done an compile time,
+   so this is more efficient than calling assoc on an existing record."
+  [record & attrs]
+  (let [binding (get &env record)
+        type    (or (and binding (.getJavaClass binding))
+                    (throw (Exception. "type hint required on record to use assoc-record")))
+        fields  (record-fields type)
         index   (position fields)
-        vals    (reduce
-                 (fn [vals [field val]]
-                   (if-let [i (index (normalize-field-name field))]
-                     (assoc vals i val)
-                     (throw (Exception. (format "invalid field name %s for record %s" field type)))))
-                 (vec (repeat (count fields) nil))
-                 (into-map attrs))]
+        vals    (reduce (fn [vals [field val]]
+                          (if-let [i (index (normalize-field-name field))]
+                            (assoc vals i val)
+                            (assoc-in vals
+                              [(index '--extmap) (keyword field)] val)))
+                        (vec (map #(list (symbol (str "." %)) record) fields))
+                        (into-map attrs))]
     `(new ~type ~@vals)))
 
 (defmacro update-record
@@ -41,12 +59,22 @@
                     (throw (Exception. "type hint required on record to use update-record")))
         fields  (record-fields type)
         index   (position fields)
-        vals    (reduce
-                 (fn [vals [f field & args]]
-                   (let [i (index (normalize-field-name field))]
-                     (assoc vals
-                       i (cons f (cons (get vals i) args)))))
-
-                 (vec (map #(list (symbol (str "." %)) record) fields))
-                 forms)]
+        vals    (reduce (fn [vals [f field & args]]
+                          (if-let [i (index (normalize-field-name field))]
+                            (assoc vals
+                              i (apply list f (get vals i) args))
+                            (let [i (index '--extmap)]
+                              (assoc vals
+                                i (apply list 'update (get vals i) (keyword field) args)))))
+                        (vec (map #(list (symbol (str "." %)) record) fields))
+                        forms)]
     `(new ~type ~@vals)))
+
+(defmacro record-accessors
+  "Defines optimized macro accessors using interop and typehints for all fields in the given records."
+  [& types]
+  `(do ~@(for [type  types
+               field (record-fields type)]
+           `(defmacro ~field [~'record]
+              (list '~(symbol (str "." field))
+                    (with-meta ~'record {:tag '~(symbol (.getName (eval type)))}))))))
