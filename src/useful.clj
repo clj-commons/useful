@@ -1,4 +1,5 @@
-(ns useful)
+(ns useful
+  (:use [clojure.walk :only [walk]]))
 
 (defmacro assoc-if
   "Create mapping from keys to values in map if test returns true."
@@ -145,11 +146,10 @@
 (defmacro verify
   "Raise exception unless test returns true."
   [test exception]
-  (when *assert*
-    `(when-not ~test
-       (throw (if (string? ~exception)
-                (AssertionError. ~exception)
-                ~exception)))))
+  `(when-not ~test
+     (throw (if (string? ~exception)
+              (Exception. ~exception)
+              ~exception))))
 
 (defn trap
   "Register signal handling function."
@@ -297,6 +297,11 @@
          (coll? arg) (recur (into args (reverse arg)) map)
          :else       (recur (rest args) (assoc map arg (first args))))))))
 
+(defn position
+  "Returns a map from item to the position of its first occurance in coll."
+  [coll]
+  (into {} (reverse (map-indexed #(vector %2 %1) coll))))
+
 (defn pluralize
   "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
    For example:
@@ -307,6 +312,16 @@
   [num singular & [plural]]
   (let [plural (or plural (str singular "s"))]
     (str num " " (if (= 1 num) singular plural))))
+
+(defn syntax-quote ;; from leiningen.core/unquote-project
+  "Syntax quote the given form, wrapping all seqs and symbols in quote."
+  [form]
+  (walk (fn [form]
+          (cond (and (seq? form) (= `unquote (first form))) (second form)
+                (or (seq? form) (symbol? form)) (list 'quote form)
+                :else (syntax-quote form)))
+        identity
+        form))
 
 (defn construct
   "Construct a new instance of class using reflection."
@@ -328,6 +343,14 @@
         (let [result (.invoke method instance (into-array params))]
           (.setAccessible method accessible)
           result)))))
+
+(defn on-shutdown
+  "Execute the given function on jvm shutdown."
+  [f]
+  (.addShutdownHook
+   (Runtime/getRuntime)
+   (proxy [Thread] []
+     (run [] (f)))))
 
 (defn- parse-opt [default opts arg]
   (let [m re-matches, key (comp keyword str)]
