@@ -36,14 +36,29 @@
   [to-coll from-coll]
   (into (vec to-coll) from-coll))
 
+(defn into-map
+  "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
+   maps of keys to values or collections of alternating keys and values."
+  [& args]
+  (loop [args args map {}]
+    (if (empty? args)
+      map
+      (let [arg  (first args)
+            args (rest args)]
+       (cond
+         (nil?  arg) (recur args map)
+         (map?  arg) (recur args (merge map arg))
+         (coll? arg) (recur (into args (reverse arg)) map)
+         :else       (recur (rest args) (assoc map arg (first args))))))))
+
 (defn include?
   "Check if val exists in coll."
   [val coll]
-  (some #{val} coll))
+  (some (partial = val) coll))
 
 (defn extract
   "Extracts the first item that matches pred from coll, returning a vector of that item
-   followed by coll with the items removed."
+   followed by coll with the item removed."
   [pred coll]
   (let [[head [item & tail]] (split-with (complement pred) coll)]
     [item (concat head tail)]))
@@ -52,14 +67,12 @@
   "Split coll into two sequences, one that matches pred and one that doesn't. Unlike the
   version in clojure.contrib.seq-utils, pred is only called once per item."
   [pred coll]
-  (let [coll (map (fn [x]
-                    [x (pred x)])
-                  coll)]
-    (vec (map #(map first (% second coll))
-              [filter remove]))))
+  (let [pcoll (map #(vector % (pred %)) coll)]
+    (vec (map #(map first (% second pcoll)) [filter remove]))))
 
-(defmacro if-ns [ns-reference then-form & [else-form]]
+(defmacro if-ns
   "Try to load a namespace reference. If successful, evaluate then-form otherwise evaluate else-form."
+  [ns-reference then-form & [else-form]]
   `(try (ns ~(ns-name *ns*) ~ns-reference)
         (eval '~then-form)
         (catch Exception e#
@@ -75,8 +88,9 @@
   obj)
 
 (defn update
-  "Update value in map where f is a function that takes the old value and the
-   supplied args and returns the new value."
+  "Update value in map where f is a function that takes the old value and the supplied args and
+   returns the new value. For efficiency, Do not change map if the old value is the same as the new
+   value. If key is sequential, update all keys in the sequence with the same function."
   [map key f & args]
   (if (sequential? key)
     (reduce #(apply update %1 %2 f args) map key)
@@ -112,7 +126,7 @@
     right))
 
 (defmacro while-let
-  "Repeatedly executes body while let binding is true."
+  "Repeatedly executes body, which presumably has side-effects, while let binding is not false."
   [bindings & body]
   (let [[form test] bindings]
     `(loop [~form ~test]
@@ -281,21 +295,6 @@
   (fn [& args]
     (let [f (apply comp (map #(apply partial % (butlast args)) fns))]
       (f (last args)))))
-
-(defn into-map
-  "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
-   maps of keys to values or collections of alternating keys and values."
-  [& args]
-  (loop [args args map {}]
-    (if (empty? args)
-      map
-      (let [arg  (first args)
-            args (rest args)]
-       (cond
-         (nil?  arg) (recur args map)
-         (map?  arg) (recur args (merge map arg))
-         (coll? arg) (recur (into args (reverse arg)) map)
-         :else       (recur (rest args) (assoc map arg (first args))))))))
 
 (defn position
   "Returns a map from item to the position of its first occurance in coll."
