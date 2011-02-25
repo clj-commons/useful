@@ -33,6 +33,14 @@
   (is (= {:foo "1", :bar "2", :bang "3", :baz "4", :blah 5}
          (into-map :foo 1 :bar 2 :bang 3 [:foo "1" :baz "4"] :bar "2" '(:bang "3") {:blah 5}))))
 
+(deftest test-map-vals
+  (is (= {:foo 1 :bar 9 :baz 4}
+         (map-vals inc {:foo 0 :bar 8 :baz 3}))))
+
+(deftest test-map-vals-with-keys
+  (is (= {1 3, 7 8, 9 14}
+         (map-vals-with-keys + {1 2, 7 1, 9 5}))))
+
 (deftest test-include?
   (is (include? 5 [1 2 3 4 5]))
   (is (include? :bar '(1 4 :bar)))

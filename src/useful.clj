@@ -51,6 +51,20 @@
          (coll? arg) (recur (into args (reverse arg)) map)
          :else       (recur (rest args) (assoc map arg (first args))))))))
 
+(defn map-vals
+  "Create a new map from m by calling function f on each value to get a new value."
+  [f m]
+  (into {}
+        (for [[k v] m]
+          [k (f v)])))
+
+(defn map-vals-with-keys
+  "Create a new map from m by calling function f on each key and value to get a new value."
+  [f m]
+  (into {}
+        (for [[k v] m]
+          [k (f k v)])))
+
 (defn include?
   "Check if val exists in coll."
   [val coll]
