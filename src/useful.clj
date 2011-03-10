@@ -21,6 +21,16 @@
          (recur map (first kvs) (second kvs) (nnext kvs))
          map))))
 
+(defn or-min
+  "The minimium value of a and b, or whichever is not nil."
+  [a b]
+  (min (or a b) (or b a)))
+
+(defn or-max
+  "The maximum value of a and b, or whichever is not nil."
+  [a b]
+  (max (or a b) (or b a)))
+
 (defn conj-vec
   "Conj onto collection ensuring it is a vector."
   [coll item]
