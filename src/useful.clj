@@ -81,9 +81,11 @@
   ([map-fn reduce-fn val coll & [include-val-in-map?]]
      (reduce
       (fn [results item]
-        [(conj (first results) (map-fn item))
-         (reduce-fn (second results) item)])
-      [(if include-val-in-map? [(map-fn val)] []) val]
+        (let [item (map-fn item)]
+          [(conj (first results) item)
+           (reduce-fn (second results) item)]))
+      (let [val (map-fn val)]
+        [(if include-val-in-map? [val] []) val])
       coll))
   ([map-fn reduce-fn coll]
      (map-reduce map-fn reduce-fn (first coll) (rest coll) true)))
