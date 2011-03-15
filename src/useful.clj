@@ -238,7 +238,7 @@
     (for [[key val] map :when (pred val)] key)))
 
 (defn remove-keys-by-val
-  "Returns a keys of map for which (pred value) returns false."
+  "Returns all keys of map for which (pred value) returns false."
   [pred map]
   (filter-keys-by-val (complement pred) map))
 
@@ -252,6 +252,17 @@
   "Returns a map that only contains values where (pred value) returns false."
   [pred map]
   (filter-vals (complement pred) map))
+
+(defn filter-keys
+  "Returns a map that only contains keys where (pred key) returns true."
+  [pred map]
+  (when map
+    (select-keys map (filter pred (keys map)))))
+
+(defn remove-keys
+  "Returns a map that only contains keys where (pred key) returns false."
+  [pred map]
+  (filter-keys (complement pred) map))
 
 (defn any
   "Takes a list of predicates and returns a new predicate that returns true if any do."
