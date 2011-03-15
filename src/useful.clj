@@ -75,6 +75,19 @@
         (for [[k v] m]
           [k (f k v)])))
 
+(defn map-reduce
+  "Perform a map and a reduce over a collection in a single pass. Unlike map, this is not lazy.
+   Returns the equivalent of [(vec (map map-fn coll)) (reduce reduce-fn val coll)]."
+  ([map-fn reduce-fn val coll & [include-val-in-map?]]
+     (reduce
+      (fn [results item]
+        [(conj (first results) (map-fn item))
+         (reduce-fn (second results) item)])
+      [(if include-val-in-map? [(map-fn val)] []) val]
+      coll))
+  ([map-fn reduce-fn coll]
+     (map-reduce map-fn reduce-fn (first coll) (rest coll) true)))
+
 (defn include?
   "Check if val exists in coll."
   [val coll]
