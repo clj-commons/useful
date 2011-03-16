@@ -119,4 +119,8 @@
   (is (= nil (rescue (/ 9 0) nil)))
   (is (= 3   (rescue (/ 9 3) nil))))
 
-
+(deftest test-map-reduce
+  (is (= [[{:a 1} {:a 2} {:a 3} {:a 4}] 4]
+         (map-reduce #(hash-map :a %) #(max %1 (:a %2)) 0 [1 2 3 4])))
+  (is (= [[5 9 10 3 2] 2]
+         (map-reduce inc min [4 8 9 2 1]))))
