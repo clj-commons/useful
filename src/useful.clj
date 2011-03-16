@@ -22,14 +22,16 @@
          map))))
 
 (defn or-min
-  "The minimium value of a and b, or whichever is not nil."
-  [a b]
-  (min (or a b) (or b a)))
+  "The minimium value of vals, ignoring nils."
+  [& vals]
+  (when-let [vals (seq (remove nil? vals))]
+    (apply min vals)))
 
 (defn or-max
-  "The maximum value of a and b, or whichever is not nil."
-  [a b]
-  (max (or a b) (or b a)))
+  "The maximum value of vals, ignoring nils."
+  [& vals]
+  (when-let [vals (seq (remove nil? vals))]
+    (apply max vals)))
 
 (defn conj-vec
   "Conj onto collection ensuring it is a vector."

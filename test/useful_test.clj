@@ -14,6 +14,18 @@
              (assoc-or :b 2)
              (assoc-or :c 3)))))
 
+(deftest test-or-min
+  (is (= 3   (or-min nil 4 3 nil 9)))
+  (is (= 1   (or-min 1 2 3 4)))
+  (is (= 1   (or-min 1 nil)))
+  (is (= nil (or-min nil nil nil))))
+
+(deftest test-or-max
+  (is (= 9   (or-max nil 4 3 nil 9)))
+  (is (= 4   (or-max 1 2 3 4)))
+  (is (= 1   (or-max 1 nil)))
+  (is (= nil (or-max nil nil nil))))
+
 (deftest test-conj-vec
   (is (= (conj-vec nil  5) [5]))
   (is (= (conj-vec '(4) 5) [4 5]))
