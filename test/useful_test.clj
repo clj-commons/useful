@@ -136,3 +136,22 @@
          (map-reduce #(hash-map :a %) #(max %1 (:a %2)) 0 [1 2 3 4])))
   (is (= [[5 9 10 3 2] 2]
          (map-reduce inc min [4 8 9 2 1]))))
+
+(def *i* 1)
+
+(defn mult [num]
+  (* num *i*))
+
+(defn wrap-i [f]
+  (fn []
+    (binding [*i* 2]
+      (f))))
+
+(deftest test-pcollect
+  (is (= [1 2 3 4 5 6 7 8 9 10]
+         (pcollect inc [0 1 2 3 4 5 6 7 8 9])))
+  (is (= [2 4 6 8 10 12 14 16 18 20]
+         (pcollect mult
+                   [1 2 3 4 5 6 7 8 9 10]
+                   wrap-i))))
+

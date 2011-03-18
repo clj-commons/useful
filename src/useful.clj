@@ -302,14 +302,19 @@
       (let [size (Math/ceil (/ (count items) num))]
         (recur (dec num) (conj slices (subvec items 0 size)) (subvec items size))))))
 
+(def *pcollect-thread-num* (.. Runtime getRuntime availableProcessors))
+
 (defn pcollect
   "Like pmap but not lazy and more efficient for less computationally intensive functions
    because there is less coordination overhead. The collection is sliced among the
    available processors and f is applied to each sub-collection in parallel using map."
-  [f coll]
-  (let [n (.. Runtime getRuntime availableProcessors)]
-    (mapcat #(deref %)
-            (map #(future (map f %)) (slice n coll)))))
+  [f coll & [wrap-fn]]
+  (let [wrap-fn (or wrap-fn identity)]
+    (mapcat deref
+            (map (fn [slice]
+                   (let [body (wrap-fn #(doall (map f slice)))]
+                     (future-call body)))
+                 (slice *pcollect-thread-num* coll)))))
 
 (defn assoc-in!
   "Associates a value in a nested associative structure, where ks is a sequence of keys
