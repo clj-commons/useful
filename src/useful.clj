@@ -319,6 +319,17 @@
                         (future-call body)))
                     (slice *pcollect-thread-num* coll))))))
 
+(defn wrap-bindings
+  "Wrap f in a new fuction that re-establishes the current binding for the given vars."
+  [vars f]
+  (let [bindings (select-keys (get-thread-bindings) vars)]
+    (fn [& args]
+      (push-thread-bindings bindings)
+      (try
+        (apply f args)
+        (finally
+         (pop-thread-bindings))))))
+
 (defn assoc-in!
   "Associates a value in a nested associative structure, where ks is a sequence of keys
   and v is the new value and returns a new nested structure. The associative structure

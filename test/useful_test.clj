@@ -156,3 +156,6 @@
                (pcollect wrap-i mult
                          [1 2 3 4 5 6 7 8 9 10]))))))
 
+(deftest test-wrap-bindings
+  (binding [*i* 10]
+    (is (= 10 @(future-call (wrap-bindings [#'*i*] (fn [] *i*)))))))
