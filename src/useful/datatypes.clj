@@ -31,22 +31,23 @@
                        (into-map attrs))]
     `(new ~type ~@vals)))
 
+(defn- type-hint [binding]
+  (and binding (.hasJavaClass binding) (.getJavaClass binding)))
+
 (defmacro assoc-record
   "Assoc attrs into a record. Mapping fields into constuctor arguments is done an compile time,
    so this is more efficient than calling assoc on an existing record."
   [record & attrs]
-  (let [binding (get &env record)
-        type    (or (and binding (.getJavaClass binding))
-                    (throw (Exception. "type hint required on record to use assoc-record")))
-        fields  (record-fields type)
-        index   (position fields)
-        vals    (reduce (fn [vals [field val]]
-                          (if-let [i (index (normalize-field-name field))]
-                            (assoc vals i val)
-                            (assoc-in vals
-                              [(index '--extmap) (keyword field)] val)))
-                        (vec (map #(list (symbol (str "." %)) record) fields))
-                        (into-map attrs))]
+  (let [type   (or (type-hint (get &env record)) (throw (Exception. "type hint required on record to use assoc-record")))
+        fields (record-fields type)
+        index  (position fields)
+        vals   (reduce (fn [vals [field val]]
+                         (if-let [i (index (normalize-field-name field))]
+                           (assoc vals i val)
+                           (assoc-in vals
+                             [(index '--extmap) (keyword field)] val)))
+                       (vec (map #(list (symbol (str "." %)) record) fields))
+                       (into-map attrs))]
     `(new ~type ~@vals)))
 
 (defmacro update-record
@@ -54,20 +55,18 @@
   into constuctor arguments is done an compile time, so this is more efficient than calling assoc on
   an existing record."
   [record & forms]
-  (let [binding (get &env record)
-        type    (or (and binding (.getJavaClass binding))
-                    (throw (Exception. "type hint required on record to use update-record")))
-        fields  (record-fields type)
-        index   (position fields)
-        vals    (reduce (fn [vals [f field & args]]
-                          (if-let [i (index (normalize-field-name field))]
-                            (assoc vals
-                              i (apply list f (get vals i) args))
-                            (let [i (index '--extmap)]
-                              (assoc vals
-                                i (apply list 'update (get vals i) (keyword field) args)))))
-                        (vec (map #(list (symbol (str "." %)) record) fields))
-                        forms)]
+  (let [type   (or (type-hint (get &env record)) (throw (Exception. "type hint required on record to use update-record")))
+        fields (record-fields type)
+        index  (position fields)
+        vals   (reduce (fn [vals [f field & args]]
+                         (if-let [i (index (normalize-field-name field))]
+                           (assoc vals
+                             i (apply list f (get vals i) args))
+                           (let [i (index '--extmap)]
+                             (assoc vals
+                               i (apply list 'update (get vals i) (keyword field) args)))))
+                       (vec (map #(list (symbol (str "." %)) record) fields))
+                       forms)]
     `(new ~type ~@vals)))
 
 (defmacro record-accessors
