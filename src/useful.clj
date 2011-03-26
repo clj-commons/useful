@@ -117,8 +117,9 @@
   `(try (ns ~(ns-name *ns*) ~ns-reference)
         (eval '~then-form)
         (catch Exception e#
-          (when-not (instance? java.io.FileNotFoundException e#)
-            (println "Error loading" '~ns-reference (.getMessage e#)))
+          (when-not (or (instance? java.io.FileNotFoundException    e#)
+                        (instance? java.lang.ClassNotFoundException e#))
+            (printf "%s: %s %s" (.getName (class e#)) (.getMessage e#) '~ns-reference))
           (eval '~else-form))))
 
 (defn tap
