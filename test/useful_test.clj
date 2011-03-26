@@ -137,6 +137,13 @@
   (is (= [[5 9 10 3 2] 2]
          (map-reduce inc min [4 8 9 2 1]))))
 
+(deftest test-zip
+  (is (= [[1 4 8] [2 5 9] [3 6 nil] [nil 7 nil]] (zip [1 2 3] [4 5 6 7] [8 9]))))
+
+(deftest test-find-with
+  (is (= :foo (find-with odd?  [2 4 5 7] [:bar :baz :foo :bap])))
+  (is (= nil  (find-with even? [1 3 5 9] [:bar :baz :foo :bap]))))
+
 (def *i* 1)
 
 (defn mult [num]

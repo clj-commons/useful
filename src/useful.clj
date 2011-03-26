@@ -239,15 +239,18 @@
        ~else-form)))
 
 (defn zip
-  "Returns a lazy sequence of vectors of corresponding items from each collection.
-   Stops when the shortest collection runs out."
+  "Returns a lazy sequence of vectors of corresponding items from each collection. If one collection
+   is longer than the others, the missing items will be filled in with nils."
   [& colls]
-  (apply map vector colls))
+  (lazy-seq
+   (when (some seq colls)
+     (cons (vec (map first colls))
+           (apply zip (map rest colls))))))
 
 (defn find-with
   "Returns the val corresponding to the first key where (pred key) returns true."
   [pred keys vals]
-  (last (first (filter (comp pred first) (zip keys vals)))))
+  (last (first (filter (comp pred first) (map vector keys vals)))))
 
 (defn filter-keys-by-val
   "Returns all keys in map for which (pred value) returns true."
