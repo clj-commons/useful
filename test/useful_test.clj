@@ -166,3 +166,11 @@
 (deftest test-wrap-bindings
   (binding [*i* 10]
     (is (= 10 @(future-call (wrap-bindings [#'*i*] (fn [] *i*)))))))
+
+(deftest test-map-to
+  (is (= {1 2 3 4 5 6} (map-to inc [1 3 5])))
+  (is (= {2 1}         (map-to dec [2 2 2]))))
+
+(deftest test-index-by
+  (is (= {true 3 false 4} (index-by odd? [1 3 4])))
+  (is (= {1 2 3 4 5 6}    (index-by dec  [2 4 6]))))

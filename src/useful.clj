@@ -376,6 +376,20 @@
   [coll]
   (into {} (reverse (map-indexed #(vector %2 %1) coll))))
 
+(defn map-to
+  "Returns a map from each item in coll to f applied to that item."
+  [f coll]
+  (into {}
+        (for [item coll]
+          [item (f item)])))
+
+(defn index-by
+  "Returns a map from the result of calling f on each item in coll to that item."
+  [f coll]
+  (into {}
+        (for [item coll]
+          [(f item) item])))
+
 (defn pluralize
   "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
    For example:
