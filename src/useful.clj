@@ -111,6 +111,18 @@
   (let [pcoll (map #(vector % (pred %)) coll)]
     (vec (map #(map first (% second pcoll)) [filter remove]))))
 
+(defn split-vec
+  "Split the given vector at the provided offsets using subvec. Supports negative offsets."
+  [v & ns]
+  (let [ns (map #(if (neg? %) (+ % (count v)) %) ns)]
+    (lazy-seq
+     (if-let [n (first ns)]
+       (cons (subvec v 0 n)
+             (apply split-vec
+                    (subvec v n)
+                    (map #(- % n) (rest ns))))
+       (list v)))))
+
 (defmacro if-ns
   "Try to load a namespace reference. If successful, evaluate then-form otherwise evaluate else-form."
   [ns-reference then-form & [else-form]]

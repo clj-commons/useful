@@ -68,6 +68,12 @@
   (is (= ['(5 1 7) '(2 4 6 2)] (separate odd?  [2 4 6 5 1 2 7])))
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
 
+(deftest test-split-vec
+  (is (= [[1 2] [3 4]]       (split-vec [1 2 3 4]     2)))
+  (is (= [[1 2] [3 4] [5 6]] (split-vec [1 2 3 4 5 6] 2 4)))
+  (is (= [[1] [2 3 4 5] [6]] (split-vec [1 2 3 4 5 6] 1 5)))
+  (is (= [[1] [2 3 4] [5 6]] (split-vec [1 2 3 4 5 6] 1 -2))))
+
 (deftest test-if-ns
   (if-ns (:use this-namespace.should-not-exist)
     (is false)
