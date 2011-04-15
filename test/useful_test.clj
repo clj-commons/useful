@@ -97,9 +97,9 @@
          (-> {:a 3 :b 4}
              (update [:a :b] * 2)))))
 
-(deftest test-append
+(deftest test-adjoin
   (is (= {:a [1 2 3] :b {"foo" [2 3 5] "bar" 7 "bap" 9 "baz" 2} :c #{2 4 6 8}}
-         (append
+         (adjoin
           {:a [1]    :b {"foo" [2 3] "bar" 8 "bap" 9} :c #{2 3 4 6}}
           {:a [2 3]  :b {"foo" [5]   "bar" 7 "baz" 2} :c {3 false 8 true}}))))
 

@@ -152,16 +152,16 @@
           new (apply f old args)]
       (if (= old new) map (assoc map key new)))))
 
-(defn append
+(defn adjoin
   "Merge two data structures by combining the contents. For maps, merge recursively by
-  appending values with the same key. For collections, combine the right and left using
+  adjoining values with the same key. For collections, combine the right and left using
   into or conj. If the left value is a set and the right value is a map, the right value
   is assumed to be an existence map where the value determines whether the key is in the
   merged set. This makes sets unique from other collections because items can be deleted
   from them."
   [left right]
   (cond (map? left)
-        (merge-with append left right)
+        (merge-with adjoin left right)
 
         (and (set? left) (map? right))
         (reduce (fn [set [k v]] ((if v conj disj) set k))
