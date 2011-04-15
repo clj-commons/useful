@@ -143,6 +143,14 @@
   (is (= [[5 9 10 3 2] 2]
          (map-reduce inc min [4 8 9 2 1]))))
 
+(deftest test-let-if
+  (doseq [a [1 2]]
+    (let-if (even? a)
+            [even true,  odd false]
+            [even false, odd true]
+      (is (= even (even? a)))
+      (is (= odd  (odd?  a))))))
+
 (deftest test-zip
   (is (= [[1 4 8] [2 5 9] [3 6 nil] [nil 7 nil]] (zip [1 2 3] [4 5 6 7] [8 9]))))
 

@@ -250,6 +250,20 @@
        ~then-form
        ~else-form)))
 
+(defmacro let-if
+  "Choose a set of bindings based on the result of a conditional test.
+   Example:
+   (let-if (even? a)
+           [b (bar 1 2 3)
+            c (foo 1)]
+           [b (baz 1 2 3)
+            c (foo 2)]
+     (println (combine b c)))"
+  [test then-bindings else-bindings & forms]
+  `(if ~test
+     (let ~then-bindings ~@forms)
+     (let ~else-bindings ~@forms)))
+
 (defn zip
   "Returns a lazy sequence of vectors of corresponding items from each collection. If one collection
    is longer than the others, the missing items will be filled in with nils."
