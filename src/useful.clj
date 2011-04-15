@@ -252,17 +252,18 @@
 
 (defmacro let-if
   "Choose a set of bindings based on the result of a conditional test.
+
    Example:
    (let-if (even? a)
-           [b (bar 1 2 3)
-            c (foo 1)]
-           [b (baz 1 2 3)
-            c (foo 2)]
+           [b (bar 1 2 3) (baz 1 2 3)
+            c (foo 1)     (foo 3)]
      (println (combine b c)))"
-  [test then-bindings else-bindings & forms]
-  `(if ~test
-     (let ~then-bindings ~@forms)
-     (let ~else-bindings ~@forms)))
+  [test bindings & forms]
+  (let [then-bindings (vec (apply concat (partition 2 3 bindings)))
+        else-bindings (vec (apply concat (take 1 bindings) (partition-all 2 3 (drop 2 bindings))))]
+    `(if ~test
+       (let ~then-bindings ~@forms)
+       (let ~else-bindings ~@forms))))
 
 (defn zip
   "Returns a lazy sequence of vectors of corresponding items from each collection. If one collection

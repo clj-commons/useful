@@ -146,8 +146,8 @@
 (deftest test-let-if
   (doseq [a [1 2]]
     (let-if (even? a)
-            [even true,  odd false]
-            [even false, odd true]
+            [odd  false true
+             even true  false]
       (is (= even (even? a)))
       (is (= odd  (odd?  a))))))
 
