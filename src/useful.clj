@@ -274,6 +274,11 @@
      (cons (vec (map first colls))
            (apply zip (map rest colls))))))
 
+(defn find-first
+  "Returns the first item of coll where (pred item) returns logical true."
+  [pred coll]
+  (first (filter pred coll)))
+
 (defn find-with
   "Returns the val corresponding to the first key where (pred key) returns true."
   [pred keys vals]
