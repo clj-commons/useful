@@ -448,6 +448,38 @@
   [class & args]
   (clojure.lang.Reflector/invokeConstructor class (into-array Object args)))
 
+(defn cross
+  "Computes the cartesian-product of the provided seqs. In other words, compute the set of all
+  possible combinations of ways you can choose one item from each seq."
+  [& seqs]
+  (if (seq (rest seqs))
+    (for [x (first seqs)
+          y (apply cross (rest seqs))]
+      (cons x y))
+    (map list (first seqs))))
+
+(defn lazy-cross
+  "Compute a lazy cartesian-product of the provided seqs. The provided seqs can be lazy or even
+   infinite, and lazy-cross will consume all sequences equally, only consuming more of any sequence
+   when all possible combinations at the current level have been exhausted. This can be thought of
+   intuitively as a breadth-first search of the cartesian product set."
+  [& seqs]
+  (letfn [(step [heads tails dim]
+            (lazy-seq
+             (when (< dim (count tails))
+               (let [tail (get tails dim)]
+                 (concat (apply cross (assoc heads dim tail))
+                         (step (update-in heads [dim] concat tail)
+                               tails (inc dim)))))))
+          (lazy-cross [seqs level]
+            (lazy-seq
+             (let [heads (vec (map #(take level %) seqs))
+                   tails (vec (map #(take 1 (drop level %)) seqs))]
+               (when-not (every? empty? tails)
+                 (concat (step heads tails 0)
+                         (lazy-cross seqs (inc level)))))))]
+    (lazy-cross seqs 0)))
+
 (defn invoke-private
   "Invoke a private or protected Java method. Be very careful when using this!
    I take no responsibility for the trouble you get yourself into."
