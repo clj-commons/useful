@@ -196,3 +196,12 @@
 (deftest test-lazy-cross
   (is (= '((0 0) (1 0) (0 1) (1 1))         (lazy-cross [0 1] [0 1])))
   (is (= '((0 0 2) (1 0 2) (0 1 2) (1 1 2)) (lazy-cross [0 1] [0 1] [2]))))
+
+(deftest test-memoize-deref
+  (let [incr (memoize-deref [#'*i*] (fn [i] (+ i *i*)))]
+    (binding [*i* 4]
+      (is (= 9 (incr 5)))
+      (is (= 1 (incr -3))))
+    (binding [*i* 1]
+      (is (= 6  (incr 5)))
+      (is (= -2 (incr -3))))))

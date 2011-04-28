@@ -480,6 +480,17 @@
                          (lazy-cross seqs (inc level)))))))]
     (lazy-cross seqs 0)))
 
+(defn memoize-deref
+  "Returns a memoized version a non-referentially transparent function, calling deref on each
+   provided var (or ref or atom) and using that in the cache key to prevent cross-contamination if
+   any of the values change."
+  [vars f]
+  (let [mem (memoize
+             (fn [args vals]
+               (apply f args)))]
+    (fn [& args]
+      (mem args (doall (map deref vars))))))
+
 (defn invoke-private
   "Invoke a private or protected Java method. Be very careful when using this!
    I take no responsibility for the trouble you get yourself into."
