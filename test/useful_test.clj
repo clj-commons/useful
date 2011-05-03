@@ -190,18 +190,24 @@
   (is (= {1 2 3 4 5 6}    (index-by dec  [2 4 6]))))
 
 (deftest test-cross
-  (is (= '((0 0) (0 1) (1 0) (1 1))          (cross [0 1] [0 1])))
-  (is (= '((0 0 2) (0 1 2) (1 0 2) (1 1 2))) (cross [0 1] [0 1] [2])))
+  (is (= '((0 0) (0 1) (1 0) (1 1))          (cross [0 1 2] [0 1 2])))
+  (is (= '((0 0 2) (0 1 2) (1 0 2) (1 1 2))) (cross [0 1 2] [0 1 2] [0 1 2])))
 
 (deftest test-lazy-cross
   (is (= '((0 0) (1 0) (0 1) (1 1))         (lazy-cross [0 1] [0 1])))
   (is (= '((0 0 2) (1 0 2) (0 1 2) (1 1 2)) (lazy-cross [0 1] [0 1] [2]))))
 
 (deftest test-memoize-deref
-  (let [incr (memoize-deref [#'*i*] (fn [i] (+ i *i*)))]
-    (binding [*i* 4]
-      (is (= 9 (incr 5)))
-      (is (= 1 (incr -3))))
-    (binding [*i* 1]
-      (is (= 6  (incr 5)))
-      (is (= -2 (incr -3))))))
+  (let [count (atom 0)
+        incr  (memoize-deref [#'*i*]
+                (fn [i]
+                  (swap! count inc)
+                  (+ i *i*)))]
+    (dotimes [n 5]
+      (binding [*i* 4]
+        (is (= 9 (incr 5)))
+        (is (= 1 (incr -3))))
+      (binding [*i* 1]
+        (is (= 6  (incr 5)))
+        (is (= -2 (incr -3)))))
+    (is (= 4 @count))))
