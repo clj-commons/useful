@@ -18,7 +18,7 @@
 
 (defmacro make-record
   "Construct a record given a pairs of lists and values. Mapping fields into constuctor arguments is
-  done an compile time, so this is more efficient than creating an empty record and calling merge."
+  done at compile time, so this is more efficient than creating an empty record and calling merge."
   [type & attrs]
   (let [fields (record-fields type)
         index  (position fields)
@@ -35,7 +35,7 @@
   (and binding (.hasJavaClass binding) (.getJavaClass binding)))
 
 (defmacro assoc-record
-  "Assoc attrs into a record. Mapping fields into constuctor arguments is done an compile time,
+  "Assoc attrs into a record. Mapping fields into constuctor arguments is done at compile time,
    so this is more efficient than calling assoc on an existing record."
   [record & attrs]
   (let [type   (or (type-hint (get &env record)) (throw (Exception. "type hint required on record to use assoc-record")))
@@ -52,7 +52,7 @@
 
 (defmacro update-record
   "Construct a record given a list of forms like (update-fn record-field & args). Mapping fields
-  into constuctor arguments is done an compile time, so this is more efficient than calling assoc on
+  into constuctor arguments is done at compile time, so this is more efficient than calling assoc on
   an existing record."
   [record & forms]
   (let [type   (or (type-hint (get &env record)) (throw (Exception. "type hint required on record to use update-record")))
