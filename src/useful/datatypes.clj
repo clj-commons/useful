@@ -64,7 +64,7 @@
                              i (apply list f (get vals i) args))
                            (let [i (index '--extmap)]
                              (assoc vals
-                               i (apply list 'update (get vals i) (keyword field) args)))))
+                               i (apply list `update (get vals i) (keyword field) args)))))
                        (vec (map #(list (symbol (str "." %)) record) fields))
                        forms)]
     `(new ~type ~@vals)))
