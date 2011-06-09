@@ -4,10 +4,9 @@
 (defmacro assoc-if
   "Create mapping from keys to values in map if test returns true."
   [map test & kvs]
-  (let [assoc (cons 'assoc (cons map kvs))]
-    `(if ~test
-       ~assoc
-       ~map)))
+  `(if ~test
+     (assoc ~map ~@kvs)
+     ~map))
 
 (defn assoc-or
   "Create mapping from each key to val in map only if existing val is nil."
@@ -57,11 +56,11 @@
       map
       (let [arg  (first args)
             args (rest args)]
-       (cond
-         (nil?  arg) (recur args map)
-         (map?  arg) (recur args (merge map arg))
-         (coll? arg) (recur (into args (reverse arg)) map)
-         :else       (recur (rest args) (assoc map arg (first args))))))))
+       (condp #(%1 %2) arg
+         nil?  (recur args map)
+         map?  (recur args (merge map arg))
+         coll? (recur (into args (reverse arg)) map)
+         (recur (rest args) (assoc map arg (first args))))))))
 
 (defn map-vals
   "Create a new map from m by calling function f on each value to get a new value."
@@ -229,9 +228,8 @@
 
 (defmacro defm [name & fdecl]
   "Define a function with memoization. Takes the same arguments as defn."
-  `(let [var (defn ~name ~@fdecl)]
-     (alter-var-root var (fn [f#] (with-meta (memoize f#) (meta f#))))
-     var))
+  `(doto (defn ~name ~@fdecl)
+     (alter-var-root #(with-meta (memoize %) (meta %)))))
 
 (defmacro cond-let
   "An implementation of cond-let that is as similar as possible to if-let. Takes multiple
@@ -366,27 +364,25 @@
         (finally
          (pop-thread-bindings))))))
 
-(defn assoc-in!
-  "Associates a value in a nested associative structure, where ks is a sequence of keys
-  and v is the new value and returns a new nested structure. The associative structure
-  can have transients in it, but if any levels do not exist, non-transient hash-maps will
-  be created."
-  [m [k & ks] v]
-  (let [assoc (if (instance? clojure.lang.ITransientCollection m) assoc! assoc)]
-    (if ks
-      (assoc m k (assoc-in! (get m k) ks v))
-      (assoc m k v))))
-
 (defn update-in!
   "'Updates' a value in a nested associative structure, where ks is a sequence of keys and
   f is a function that will take the old value and any supplied args and return the new
   value, and returns a new nested structure. The associative structure can have transients
   in it, but if any levels do not exist, non-transient hash-maps will be created."
   [m [k & ks] f & args]
-  (let [assoc (if (instance? clojure.lang.ITransientCollection m) assoc! assoc)]
-    (if ks
-      (assoc m k (apply update-in! (get m k) ks f args))
-      (assoc m k (apply f (get m k) args)))))
+  (let [assoc (if (instance? clojure.lang.ITransientCollection m) assoc! assoc)
+        val (get m k)]
+    (assoc m k (if ks
+                 (apply update-in! val ks f args)
+                 (apply f val args)))))
+
+(defn assoc-in!
+  "Associates a value in a nested associative structure, where ks is a sequence of keys
+  and v is the new value and returns a new nested structure. The associative structure
+  can have transients in it, but if any levels do not exist, non-transient hash-maps will
+  be created."
+  [m ks v]
+  (update-in! m ks (constantly v)))
 
 (defn thrush
   "Takes the first argument and applies the remaining arguments to it as functions from left to right.
@@ -404,7 +400,7 @@
       (f (last args)))))
 
 (defn position
-  "Returns a map from item to the position of its first occurance in coll."
+  "Returns a map from item to the position of its first occurence in coll."
   [coll]
   (into {} (reverse (map-indexed #(vector %2 %1) coll))))
 
@@ -495,14 +491,16 @@
   "Invoke a private or protected Java method. Be very careful when using this!
    I take no responsibility for the trouble you get yourself into."
   [instance method & params]
-  (let [signature (into-array Class (map class params))]
-    (when-let [method (first (remove nil? (for [c (ancestors (.getClass instance))]
-                                            (try (.getDeclaredMethod c method signature)
-                                                 (catch NoSuchMethodException e)))))]
+  (let [signature (into-array Class (map class params))
+        c (.getClass instance)]
+    (when-let [method (some #(try
+                               (.getDeclaredMethod % method signature)
+                               (catch NoSuchMethodException e))
+                            (conj (ancestors c) c))]
       (let [accessible (.isAccessible method)]
         (.setAccessible method true)
         (let [result (.invoke method instance (into-array params))]
-          (.setAccessible method false)
+          (.setAccessible method accessible)
           result)))))
 
 (defn on-shutdown
@@ -510,8 +508,7 @@
   [f]
   (.addShutdownHook
    (Runtime/getRuntime)
-   (proxy [Thread] []
-     (run [] (f)))))
+   (Thread. f)))
 
 (defn- parse-opt [default opts arg]
   (let [m re-matches, key (comp keyword str)]
