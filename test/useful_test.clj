@@ -1,5 +1,5 @@
 (ns useful-test
-  (:use clojure.test useful))
+  (:use clojure.test useful.utils useful.maps))
 
 (deftest test-assoc-if
   (is (= {:a 1 :b 3}
@@ -137,12 +137,6 @@
   (is (= nil (rescue (/ 9 0) nil)))
   (is (= 3   (rescue (/ 9 3) nil))))
 
-(deftest test-map-reduce
-  (is (= [[{:a 1} {:a 2} {:a 3} {:a 4}] 4]
-         (map-reduce #(hash-map :a %) #(max %1 (:a %2)) 0 [1 2 3 4])))
-  (is (= [[5 9 10 3 2] 2]
-         (map-reduce inc min [4 8 9 2 1]))))
-
 (deftest test-let-if
   (doseq [a [1 2]]
     (let-if (even? a)
@@ -176,10 +170,6 @@
       (is (= [2 4 6 8 10 12 14 16 18 20]
                (pcollect wrap-i mult
                          [1 2 3 4 5 6 7 8 9 10]))))))
-
-(deftest test-wrap-bindings
-  (binding [*i* 10]
-    (is (= 10 @(future-call (wrap-bindings [#'*i*] (fn [] *i*)))))))
 
 (deftest test-map-to
   (is (= {1 2 3 4 5 6} (map-to inc [1 3 5])))
