@@ -1,36 +1,30 @@
-(ns useful
-  (:use [clojure.walk :only [walk]]))
+(ns useful.utils
+  (:use [clojure.walk :only [walk]]
+        [useful.amalloy :only [decorate]]
+        [useful.amalloy.seq :only [alternates]]))
 
-(defmacro assoc-if
-  "Create mapping from keys to values in map if test returns true."
-  [map test & kvs]
-  `(if ~test
-     (assoc ~map ~@kvs)
-     ~map))
+(defn ignoring-nils
+  "Create a new version of a function which ignores all nils in its arguments:
+((ignoring-nils +) 1 nil 2 3 nil) yields 6."
+  [f]
+  (fn
+    ([])
+    ([a] (f a))
+    ([a b]
+       (cond (nil? b) (f a)
+             (nil? a) (f b)
+             :else (f a b)))
+    ([a b & more]
+       (when-let [items (seq (remove nil? (list* a b more)))]
+         (apply f items)))))
 
-(defn assoc-or
-  "Create mapping from each key to val in map only if existing val is nil."
-  ([map key val]
-     (if (nil? (map key))
-       (assoc map key val)
-       map))
-  ([map key val & kvs]
-     (let [map (assoc-or map key val)]
-       (if kvs
-         (recur map (first kvs) (second kvs) (nnext kvs))
-         map))))
+(def ^{:doc "The minimium value of vals, ignoring nils."
+       :arglists '([& args])}
+  or-min (ignoring-nils min))
 
-(defn or-min
-  "The minimium value of vals, ignoring nils."
-  [& vals]
-  (when-let [vals (seq (remove nil? vals))]
-    (apply min vals)))
-
-(defn or-max
-  "The maximum value of vals, ignoring nils."
-  [& vals]
-  (when-let [vals (seq (remove nil? vals))]
-    (apply max vals)))
+(def ^{:doc "The maximium value of vals, ignoring nils."
+       :arglists '([& args])}
+  or-max (ignoring-nils max))
 
 (defn conj-vec
   "Conj onto collection ensuring it is a vector."
@@ -46,50 +40,6 @@
   "Returns a new vector consisting of to-coll with all of the items of from-coll conjoined."
   [to-coll from-coll]
   (into (vec to-coll) from-coll))
-
-(defn into-map
-  "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
-   maps of keys to values or collections of alternating keys and values."
-  [& args]
-  (loop [args args map {}]
-    (if (empty? args)
-      map
-      (let [arg  (first args)
-            args (rest args)]
-       (condp #(%1 %2) arg
-         nil?  (recur args map)
-         map?  (recur args (merge map arg))
-         coll? (recur (into args (reverse arg)) map)
-         (recur (rest args) (assoc map arg (first args))))))))
-
-(defn map-vals
-  "Create a new map from m by calling function f on each value to get a new value."
-  [f m]
-  (into {}
-        (for [[k v] m]
-          [k (f v)])))
-
-(defn map-vals-with-keys
-  "Create a new map from m by calling function f on each key and value to get a new value."
-  [f m]
-  (into {}
-        (for [[k v] m]
-          [k (f k v)])))
-
-(defn map-reduce
-  "Perform a map and a reduce over a collection in a single pass. Unlike map, this is not lazy.
-   Returns the equivalent of [(vec (map map-fn coll)) (reduce reduce-fn val coll)]."
-  ([map-fn reduce-fn reduce-val coll & [map-val]]
-     (reduce
-      (fn [results item]
-        (let [item (map-fn item)]
-          [(conj (first results) item)
-           (reduce-fn (second results) item)]))
-      [(into [] map-val) reduce-val]
-      coll))
-  ([map-fn reduce-fn coll]
-     (let [val (map-fn (first coll))]
-       (map-reduce map-fn reduce-fn val (rest coll) [val]))))
 
 (defn include?
   "Check if val exists in coll."
@@ -107,8 +57,9 @@
   "Split coll into two sequences, one that matches pred and one that doesn't. Unlike the
   version in clojure.contrib.seq-utils, pred is only called once per item."
   [pred coll]
-  (let [pcoll (map #(vector % (pred %)) coll)]
-    (vec (map #(map first (% second pcoll)) [filter remove]))))
+  (let [pcoll (map (decorate pred) coll)]
+    (vec (for [f [filter remove]]
+           (map first (f second pcoll))))))
 
 (defn split-vec
   "Split the given vector at the provided offsets using subvec. Supports negative offsets."
@@ -137,19 +88,7 @@
   "Call f on obj, presumably with side effects, then return obj. Useful for debugging when
    you want to print an object inline. e.g. (tap println foo)"
   [f obj]
-  (f obj)
-  obj)
-
-(defn update
-  "Update value in map where f is a function that takes the old value and the supplied args and
-   returns the new value. For efficiency, Do not change map if the old value is the same as the new
-   value. If key is sequential, update all keys in the sequence with the same function."
-  [map key f & args]
-  (if (sequential? key)
-    (reduce #(apply update %1 %2 f args) map key)
-    (let [old (get map key)
-          new (apply f old args)]
-      (if (= old new) map (assoc map key new)))))
+  (doto obj f))
 
 (defn adjoin
   "Merge two data structures by combining the contents. For maps, merge recursively by
@@ -170,13 +109,6 @@
         ((if (coll? right) into conj) left right)
 
         :else right))
-
-(defn merge-in
-  "Merge two nested maps."
-  [left right]
-  (if (map? left)
-    (merge-with merge-in left right)
-    right))
 
 (defmacro while-let
   "Repeatedly executes body, which presumably has side-effects, while let binding is not false."
@@ -205,7 +137,7 @@
   (apply println message)
   (System/exit 1))
 
-(defmacro rescue
+(defmacro rescue ;; XXX Throwable?
   "Evaluate form, returning error-form on any Exception."
   [form error-form]
   `(try ~form (catch Exception e# ~error-form)))
@@ -226,9 +158,9 @@
    (proxy [sun.misc.SignalHandler] []
      (handle [sig] (f sig)))))
 
-(defmacro defm [name & fdecl]
+(defmacro defm [& defn-args]
   "Define a function with memoization. Takes the same arguments as defn."
-  `(doto (defn ~name ~@fdecl)
+  `(doto (defn ~@defn-args)
      (alter-var-root #(with-meta (memoize %) (meta %)))))
 
 (defmacro cond-let
@@ -257,11 +189,10 @@
             c (foo 1)     (foo 3)]
      (println (combine b c)))"
   [test bindings & forms]
-  (let [then-bindings (vec (apply concat (partition 2 3 bindings)))
-        else-bindings (vec (apply concat (take 1 bindings) (partition-all 2 3 (drop 2 bindings))))]
+  (let [[names thens elses] (alternates 3 bindings)]
     `(if ~test
-       (let ~then-bindings ~@forms)
-       (let ~else-bindings ~@forms))))
+       (let [~names ~thens] ~@forms)
+       (let [~names ~elses] ~@forms))))
 
 (defn zip
   "Returns a lazy sequence of vectors of corresponding items from each collection. If one collection
@@ -353,17 +284,6 @@
                         (future-call body)))
                     (slice *pcollect-thread-num* coll))))))
 
-(defn wrap-bindings
-  "Wrap f in a new fuction that re-establishes the current binding for the given vars."
-  [vars f]
-  (let [bindings (select-keys (get-thread-bindings) vars)]
-    (fn [& args]
-      (push-thread-bindings bindings)
-      (try
-        (apply f args)
-        (finally
-         (pop-thread-bindings))))))
-
 (defn update-in!
   "'Updates' a value in a nested associative structure, where ks is a sequence of keys and
   f is a function that will take the old value and any supplied args and return the new
@@ -390,19 +310,11 @@
   [& args]
   (reduce #(%2 %1) args))
 
-(defn comp-partial
-  "Like comp, except all args but the last are passed to every function with the last arg threaded through
-   these partial functions. So, the rightmost fn is applied to all arguments. Each fn is then applied to the
-   original args with the last arg replaced by the result of the previous fn."
-  [& fns]
-  (fn [& args]
-    (let [f (apply comp (map #(apply partial % (butlast args)) fns))]
-      (f (last args)))))
-
 (defn position
   "Returns a map from item to the position of its first occurence in coll."
   [coll]
-  (into {} (reverse (map-indexed #(vector %2 %1) coll))))
+  (into {} (map-indexed (fn [idx val] [val idx])
+                        (reverse coll)))) ; so earlier values clobber later ones
 
 (defn map-to
   "Returns a map from each item in coll to f applied to that item."
