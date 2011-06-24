@@ -83,12 +83,6 @@
     (is true)
     (is false)))
 
-(deftest test-tap
-  (let [a (atom 0)]
-    (is (= 5 (tap #(swap! a + %)
-                  (+ 2 3))))
-    (is (= 5 @a))))
-
 (deftest test-update
   (is (= {:a 3 :b 3}
          (-> {:a 2 :b 4}
@@ -126,13 +120,6 @@
     (is (= 3 (-> q pop pop first)))
     (is (= 4 (-> q pop pop pop first)))
     (is (= 4 (count q)))))
-
-(deftest test-absorb
-  (is (= nil  (absorb nil inc)))
-  (is (= nil  (absorb nil (+ 8))))
-  (is (= 4    (absorb 3   inc)))
-  (is (= 11   (absorb 3   (+ 8))))
-  (is (= true (absorb false not))))
 
 (deftest test-rescue
   (is (= nil (rescue (/ 9 0) nil)))
