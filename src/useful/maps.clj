@@ -65,3 +65,23 @@
   (if (map? left)
     (merge-with merge-in left right)
     right))
+
+(defn update-in!
+  "'Updates' a value in a nested associative structure, where ks is a sequence of keys and
+  f is a function that will take the old value and any supplied args and return the new
+  value, and returns a new nested structure. The associative structure can have transients
+  in it, but if any levels do not exist, non-transient hash-maps will be created."
+  [m [k & ks] f & args]
+  (let [assoc (if (instance? clojure.lang.ITransientCollection m) assoc! assoc)
+        val (get m k)]
+    (assoc m k (if ks
+                 (apply update-in! val ks f args)
+                 (apply f val args)))))
+
+(defn assoc-in!
+  "Associates a value in a nested associative structure, where ks is a sequence of keys
+  and v is the new value and returns a new nested structure. The associative structure
+  can have transients in it, but if any levels do not exist, non-transient hash-maps will
+  be created."
+  [m ks v]
+  (update-in! m ks (constantly v)))

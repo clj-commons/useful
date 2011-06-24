@@ -46,21 +46,6 @@
   [val coll]
   (some (partial = val) coll))
 
-(defn extract
-  "Extracts the first item that matches pred from coll, returning a vector of that item
-   followed by coll with the item removed."
-  [pred coll]
-  (let [[head [item & tail]] (split-with (complement pred) coll)]
-    [item (concat head tail)]))
-
-(defn separate
-  "Split coll into two sequences, one that matches pred and one that doesn't. Unlike the
-  version in clojure.contrib.seq-utils, pred is only called once per item."
-  [pred coll]
-  (let [pcoll (map (decorate pred) coll)]
-    (vec (for [f [filter remove]]
-           (map first (f second pcoll))))))
-
 (defn split-vec
   "Split the given vector at the provided offsets using subvec. Supports negative offsets."
   [v & ns]
@@ -131,37 +116,21 @@
      (when-not (nil? v#)
        (-> v# ~form))))
 
-(defn abort
-  "Print message then exit."
-  [& message]
-  (apply println message)
-  (System/exit 1))
-
-(defmacro rescue ;; XXX Throwable?
-  "Evaluate form, returning error-form on any Exception."
-  [form error-form]
-  `(try ~form (catch Exception e# ~error-form)))
-
-(defmacro verify
-  "Raise exception unless test returns true."
-  [test exception]
-  `(when-not ~test
-     (throw (if (string? ~exception)
-              (Exception. ~exception)
-              ~exception))))
-
-(defn trap
-  "Register signal handling function."
-  [signal f]
-  (sun.misc.Signal/handle
-   (sun.misc.Signal. signal)
-   (proxy [sun.misc.SignalHandler] []
-     (handle [sig] (f sig)))))
-
 (defmacro defm [& defn-args]
   "Define a function with memoization. Takes the same arguments as defn."
   `(doto (defn ~@defn-args)
      (alter-var-root #(with-meta (memoize %) (meta %)))))
+
+(defn memoize-deref
+  "Returns a memoized version a non-referentially transparent function, calling deref on each
+   provided var (or ref or atom) and using that in the cache key to prevent cross-contamination if
+   any of the values change."
+  [vars f]
+  (let [mem (memoize
+             (fn [args vals]
+               (apply f args)))]
+    (fn [& args]
+      (mem args (doall (map deref vars))))))
 
 (defmacro cond-let
   "An implementation of cond-let that is as similar as possible to if-let. Takes multiple
@@ -194,58 +163,6 @@
        (let [~@(interleave names thens)] ~@forms)
        (let [~@(interleave names elses)] ~@forms))))
 
-(defn zip
-  "Returns a lazy sequence of vectors of corresponding items from each collection. If one collection
-   is longer than the others, the missing items will be filled in with nils."
-  [& colls]
-  (lazy-seq
-   (when (some seq colls)
-     (cons (vec (map first colls))
-           (apply zip (map rest colls))))))
-
-(defn find-first
-  "Returns the first item of coll where (pred item) returns logical true."
-  [pred coll]
-  (first (filter pred coll)))
-
-(defn find-with
-  "Returns the val corresponding to the first key where (pred key) returns true."
-  [pred keys vals]
-  (last (first (filter (comp pred first) (map vector keys vals)))))
-
-(defn filter-keys-by-val
-  "Returns all keys in map for which (pred value) returns true."
-  [pred map]
-  (when map
-    (for [[key val] map :when (pred val)] key)))
-
-(defn remove-keys-by-val
-  "Returns all keys of map for which (pred value) returns false."
-  [pred map]
-  (filter-keys-by-val (complement pred) map))
-
-(defn filter-vals
-  "Returns a map that only contains values where (pred value) returns true."
-  [pred map]
-  (when map
-    (select-keys map (filter-keys-by-val pred map))))
-
-(defn remove-vals
-  "Returns a map that only contains values where (pred value) returns false."
-  [pred map]
-  (filter-vals (complement pred) map))
-
-(defn filter-keys
-  "Returns a map that only contains keys where (pred key) returns true."
-  [pred map]
-  (when map
-    (select-keys map (filter pred (keys map)))))
-
-(defn remove-keys
-  "Returns a map that only contains keys where (pred key) returns false."
-  [pred map]
-  (filter-keys (complement pred) map))
-
 (defn any
   "Takes a list of predicates and returns a new predicate that returns true if any do."
   [& preds]
@@ -257,52 +174,6 @@
   [& preds]
   (fn [& args]
     (every? #(apply % args) preds)))
-
-(defn slice
-  "Divide coll into n approximately equal slices."
-  [n coll]
-  (loop [num n, slices [], items (vec coll)]
-    (if (empty? items)
-      slices
-      (let [size (Math/ceil (/ (count items) num))]
-        (recur (dec num) (conj slices (subvec items 0 size)) (subvec items size))))))
-
-(def *pcollect-thread-num* (.. Runtime getRuntime availableProcessors))
-
-(defn pcollect
-  "Like pmap but not lazy and more efficient for less computationally intensive functions
-   because there is less coordination overhead. The collection is sliced among the
-   available processors and f is applied to each sub-collection in parallel using map."
-  ([f coll]
-     (pcollect identity f coll))
-  ([wrap-fn f coll]
-     (if (<= *pcollect-thread-num* 1)
-       ((wrap-fn #(doall (map f coll))))
-       (mapcat deref
-               (map (fn [slice]
-                      (let [body (wrap-fn #(doall (map f slice)))]
-                        (future-call body)))
-                    (slice *pcollect-thread-num* coll))))))
-
-(defn update-in!
-  "'Updates' a value in a nested associative structure, where ks is a sequence of keys and
-  f is a function that will take the old value and any supplied args and return the new
-  value, and returns a new nested structure. The associative structure can have transients
-  in it, but if any levels do not exist, non-transient hash-maps will be created."
-  [m [k & ks] f & args]
-  (let [assoc (if (instance? clojure.lang.ITransientCollection m) assoc! assoc)
-        val (get m k)]
-    (assoc m k (if ks
-                 (apply update-in! val ks f args)
-                 (apply f val args)))))
-
-(defn assoc-in!
-  "Associates a value in a nested associative structure, where ks is a sequence of keys
-  and v is the new value and returns a new nested structure. The associative structure
-  can have transients in it, but if any levels do not exist, non-transient hash-maps will
-  be created."
-  [m ks v]
-  (update-in! m ks (constantly v)))
 
 (defn thrush
   "Takes the first argument and applies the remaining arguments to it as functions from left to right.
@@ -332,7 +203,7 @@
 
 (defn pluralize
   "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
-   For example:
+   For example:nn
      (plural 5 \"month\") => \"5 months\"
      (plural 1 \"month\") => \"1 month\"
      (plural 1 \"radius\" \"radii\") => \"1 radius\"
@@ -350,74 +221,3 @@
                 :else (syntax-quote form)))
         identity
         form))
-
-(defn construct
-  "Construct a new instance of class using reflection."
-  [class & args]
-  (clojure.lang.Reflector/invokeConstructor class (into-array Object args)))
-
-(defn cross
-  "Computes the cartesian-product of the provided seqs. In other words, compute the set of all
-  possible combinations of ways you can choose one item from each seq."
-  [& seqs]
-  (if (seq (rest seqs))
-    (for [x (first seqs)
-          y (apply cross (rest seqs))]
-      (cons x y))
-    (map list (first seqs))))
-
-(defn lazy-cross
-  "Compute a lazy cartesian-product of the provided seqs. The provided seqs can be lazy or even
-   infinite, and lazy-cross will consume all sequences equally, only consuming more of any sequence
-   when all possible combinations at the current level have been exhausted. This can be thought of
-   intuitively as a breadth-first search of the cartesian product set."
-  [& seqs]
-  (letfn [(step [heads tails dim]
-            (lazy-seq
-             (when (< dim (count tails))
-               (let [tail (get tails dim)]
-                 (concat (apply cross (assoc heads dim tail))
-                         (step (update-in heads [dim] concat tail)
-                               tails (inc dim)))))))
-          (lazy-cross [seqs level]
-            (lazy-seq
-             (let [heads (vec (map #(take level %) seqs))
-                   tails (vec (map #(take 1 (drop level %)) seqs))]
-               (when-not (every? empty? tails)
-                 (concat (step heads tails 0)
-                         (lazy-cross seqs (inc level)))))))]
-    (lazy-cross seqs 0)))
-
-(defn memoize-deref
-  "Returns a memoized version a non-referentially transparent function, calling deref on each
-   provided var (or ref or atom) and using that in the cache key to prevent cross-contamination if
-   any of the values change."
-  [vars f]
-  (let [mem (memoize
-             (fn [args vals]
-               (apply f args)))]
-    (fn [& args]
-      (mem args (doall (map deref vars))))))
-
-(defn invoke-private
-  "Invoke a private or protected Java method. Be very careful when using this!
-   I take no responsibility for the trouble you get yourself into."
-  [instance method & params]
-  (let [signature (into-array Class (map class params))
-        c (.getClass instance)]
-    (when-let [method (some #(try
-                               (.getDeclaredMethod % method signature)
-                               (catch NoSuchMethodException e))
-                            (conj (ancestors c) c))]
-      (let [accessible (.isAccessible method)]
-        (.setAccessible method true)
-        (let [result (.invoke method instance (into-array params))]
-          (.setAccessible method accessible)
-          result)))))
-
-(defn on-shutdown
-  "Execute the given function on jvm shutdown."
-  [f]
-  (.addShutdownHook
-   (Runtime/getRuntime)
-   (Thread. f)))
