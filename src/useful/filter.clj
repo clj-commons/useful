@@ -1,5 +1,5 @@
 (ns useful.filter
-  (:use [useful.amalloy :only [decorate]]))
+  (:use [useful.fn :only [decorate]]))
 
 (defn filter-keys-by-val
   "Returns all keys in map for which (pred value) returns true."

@@ -1,5 +1,5 @@
 (ns useful.string
-  (:use [useful.amalloy.debug :only [?]])
+  (:use [useful.debug :only [?]])
   (:require [clojure.string :as s]))
 
 (defn camelize [str]
@@ -18,3 +18,14 @@
 
 (def dasherize (from-camel-fn "-"))
 (def underscore (from-camel-fn "_"))
+
+(defn pluralize
+  "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
+   For example:nn
+     (plural 5 \"month\") => \"5 months\"
+     (plural 1 \"month\") => \"1 month\"
+     (plural 1 \"radius\" \"radii\") => \"1 radius\"
+     (plural 9 \"radius\" \"radii\") => \"9 radii\""
+  [num singular & [plural]]
+  (let [plural (or plural (str singular "s"))]
+    (str num " " (if (= 1 num) singular plural))))

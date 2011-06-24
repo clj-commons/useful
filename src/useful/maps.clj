@@ -85,3 +85,23 @@
   be created."
   [m ks v]
   (update-in! m ks (constantly v)))
+
+(defn map-to
+  "Returns a map from each item in coll to f applied to that item."
+  [f coll]
+  (into {}
+        (for [item coll]
+          [item (f item)])))
+
+(defn index-by
+  "Returns a map from the result of calling f on each item in coll to that item."
+  [f coll]
+  (into {}
+        (for [item coll]
+          [(f item) item])))
+
+(defn position
+  "Returns a map from item to the position of its first occurence in coll."
+  [coll]
+  (into {} (map-indexed (fn [idx val] [val idx])
+                        (reverse coll)))) ; so earlier values clobber later ones

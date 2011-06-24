@@ -1,7 +1,7 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.amalloy :only [decorate]]
-        [useful.amalloy.seq :only [alternates]]))
+        [useful.fn :only [decorate]]
+        [useful.seq :only [alternates]]))
 
 (defn ignoring-nils
   "Create a new version of a function which ignores all nils in its arguments:
@@ -69,12 +69,6 @@
             (printf "%s: %s %s" (.getName (class e#)) (.getMessage e#) '~ns-reference))
           (eval '~else-form))))
 
-(defn tap
-  "Call f on obj, presumably with side effects, then return obj. Useful for debugging when
-   you want to print an object inline. e.g. (tap println foo)"
-  [f obj]
-  (doto obj f))
-
 (defn adjoin
   "Merge two data structures by combining the contents. For maps, merge recursively by
   adjoining values with the same key. For collections, combine the right and left using
@@ -104,17 +98,18 @@
          ~@body
          (recur ~test)))))
 
+(defmacro with-adjustments
+  "Create new bindings for binding args, by applying adjustment
+  function to current values of bindings."
+  [adjustment bindings & body]
+  (let [bindings (vec bindings)]
+    `(let [~bindings (map ~adjustment ~bindings)]
+       ~@body)))
+
 (defn queue
   "Create an empty persistent queue or a persistent queue from a sequence."
   ([]    clojure.lang.PersistentQueue/EMPTY)
   ([seq] (into (queue) seq)))
-
-(defmacro absorb
-  "Thread val through form if val is not nil."
-  [val form]
-  `(let [v# ~val]
-     (when-not (nil? v#)
-       (-> v# ~form))))
 
 (defmacro defm [& defn-args]
   "Define a function with memoization. Takes the same arguments as defn."
@@ -162,55 +157,6 @@
     `(if ~test
        (let [~@(interleave names thens)] ~@forms)
        (let [~@(interleave names elses)] ~@forms))))
-
-(defn any
-  "Takes a list of predicates and returns a new predicate that returns true if any do."
-  [& preds]
-  (fn [& args]
-    (some #(apply % args) preds)))
-
-(defn all
-  "Takes a list of predicates and returns a new predicate that returns true if all do."
-  [& preds]
-  (fn [& args]
-    (every? #(apply % args) preds)))
-
-(defn thrush
-  "Takes the first argument and applies the remaining arguments to it as functions from left to right.
-   This tiny implementation was written by Chris Houser. http://blog.fogus.me/2010/09/28/thrush-in-clojure-redux"
-  [& args]
-  (reduce #(%2 %1) args))
-
-(defn position
-  "Returns a map from item to the position of its first occurence in coll."
-  [coll]
-  (into {} (map-indexed (fn [idx val] [val idx])
-                        (reverse coll)))) ; so earlier values clobber later ones
-
-(defn map-to
-  "Returns a map from each item in coll to f applied to that item."
-  [f coll]
-  (into {}
-        (for [item coll]
-          [item (f item)])))
-
-(defn index-by
-  "Returns a map from the result of calling f on each item in coll to that item."
-  [f coll]
-  (into {}
-        (for [item coll]
-          [(f item) item])))
-
-(defn pluralize
-  "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
-   For example:nn
-     (plural 5 \"month\") => \"5 months\"
-     (plural 1 \"month\") => \"1 month\"
-     (plural 1 \"radius\" \"radii\") => \"1 radius\"
-     (plural 9 \"radius\" \"radii\") => \"9 radii\""
-  [num singular & [plural]]
-  (let [plural (or plural (str singular "s"))]
-    (str num " " (if (= 1 num) singular plural))))
 
 (defn syntax-quote ;; from leiningen.core/unquote-project
   "Syntax quote the given form, wrapping all seqs and symbols in quote."
