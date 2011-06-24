@@ -1,5 +1,6 @@
-(ns useful-test
-  (:use clojure.test useful.utils useful.maps))
+(ns useful.utils-test
+  (:use clojure.test useful.utils useful.maps useful.filter
+        useful.seq useful.parallel useful.java))
 
 (deftest test-assoc-if
   (is (= {:a 1 :b 3}
