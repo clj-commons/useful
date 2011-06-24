@@ -5,7 +5,7 @@
   (is (= [[1 2] [2 3] [3 4]] (map (decorate inc) [1 2 3]))))
 
 (deftest test-annotate
-  (is (= [1 2] (annotate inc 1))))
+  (is (= [1 2] (annotate 1 inc))))
 
 (deftest test-transform-if
   (is (= [1 -2 3 -4] (map (transform-if even? -) [1 2 3 4]))))
