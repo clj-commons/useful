@@ -2,12 +2,13 @@
     #^{:author "Justin Balthrop"
        :doc "Modify bean attributes in clojure."}
   useful.bean
+  (:use [useful.string :only [dasherize]])
   (:import [java.beans Introspector]))
 
+(def ^{:dynamic true} *bean-defaults* {})
+
 (defn- property-key [property]
-  (keyword (.. (re-matcher #"\B([A-Z])" (.getName property))
-               (replaceAll "-$1")
-               toLowerCase)))
+  (keyword (dasherize (.getName property))))
 
 (defn property-setters
   "Returns a map of keywords to property setter methods for a given class."
@@ -18,6 +19,7 @@
    {} (.getPropertyDescriptors (Introspector/getBeanInfo class))))
 
 (defmulti coerce (fn [bean-class type val] [type (class val)]))
+
 (defmethod coerce :default [_ type val]
   (if (= String type)
     (str val)
@@ -37,3 +39,17 @@
             (.invoke setter instance (into-array [(coerce bean-class type val)]))))
         (throw (Exception. (str "property not found for " key)))))
     instance))
+
+(defn make-bean*
+  ([class attrs]
+     (let [attrs (merge (*bean-defaults* class) attrs)]
+       (doto (make-bean* class)
+         (update-bean attrs))))
+  ([class]
+     (let [instance (.newInstance class)]
+       instance)))
+
+(defmacro make-bean [clazz attrs & forms]
+  "Create the given bean instance with attrs by calling the appropriate setter methods on it."
+  `(doto (make-bean* ~clazz ~attrs)
+          ~@forms))
