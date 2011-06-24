@@ -1,4 +1,4 @@
-(ns useful.amalloy.debug)
+(ns useful.debug)
 
 (defmacro ?
   "A useful debugging tool when you can't figure out what's going on:
