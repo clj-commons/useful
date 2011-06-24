@@ -1,6 +1,18 @@
 (ns useful.seq
   (:use [useful.amalloy :only [decorate]]))
 
+(defn find-first
+  "Returns the first item of coll where (pred item) returns logical true."
+  [pred coll]
+  (first (filter pred coll)))
+
+(defn find-with
+  "Returns the val corresponding to the first key where (pred key) returns true."
+  [pred keys vals]
+  (->> (map vector keys vals)
+       (find-first (comp pred first))
+       last))
+
 (defn extract
   "Extracts the first item that matches pred from coll, returning a vector of that item
    followed by coll with the item removed."

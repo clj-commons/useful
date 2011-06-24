@@ -1,18 +1,6 @@
 (ns useful.filter
   (:use [useful.amalloy :only [decorate]]))
 
-(defn find-first
-  "Returns the first item of coll where (pred item) returns logical true."
-  [pred coll]
-  (first (filter pred coll)))
-
-(defn find-with
-  "Returns the val corresponding to the first key where (pred key) returns true."
-  [pred keys vals]
-  (->> (map vector keys vals)
-       (find-first (comp pred first))
-       last))
-
 (defn filter-keys-by-val
   "Returns all keys in map for which (pred value) returns true."
   [pred map]

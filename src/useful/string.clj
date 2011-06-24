@@ -1,19 +1,20 @@
 (ns useful.string
-  (:use [clojure.string :only [join split capitalize]]))
+  (:use [useful.amalloy.debug :only [?]])
+  (:require [clojure.string :as s]))
 
-(defn camelize [s & [lower]]
-  (let [parts (split (str s) #"-|_")]
-    (apply str
-           (if lower
-             (cons (first parts) (map capitalize (rest parts)))
-             (map capitalize parts)))))
+(defn camelize [str]
+  (s/replace str
+             #"[-_](\w)"
+             (comp s/upper-case second)))
 
-(defn dasherize [s]
-  (.. (re-matcher #"\B([A-Z])" (str s))
-      (replaceAll "-$1")
-      toLowerCase))
+(defn- from-camel-fn [separator]
+  (fn [name]
+    (-> name
+        (s/replace #"^[A-Z]+" s/lower-case)
+        (s/replace #"_?([A-Z]+)"
+                   (comp (partial str separator)
+                         s/lower-case second))
+        (s/replace #"-|_" separator))))
 
-(defn underscore [s]
-  (.. (re-matcher #"\B([A-Z])" (str s))
-      (replaceAll "_$1")
-      toLowerCase))
+(def dasherize (from-camel-fn "-"))
+(def underscore (from-camel-fn "_"))
