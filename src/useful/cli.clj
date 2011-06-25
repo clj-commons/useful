@@ -1,7 +1,7 @@
 (ns useful.cli
   (:use [useful.utils :only [into-vec conj-vec]]
         [useful.experimental :only [cond-let]]
-        [useful.maps :only [update]]))
+        [useful.map :only [update]]))
 
 (defn- parse-opt [default opts arg]
   (let [m re-matches, key (comp keyword str)]

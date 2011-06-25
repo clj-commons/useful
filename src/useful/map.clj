@@ -1,4 +1,4 @@
-(ns useful.maps)
+(ns useful.map)
 
 (defmacro assoc-if
   "Create mapping from keys to values in map if test returns true."

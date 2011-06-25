@@ -1,5 +1,5 @@
-(ns useful.maps-test
-  (:use clojure.test useful.maps))
+(ns useful.map-test
+  (:use clojure.test useful.map))
 
 (deftest test-assoc-if
   (is (= {:a 1 :b 3}

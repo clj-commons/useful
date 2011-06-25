@@ -1,5 +1,5 @@
 (ns useful.datatypes
-  (:use [useful.maps :only [position into-map update]])
+  (:use [useful.map :only [position into-map update]])
   (:require [clojure.string :as s]))
 
 (defn- normalize-field-name [field]
