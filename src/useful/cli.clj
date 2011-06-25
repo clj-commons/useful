@@ -1,5 +1,6 @@
 (ns useful.cli
-  (:use [useful.utils :only [cond-let into-vec conj-vec]]
+  (:use [useful.utils :only [into-vec conj-vec]]
+        [useful.experimental :only [cond-let]]
         [useful.maps :only [update]]))
 
 (defn- parse-opt [default opts arg]

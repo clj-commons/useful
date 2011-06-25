@@ -54,13 +54,6 @@
           {:a [1]    :b {"foo" [2 3] "bar" 8 "bap" 9} :c #{2 3 4 6}}
           {:a [2 3]  :b {"foo" [5]   "bar" 7 "baz" 2} :c {3 false 8 true}}))))
 
-(deftest test-while-let
-  (let [a (atom '(1 2 3 4 5))]
-    (while-let [val (seq @a)]
-      (is val)
-      (swap! a rest))
-    (is (empty? @a))))
-
 (deftest test-queue
   (let [q (queue)]
     (is (instance? clojure.lang.PersistentQueue q))
@@ -71,14 +64,6 @@
     (is (= 3 (-> q pop pop first)))
     (is (= 4 (-> q pop pop pop first)))
     (is (= 4 (count q)))))
-
-(deftest test-let-if
-  (doseq [a [1 2]]
-    (let-if (even? a)
-            [odd  false true
-             even true  false]
-      (is (= even (even? a)))
-      (is (= odd  (odd?  a))))))
 
 (def *i* 1)
 
