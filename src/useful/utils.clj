@@ -64,8 +64,8 @@
   `(try (ns ~(ns-name *ns*) ~ns-reference)
         (eval '~then-form)
         (catch Exception e#
-          (when-not (or (instance? java.io.FileNotFoundException    e#)
-                        (instance? java.lang.ClassNotFoundException e#))
+          (when-not (some #(instance? % e#) [java.io.FileNotFoundException
+                                             java.lang.ClassNotFoundException])
             (printf "%s: %s %s" (.getName (class e#)) (.getMessage e#) '~ns-reference))
           (eval '~else-form))))
 
