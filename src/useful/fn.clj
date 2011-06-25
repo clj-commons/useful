@@ -38,3 +38,18 @@ identity)."
    This tiny implementation was written by Chris Houser. http://blog.fogus.me/2010/09/28/thrush-in-clojure-redux"
   [& args]
   (reduce #(%2 %1) args))
+
+(defn ignoring-nils
+  "Create a new version of a function which ignores all nils in its arguments:
+((ignoring-nils +) 1 nil 2 3 nil) yields 6."
+  [f]
+  (fn
+    ([])
+    ([a] (f a))
+    ([a b]
+       (cond (nil? b) (f a)
+             (nil? a) (f b)
+             :else (f a b)))
+    ([a b & more]
+       (when-let [items (seq (remove nil? (list* a b more)))]
+         (apply f items)))))

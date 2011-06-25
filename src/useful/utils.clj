@@ -1,22 +1,7 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate]]
+        [useful.fn :only [decorate ignoring-nils]]
         [useful.seq :only [alternates]]))
-
-(defn ignoring-nils
-  "Create a new version of a function which ignores all nils in its arguments:
-((ignoring-nils +) 1 nil 2 3 nil) yields 6."
-  [f]
-  (fn
-    ([])
-    ([a] (f a))
-    ([a b]
-       (cond (nil? b) (f a)
-             (nil? a) (f b)
-             :else (f a b)))
-    ([a b & more]
-       (when-let [items (seq (remove nil? (list* a b more)))]
-         (apply f items)))))
 
 (def ^{:doc "The minimium value of vals, ignoring nils."
        :arglists '([& args])}

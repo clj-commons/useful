@@ -24,3 +24,6 @@
 
 (deftest test-thrush
   (is (= 5 (thrush 1 inc inc inc inc))))
+
+(deftest test-ignoring-nils
+  (is (= 6 ((ignoring-nils +) 1 nil 2 nil nil 3))))
