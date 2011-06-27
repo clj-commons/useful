@@ -6,18 +6,10 @@
   (apply println message)
   (System/exit 1))
 
-(defmacro rescue ;; XXX Throwable?
+(defmacro rescue
   "Evaluate form, returning error-form on any Exception."
   [form error-form]
   `(try ~form (catch Exception e# ~error-form)))
-
-(defmacro verify
-  "Raise exception unless test returns true."
-  [test exception]
-  `(when-not ~test
-     (throw (if (string? ~exception)
-              (Exception. ~exception)
-              ~exception))))
 
 (defn trap
   "Register signal handling function."

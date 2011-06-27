@@ -1,7 +1,13 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils]]
+        [useful.fn :only [decorate ignoring-nils transform-if]]
         [useful.seq :only [alternates]]))
+
+(defmacro verify
+  "Raise exception unless test returns true."
+  [test exception]
+  `(when-not ~test
+     (throw ((transform-if string? #(Exception. %)) ~exception))))
 
 (def ^{:doc "The minimium value of vals, ignoring nils."
        :arglists '([& args])}
