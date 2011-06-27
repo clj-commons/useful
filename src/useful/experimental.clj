@@ -55,3 +55,30 @@ For example, ((comp-partial 2 * +) 3 4 5 6) is equivalent to (* 3 4 (+ 3 4 5 6))
     `(if ~test
        (let [~@(interleave names thens)] ~@forms)
        (let [~@(interleave names elses)] ~@forms))))
+
+(defn dispatcher
+  "Returns a function that dispatches using the given dispatch function to determine the
+  namespace and function to call."
+  [dispatch-fn & options]
+  (let [options (into-map options)]
+    (fn [& args]
+      (let [[ns method] (map symbol
+                             ((juxt namespace name)
+                              (symbol (apply dispatch-fn args))))]
+        (try (require ns)
+             (catch java.io.FileNotFoundException e
+               (throw (IllegalArgumentException. (str "cannot resolve namespace: " ns)))))
+        (if-let [method (ns-resolve ns method)]
+          (apply method args)
+          (throw (IllegalArgumentException. (str "cannot resolve method: " ns "/" method))))))))
+
+(defmacro defdispatch
+  "Defines a function that dispatches using the given dispatch function to determine the
+  namespace and function to call."
+  [name & options]
+  (let [[defn-options options] (split-with #(or (string? %) (map? %)) options)
+        dispatch-fn (first options)
+        options     (rest options)]
+    `(let [dispatcher# (apply dispatcher ~dispatch-fn ~options)]
+       (defn ~name ~@defn-options [& args#]
+         (apply dispatcher# args#)))))
