@@ -1,7 +1,8 @@
 (ns useful.experimental
   (:use [useful.utils :only [split-vec]]
         [useful.map :only [into-map]]
-        [useful.seq :only [alternates]]))
+        [useful.seq :only [alternates]]
+        [useful.fn :only [any]]))
 
 (defn comp-partial
   "A version of comp that \"rescues\" the first N args, passing them to every composed function
@@ -63,23 +64,22 @@
   [dispatch-fn & options]
   (let [options (into-map options)]
     (fn [& args]
-      (let [[ns method] (map symbol
-                             ((juxt namespace name)
-                              (symbol (apply dispatch-fn args))))]
-        (try (require ns)
-             (catch java.io.FileNotFoundException e
-               (throw (IllegalArgumentException. (str "cannot resolve namespace: " ns)))))
-        (if-let [method (ns-resolve ns method)]
-          (apply method args)
-          (throw (IllegalArgumentException. (str "cannot resolve method: " ns "/" method))))))))
+      (let [fn-name (apply dispatch-fn args)]
+        (loop [[ns method] (map symbol ((juxt namespace name) (symbol fn-name)))]
+          (when (nil? ns)
+            (throw (IllegalArgumentException. (str "cannot resolve function: " fn-name))))
+          (if-let [method (try (require ns)
+                               (ns-resolve ns method)
+                               (catch java.io.FileNotFoundException e))]
+            (apply method args)
+            (recur [(get (:type-hierarchy options) ns) method])))))))
 
 (defmacro defdispatch
   "Defines a function that dispatches using the given dispatch function to determine the
   namespace and function to call."
+  {:arglists '([name docstring? attr-map? dispatch-fn & options])}
   [name & options]
-  (let [[defn-options options] (split-with #(or (string? %) (map? %)) options)
-        dispatch-fn (first options)
-        options     (rest options)]
-    `(let [dispatcher# (apply dispatcher ~dispatch-fn ~options)]
+  (let [[defn-options [dispatch-fn & options]] (split-with (any string? map?) options)]
+    `(let [dispatcher# (dispatcher ~dispatch-fn ~@options)]
        (defn ~name ~@defn-options [& args#]
          (apply dispatcher# args#)))))
