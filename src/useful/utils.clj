@@ -93,8 +93,9 @@
   ([]    clojure.lang.PersistentQueue/EMPTY)
   ([seq] (into (queue) seq)))
 
-(defmacro defm [& defn-args]
+(defmacro defm
   "Define a function with memoization. Takes the same arguments as defn."
+  [& defn-args]
   `(doto (defn ~@defn-args)
      (alter-var-root #(with-meta (memoize %) (meta %)))))
 

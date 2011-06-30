@@ -21,7 +21,7 @@
 
 (defn pluralize
   "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
-   For example:nn
+  For example:
      (plural 5 \"month\") => \"5 months\"
      (plural 1 \"month\") => \"1 month\"
      (plural 1 \"radius\" \"radii\") => \"1 radius\"
