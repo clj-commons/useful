@@ -103,8 +103,7 @@
 (defn position
   "Returns a map from item to the position of its first occurence in coll."
   [coll]
-  (into {} (map-indexed (fn [idx val] [val idx])
-                        (reverse coll)))) ; so earlier values clobber later ones
+  (into {} (reverse (map-indexed (fn [idx val] [val idx]) coll))))
 
 (defn filter-keys-by-val
   "Returns all keys in map for which (pred value) returns true."
