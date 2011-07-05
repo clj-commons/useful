@@ -51,3 +51,12 @@
 (deftest test-position
   (is (= (position [1 3 5 3])
          {1 0 3 1 5 2})))
+
+(deftest map-filtering-tests
+  (let [m '{a 0, b 1, c 11, d 92}]
+    (is (= '#{a d} (filter-keys-by-val even? m)))
+    (is (= '#{b c} (remove-keys-by-val even? m)))
+    (is (= '{a 0} (filter-vals zero? m)))
+    (is (= '{b 1, c 11, d 92} (remove-vals zero? m)))
+    (is (= '{a 0} (filter-keys '#{a} m)))
+    (is (= '{b 1, c 11, d 92} (remove-keys '#{a} m)))))
