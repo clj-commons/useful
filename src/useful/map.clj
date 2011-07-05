@@ -109,7 +109,7 @@
   "Returns all keys in map for which (pred value) returns true."
   [pred map]
   (when map
-    (for [[key val] map :when (pred val)] key)))
+    (set (for [[key val] map :when (pred val)] key))))
 
 (defn remove-keys-by-val
   "Returns all keys of map for which (pred value) returns false."
