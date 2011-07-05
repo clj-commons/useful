@@ -1,6 +1,6 @@
 (ns useful.java)
 
-(defn abort
+(defn ^{:dont-test "Can't test killing the JVM"} abort ;;
   "Print message then exit."
   [& message]
   (apply println message)
@@ -11,7 +11,7 @@
   [form error-form]
   `(try ~form (catch Exception e# ~error-form)))
 
-(defn trap
+(defn ^{:dont-test "Can't send a signal in order to catch it!"} trap
   "Register signal handling function."
   [signal f]
   (sun.misc.Signal/handle
@@ -40,7 +40,7 @@
           (.setAccessible method accessible)
           result)))))
 
-(defn on-shutdown
+(defn ^{:dont-test "Can't test shutting down JVM"} on-shutdown
   "Execute the given function on jvm shutdown."
   [f]
   (.addShutdownHook

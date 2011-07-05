@@ -81,3 +81,23 @@
         (is (= 6  (incr 5)))
         (is (= -2 (incr -3)))))
     (is (= 4 @count))))
+
+(deftest test-verify
+  (is (thrown? Throwable (verify false "Test"))))
+
+(def memo-called (atom 0))
+(defm sample-memoized [x]
+  (swap! memo-called inc)
+  (inc x))
+
+(deftest test-defm
+  (let [i @memo-called
+        j (inc i)]
+    (is (= j (sample-memoized i)))
+    (is (= j @memo-called))
+    (is (= j (sample-memoized i)))
+    (is (= j @memo-called))))
+
+(deftest test-with-adjustments
+  (is (= 1 (with-adjustments #(fnil % 0) [+ inc]
+             (+ nil (inc nil))))))

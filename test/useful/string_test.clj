@@ -17,3 +17,9 @@
        "the_CRAZY_train"  "the-crazy-train"  "the_crazy_train"
        "with-dashes"      "with-dashes"      "with_dashes"
        "with_underscores" "with-underscores" "with_underscores"))
+
+(deftest pluralize-test
+  (is (= "10 dogs" (pluralize 10 "dog")))
+  (is (= "1 cat" (pluralize 1 "cat")))
+  (is (= "0 octopodes" (pluralize 0 "octopus" "octopodes")))
+  (is (= "1 fish" (pluralize 1 "fish" "fishes"))))

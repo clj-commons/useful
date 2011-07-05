@@ -1,5 +1,5 @@
 (ns useful.seq-test
-  (:use clojure.test useful.seq))
+  (:use clojure.test useful.seq clojure.set))
 
 (deftest test-zip
   (is (= [[1 4 8] [2 5 9] [3 6 nil] [nil 7 nil]] (zip [1 2 3] [4 5 6 7] [8 9]))))
@@ -24,3 +24,42 @@
 (deftest test-separate
   (is (= ['(5 1 7) '(2 4 6 2)] (separate odd?  [2 4 6 5 1 2 7])))
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
+
+(deftest test-unfold
+  (is (= [0 1 1 2 3 5 8 13 21 34]
+         (take 10 (unfold (fn [[a b]]
+                            [a [b (+ a b)]])
+                          [0 1])))))
+
+(deftest test-take-shuffled
+  (let [nums (set (range 10))]
+    (is (= nums (set (take-shuffled (count nums) nums))))
+    (is (= 5 (count (take-shuffled 5 nums))))
+    (is (subset? (set (take-shuffled 3 nums)) nums))))
+
+(deftest test-find-first
+  (is (= 5 (find-first odd? [2 5 9])))
+  (is (nil? (find-first (constantly false) (range 1000)))))
+
+(deftest test-lazy-loop
+  (is (= (range 10)
+         (lazy-loop [i 0]
+           (when-not (= i 10)
+             (cons i (lazy-recur (inc i))))))))
+
+(deftest test-alternates
+  (is (= '[[a b] [1 2]]
+         (alternates '[a 1 b 2])))
+  (is (= '[[0 3 6] [1 4 7] [2 5 8]]
+         (alternates 3 (range 9)))))
+
+(deftest test-slice
+  (let [size 900, slices 7, coll (range size),
+        sliced (slice slices coll), largest (apply max (map count sliced))]
+    (testing "We get all the items back in order"
+      (is (= coll (apply concat sliced))))
+    (testing "We get the right number of slices"
+      (is (= slices (count sliced))))
+    (testing "Slices are sized regularly"
+      (is (every? #(<= (Math/abs (- % largest)) 1)
+                 (map count sliced))))))
