@@ -16,6 +16,10 @@
       (is (= even (even? a)))
       (is (= odd  (odd?  a))))))
 
+(deftest test-dispatcher-fn
+  (let [dispatch (dispatcher (fn [f & args] (symbol "clojure.core" f)))]
+    (is (= "str5" (dispatch "str" 5)))))
+
 (deftest test-dispatch
   (testing "simple dispatch"
     (defdispatch invert #(cond (map? %)
