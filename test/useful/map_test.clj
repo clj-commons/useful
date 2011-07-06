@@ -60,3 +60,11 @@
     (is (= '{b 1, c 11, d 92} (remove-vals zero? m)))
     (is (= '{a 0} (filter-keys '#{a} m)))
     (is (= '{b 1, c 11, d 92} (remove-keys '#{a} m)))))
+
+(deftest test-update-in
+  (is (= [1] (-> (update-in! {:foo (transient {:bar []})} [:foo :bar] conj 1)
+                 :foo :bar))))
+
+(deftest test-assoc-in
+  (is (= [1] (-> (assoc-in! {:foo {}} [:foo :bar] [1])
+                 :foo :bar))))
