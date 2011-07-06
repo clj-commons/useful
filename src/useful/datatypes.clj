@@ -8,7 +8,7 @@
       (s/replace #"_"       "-")
       symbol))
 
-(defn record-fields
+(defn- record-fields
   "Uses reflection to get the declared fields passed to the defrecord call for type. If called on a
    non-record, the behavior is undefined."
   [type]
