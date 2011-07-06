@@ -101,3 +101,6 @@
 (deftest test-with-adjustments
   (is (= 1 (with-adjustments #(fnil % 0) [+ inc]
              (+ nil (inc nil))))))
+
+(deftest test-syntax-quote
+  (is (= '((quote foo) (quote (bar [baz] "hi"))) (syntax-quote '(foo (bar [baz] "hi"))))))
