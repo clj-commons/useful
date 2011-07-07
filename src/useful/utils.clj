@@ -119,7 +119,7 @@
         identity
         form))
 
-(defmacro ·
+(defmacro map-entry
   "Create a clojure.lang.MapEntry from a and b. Equivalent to a cons cell"
   [a b]
   `(clojure.lang.MapEntry. ~a ~b))
@@ -127,4 +127,4 @@
 (defn pair
   "Create a clojure.lang.MapEntry from a and b. Equivalent to a cons cell"
   [a b]
-  (· a b))
+  (map-entry a b))

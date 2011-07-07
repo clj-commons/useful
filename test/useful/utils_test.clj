@@ -106,11 +106,11 @@
   (is (= '((quote foo) (quote (bar [baz] "hi"))) (syntax-quote '(foo (bar [baz] "hi"))))))
 
 (deftest test-pair
-  (testing "· is a macro (for performance)"
-    (let [form '(· 1 2)]
+  (testing "map-entry is a macro (for performance)"
+    (let [form '(map-entry 1 2)]
       (is (not= form (macroexpand form)))))
-  (testing "· works, and is a MapEntry"
-    (let [p (· 1 2)
+  (testing "map-entry works, and is a MapEntry"
+    (let [p (map-entry 1 2)
           [x y] p]
       (is (= x 1))
       (is (= y 2))
@@ -118,6 +118,6 @@
       (are [c] (instance? c p)
            clojure.lang.IMapEntry
            clojure.lang.IPersistentVector)))
-  (testing "pair is a non-macro version of ·"
-    (is (= [(· 1 2) (· 3 4)]
+  (testing "pair is a non-macro version of map-entry"
+    (is (= [(map-entry 1 2) (map-entry 3 4)]
            (map pair [1 3] [2 4])))))

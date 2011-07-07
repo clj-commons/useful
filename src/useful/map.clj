@@ -1,5 +1,5 @@
 (ns useful.map
-  (:use [useful.utils :only [·]]))
+  (:use [useful.utils :only [map-entry]]))
 
 (defmacro assoc-if
   "Create mapping from keys to values in map if test returns true."
@@ -55,7 +55,7 @@
   [f m]
   (into {}
         (for [[k v] m]
-          (· (f k) (f v)))))
+          (map-entry (f k) (f v)))))
 
 (defn update
   "Update value in map where f is a function that takes the old value and the supplied args and
