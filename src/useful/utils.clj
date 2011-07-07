@@ -120,7 +120,9 @@
         form))
 
 (defmacro map-entry
-  "Create a clojure.lang.MapEntry from a and b. Equivalent to a cons cell"
+  "Create a clojure.lang.MapEntry from a and b. Equivalent to a cons cell.
+
+useful.experimental.unicode contains a shortcut to this, named ·."
   [a b]
   `(clojure.lang.MapEntry. ~a ~b))
 
