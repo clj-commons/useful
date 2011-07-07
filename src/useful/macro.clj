@@ -41,7 +41,8 @@ myconst 10)."
                     ~(partition-params macro-args args)))))
 
 ;; copied from clojure.contrib.def
-(defmacro defalias
+(defmacro ^{:dont-test "Exists in contrib, and has gross side effects anyway"}
+  defalias
   "Defines an alias for a var: a new var with the same root binding (if
   any) and similar metadata. The metadata of the alias is its initial
   metadata (as provided by def) merged into the metadata of the original."
