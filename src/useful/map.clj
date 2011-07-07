@@ -40,7 +40,7 @@
   [f m]
   (into {}
         (for [[k v] m]
-          [k (f v)])))
+          (map-entry k (f v)))))
 
 (defn map-vals-with-keys
   "Create a new map from m by calling function f, with two arguments (the key and value)
@@ -48,7 +48,7 @@
   [f m]
   (into {}
         (for [[k v] m]
-          [k (f k v)])))
+          (map-entry k (f k v)))))
 
 (defn map-keys-and-vals
   "Create a new map from m by calling function f on each key & each value to get a new key & value"
@@ -100,19 +100,19 @@
   [f coll]
   (into {}
         (for [item coll]
-          [item (f item)])))
+          (map-entry item (f item)))))
 
 (defn index-by
   "Returns a map from the result of calling f on each item in coll to that item."
   [f coll]
   (into {}
         (for [item coll]
-          [(f item) item])))
+          (map-entry (f item) item))))
 
 (defn position
   "Returns a map from item to the position of its first occurence in coll."
   [coll]
-  (into {} (reverse (map-indexed (fn [idx val] [val idx]) coll))))
+  (into {} (reverse (map-indexed (fn [idx val] (map-entry val idx)) coll))))
 
 (defn filter-keys-by-val
   "Returns all keys in map for which (pred value) returns true."
