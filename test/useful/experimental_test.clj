@@ -1,5 +1,6 @@
 (ns useful.experimental-test
-  (:use clojure.test useful.experimental))
+  (:use clojure.test useful.experimental
+        [clojure.walk :only [stringify-keys]]))
 
 (deftest test-while-let
   (let [a (atom '(1 2 3 4 5))]
@@ -68,4 +69,17 @@
                                (vector? %)
                                (symbol "clojure.core" "reverse")))
     (is (thrown? java.lang.IllegalArgumentException
-                 (invert {:a 1 :b 2})))))
+                 (invert {:a 1 :b 2}))))
+
+  (testing "middleware"
+    (defdispatch invert #(cond (map? %)
+                               (symbol "clojure.set" "map-invert")
+
+                               (vector? %)
+                               (symbol "clojure.core" "reverse"))
+      :wrapper #(fn [arg]
+                  (if (map? arg)
+                    (% (stringify-keys arg))
+                    (% arg))))
+    (is (= {2 "b" 1 "a"} (invert {:a 1 :b 2})))
+    (is (= [:bar :foo] (invert [:foo :bar])))))

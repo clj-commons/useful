@@ -62,17 +62,21 @@
   "Returns a function that dispatches using the given dispatch function to determine the
   namespace and function to call."
   [dispatch-fn & options]
-  (let [options (into-map options)]
+  (let [options (into-map options)
+        wrapper (:wrapper options)]
     (fn [& args]
       (let [fn-name (apply dispatch-fn args)]
         (loop [[ns method] (map symbol ((juxt namespace name) (symbol fn-name)))]
-          (when (nil? ns)
-            (throw (IllegalArgumentException. (str "cannot resolve function: " fn-name))))
-          (if-let [method (try (require ns)
-                               (ns-resolve ns method)
-                               (catch java.io.FileNotFoundException e))]
-            (apply method args)
-            (recur [(get (:type-hierarchy options) ns) method])))))))
+          (if (nil? ns)
+            (when-not (:catch? options)
+              (throw (IllegalArgumentException. (str "cannot resolve function: " fn-name))))
+            (if-let [method (try (require ns)
+                                 (ns-resolve ns method)
+                                 (catch java.io.FileNotFoundException e))]
+              (if (and wrapper (not (:no-wrap (meta method))))
+                (apply (wrapper method) args)
+                (apply method args))
+              (recur [(get (:type-hierarchy options) ns) method]))))))))
 
 (defmacro defdispatch
   "Defines a function that dispatches using the given dispatch function to determine the

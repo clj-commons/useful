@@ -1,4 +1,5 @@
-(ns useful.map)
+(ns useful.map
+  (:use [useful.utils :only [·]]))
 
 (defmacro assoc-if
   "Create mapping from keys to values in map if test returns true."
@@ -42,16 +43,24 @@
           [k (f v)])))
 
 (defn map-vals-with-keys
-  "Create a new map from m by calling function f on each key and value to get a new value."
+  "Create a new map from m by calling function f, with two arguments (the key and value)
+  to get a new value."
   [f m]
   (into {}
         (for [[k v] m]
           [k (f k v)])))
 
+(defn map-keys-and-vals
+  "Create a new map from m by calling function f on each key & each value to get a new key & value"
+  [f m]
+  (into {}
+        (for [[k v] m]
+          (· (f k) (f v)))))
+
 (defn update
   "Update value in map where f is a function that takes the old value and the supplied args and
-   returns the new value. For efficiency, Do not change map if the old value is the same as the new
-   value. If key is sequential, update all keys in the sequence with the same function."
+  returns the new value. For efficiency, Do not change map if the old value is the same as the new
+  value. If key is sequential, update all keys in the sequence with the same function."
   [map key f & args]
   (if (sequential? key)
     (reduce #(apply update %1 %2 f args) map key)

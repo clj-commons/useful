@@ -26,6 +26,10 @@
   (is (= {1 3, 7 8, 9 14}
          (map-vals-with-keys + {1 2, 7 1, 9 5}))))
 
+(deftest test-map-keys-and-vals
+  (is (= {"a" "b" "c" "d"}
+         (map-keys-and-vals name {:a :b :c :d}))))
+
 (deftest test-update
   (is (= {:a 3 :b 3}
          (-> {:a 2 :b 4}

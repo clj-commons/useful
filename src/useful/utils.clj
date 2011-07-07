@@ -1,7 +1,6 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils transform-if]]
-        [useful.seq :only [alternates]]))
+        [useful.fn :only [decorate ignoring-nils transform-if]]))
 
 (defmacro verify
   "Raise exception unless test returns true."
@@ -119,3 +118,13 @@
                 :else (syntax-quote form)))
         identity
         form))
+
+(defmacro ·
+  "Create a clojure.lang.MapEntry from a and b. Equivalent to a cons cell"
+  [a b]
+  `(clojure.lang.MapEntry. ~a ~b))
+
+(defn pair
+  "Create a clojure.lang.MapEntry from a and b. Equivalent to a cons cell"
+  [a b]
+  (· a b))
