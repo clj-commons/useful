@@ -1,4 +1,5 @@
-(ns useful.experimental.unicode
+(ns ^{:dont-test "Just aliases for other functions/macros"}
+  useful.experimental.unicode
   (:use [useful.utils :only [map-entry]]
         [useful.macro :only [defalias macro-do]]))
 
