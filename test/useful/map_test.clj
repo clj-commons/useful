@@ -8,6 +8,11 @@
              (assoc-or :b 2)
              (assoc-or :c 3)))))
 
+(deftest test-keyed
+  (let [a 1 b 2]
+    (is (= {:a 1 :b 2} (keyed [a b])))
+    (is (= '{a 1 b 2}  (keyed :syms [a b])))))
+
 (deftest test-into-map
   (is (= {:foo "1", :bar "2", :bang "3", :baz "4", :blah 5}
          (into-map :foo 1 :bar 2 :bang 3 [:foo "1" :baz "4"] :bar "2" '(:bang "3") {:blah 5}))))
