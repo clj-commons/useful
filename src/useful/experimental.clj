@@ -57,33 +57,3 @@
     `(if ~test
        (let [~@(interleave names thens)] ~@forms)
        (let [~@(interleave names elses)] ~@forms))))
-
-(defn dispatcher
-  "Returns a function that dispatches using the given dispatch function to determine the
-  namespace and function to call."
-  [dispatch-fn & options]
-  (let [options (into-map options)
-        wrapper (:wrapper options)]
-    (fn [& args]
-      (let [fn-name (apply dispatch-fn args)]
-        (loop [[ns method] (map symbol ((juxt namespace name) (symbol fn-name)))]
-          (if (nil? ns)
-            (when-not (:catch? options)
-              (throw (IllegalArgumentException. (str "cannot resolve function: " fn-name))))
-            (if-let [method (try (require ns)
-                                 (ns-resolve ns method)
-                                 (catch java.io.FileNotFoundException e))]
-              (if (and wrapper (not (:no-wrap (meta method))))
-                (apply (wrapper method) args)
-                (apply method args))
-              (recur [(get (:type-hierarchy options) ns) method]))))))))
-
-(defmacro defdispatch
-  "Defines a function that dispatches using the given dispatch function to determine the
-  namespace and function to call."
-  {:arglists '([name docstring? attr-map? dispatch-fn & options])}
-  [name & options]
-  (let [[defn-options [dispatch-fn & options]] (split-with (any string? map?) options)]
-    `(let [dispatcher# (dispatcher ~dispatch-fn ~@options)]
-       (defn ~name ~@defn-options [& args#]
-         (apply dispatcher# args#)))))
