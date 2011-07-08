@@ -1,5 +1,7 @@
 (ns useful.fn)
 
+(def ! complement)
+
 (defn decorate
   "Return a function f such that (f x) => [x (f1 x) (f2 x) ...]."
   [& fs]

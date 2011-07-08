@@ -8,7 +8,7 @@
   (is (= [1 2] (annotate 1 inc))))
 
 (deftest test-to-fix
-  (is (= [1 -2 3 -4] (map (to-fix even? -) [1 2 3 4]))))
+  (is (= [1 -2 3 -4] (map (to-fix (! odd?) -) [1 2 3 4]))))
 
 (deftest test-any
   (is (= [0 2 3 4 6 8 9 10]
