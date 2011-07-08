@@ -1,12 +1,6 @@
 (ns useful.map-test
   (:use clojure.test useful.map))
 
-(deftest test-assoc-if
-  (is (= {:a 1 :b 3}
-         (-> {:a 1}
-             (assoc-if (even? 3) :a 3)
-             (assoc-if (odd?  3) :b 3)))))
-
 (deftest test-assoc-or
   (is (= {:a 1 :b 2 :c 3}
          (-> {:a 1 :b nil}
