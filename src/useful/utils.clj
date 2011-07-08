@@ -1,12 +1,17 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils transform-if]]))
+        [useful.fn :only [decorate ignoring-nils to-fix]]))
+
+(defn fix
+  "A non-functional varition of to-fix, where the transformation occurs immediately."
+  [x & clauses]
+  ((apply to-fix clauses) x))
 
 (defmacro verify
   "Raise exception unless test returns true."
   [test exception]
   `(when-not ~test
-     (throw ((transform-if string? #(Exception. %)) ~exception))))
+     (throw (fix ~exception string? #(Exception. %)))))
 
 (def ^{:doc "The minimium value of vals, ignoring nils."
        :arglists '([& args])}

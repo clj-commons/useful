@@ -10,16 +10,17 @@
   [x & fs]
   ((apply decorate fs) x))
 
-(defn transform-if
-  "Returns a function that tests pred against its argument. If the result
-is true, return (f arg); otherwise, return (f-not arg) (defaults to
-identity)."
-  ([pred f]
-     (fn [x]
-       (if (pred x) (f x) x)))
-  ([pred f f-not]
-     (fn [x]
-       ((if (pred x) f f-not) x))))
+(defn to-fix
+  "Returns a function taking pred/transform pairs. Calls each pred in order against its argument,
+  calling transform if pred returns true. If a final else clause is provided, it will be used to
+  transform an argument that doesn't match any pred, otherwise the argument is returned unchanged."
+  [& clauses]
+  (fn [x]
+    (loop [[pred? transform & clauses] clauses]
+      (cond (nil? pred?)     x
+            (nil? transform) (pred? x)
+            (pred? x)        (transform x)
+            :else            (recur clauses)))))
 
 (defn any
   "Takes a list of predicates and returns a new predicate that returns true if any do."

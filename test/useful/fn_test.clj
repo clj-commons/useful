@@ -7,8 +7,8 @@
 (deftest test-annotate
   (is (= [1 2] (annotate 1 inc))))
 
-(deftest test-transform-if
-  (is (= [1 -2 3 -4] (map (transform-if even? -) [1 2 3 4]))))
+(deftest test-to-fix
+  (is (= [1 -2 3 -4] (map (to-fix even? -) [1 2 3 4]))))
 
 (deftest test-any
   (is (= [0 2 3 4 6 8 9 10]
