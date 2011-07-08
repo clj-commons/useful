@@ -1,13 +1,6 @@
 (ns useful.map
   (:use [useful.utils :only [map-entry]]))
 
-(defmacro assoc-if
-  "Create mapping from keys to values in map if test returns true."
-  [map test & kvs]
-  `(if ~test
-     (assoc ~map ~@kvs)
-     ~map))
-
 (let [transforms {:keys keyword
                   :strs str
                   :syms identity}]

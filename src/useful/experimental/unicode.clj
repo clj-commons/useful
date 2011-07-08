@@ -5,4 +5,7 @@
 
 (macro-do [dest src]
   `(defalias ~dest ~src)
-  · map-entry)
+  ∮ map-entry
+  ! complement
+  ∘ comp
+  φ partial)

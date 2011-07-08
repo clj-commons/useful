@@ -1,15 +1,6 @@
 (ns useful.utils-test
   (:use clojure.test useful.utils))
 
-(deftest test-fix
-  (let [repair (fn [val]
-                 (-> (* val 2)
-                     int
-                     (fix zero? dec, even? (partial * 3), inc)))]
-    (is (= 12 (repair 2)))
-    (is (=  4 (repair 1.5)))
-    (is (= -1 (repair 0)))))
-
 (deftest test-or-min
   (is (= 3   (or-min nil 4 3 nil 9)))
   (is (= 1   (or-min 1 2 3 4)))
@@ -130,3 +121,10 @@
   (testing "pair is a non-macro version of map-entry"
     (is (= [(map-entry 1 2) (map-entry 3 4)]
            (map pair [1 3] [2 4])))))
+
+(deftest test-invoke
+  (is (= 1 (invoke inc 0)))
+  (is (= (range 5)
+         (map invoke
+              (map constantly
+                   (range 5))))))

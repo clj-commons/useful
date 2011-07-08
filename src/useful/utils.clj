@@ -1,11 +1,12 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils to-fix]]))
+        [useful.fn :only [decorate ignoring-nils fix]]))
 
-(defn fix
-  "A non-functional varition of to-fix, where the transformation occurs immediately."
-  [x & clauses]
-  ((apply to-fix clauses) x))
+(defn invoke
+  "Like clojure.core/apply, but doesn't expand/splice the last argument."
+  ([f] (f))
+  ([f x] (f x))
+  ([f x & more] (apply f x more)))
 
 (defmacro verify
   "Raise exception unless test returns true."
@@ -126,8 +127,7 @@
 
 (defmacro map-entry
   "Create a clojure.lang.MapEntry from a and b. Equivalent to a cons cell.
-
-useful.experimental.unicode contains a shortcut to this, named ·."
+  useful.experimental.unicode contains a shortcut to this, named ·."
   [a b]
   `(clojure.lang.MapEntry. ~a ~b))
 

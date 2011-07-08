@@ -1,4 +1,5 @@
-(ns useful.fn)
+(ns useful.fn
+  (:use useful.debug))
 
 (def ! complement)
 
@@ -12,17 +13,39 @@
   [x & fs]
   ((apply decorate fs) x))
 
+(defn fix
+  "Walk through clauses, a series of predicate/transform pairs. The
+  first predicate that x satisfies has its transformation clause
+  called on x. Predicates or transforms may be values (eg true or nil)
+  rather than functions; these will be treated as functions that
+  return that value.
+
+  The last \"pair\" may be only a transform with no pred: in that case it
+  is unconditionally used to transform x, if nothing previously matched.
+
+  If no predicate matches, then x is returned unchanged."
+  [x & clauses]
+  (let [call #(if (ifn? %) (% x) %)]
+    (first (or (seq (for [[pred & [transform :as exists?]] (partition-all 2 clauses)
+                          :let [[pred transform] ;; handle odd number of clauses
+                                (if exists? [pred transform] [true pred])]
+                          :when (call pred)]
+                      (call transform)))
+               [x]))))
+
 (defn to-fix
-  "Returns a function taking pred/transform pairs. Calls each pred in order against its argument,
-  calling transform if pred returns true. If a final else clause is provided, it will be used to
-  transform an argument that doesn't match any pred, otherwise the argument is returned unchanged."
+  "A \"curried\" version of fix, which sets the clauses once, yielding a
+  function that calls fix with the specified first argument."
   [& clauses]
   (fn [x]
-    (loop [[pred? transform & clauses] clauses]
-      (cond (nil? pred?)     x
-            (nil? transform) (pred? x)
-            (pred? x)        (transform x)
-            :else            (recur clauses)))))
+    (apply fix x clauses)))
+
+(defmacro given
+  "A macro version of fix: instead of taking multiple clauses, it treats any
+  further arguments as additional args to be passed to the transform function,
+  similarly to functions such as swap! and update-in."
+  [x pred transform & args]
+  `(fix ~x ~pred (fn [x#] (~transform x# ~@args))))
 
 (defn any
   "Takes a list of predicates and returns a new predicate that returns true if any do."
