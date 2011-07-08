@@ -6,7 +6,8 @@
   "Returns a function that dispatches using the given dispatch function to determine the
   namespace and function to call."
   [dispatch-fn & options]
-  (let [{:keys [hierarchy wrap default] :or {wrap identity}} (into-map options)]
+  (let [{:keys [hierarchy wrap default]} (into-map options)
+        wrap (or wrap identity)]
     (fn [& args]
       (let [fname   (apply dispatch-fn args)
             default (or default
@@ -19,8 +20,10 @@
                             (ns-resolve ns method)
                             (catch java.io.FileNotFoundException e))
                        default)]
-            (let [wrap (if (not (:no-wrap (meta f))) wrap identity)]
-              (apply (wrap f) args))
+            (let [wrap (if (:no-wrap (meta f))
+                         identity
+                         wrap)]
+                  (apply (wrap f) args))
             (recur [(get hierarchy ns) method])))))))
 
 (defmacro defdispatch
