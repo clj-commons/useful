@@ -30,8 +30,7 @@
   (if-let [url (.findResource (.getClassLoader clojure.lang.RT) name)]
     (let [conn (.openConnection url)]
       (if (instance? JarURLConnection conn)
-        (let [jar (cast JarURLConnection conn)]
-          (.getInputStream jar))
+        (.getInputStream ^JarURLConnection conn)
         (FileInputStream. (File. (.getFile url)))))))
 
 (defn extract-resource [name dest-dir]
