@@ -1,6 +1,5 @@
 (ns useful.experimental
   (:use [useful.utils :only [split-vec]]
-        [useful.map :only [into-map]]
         [useful.seq :only [alternates]]
         [useful.fn :only [any]]))
 
