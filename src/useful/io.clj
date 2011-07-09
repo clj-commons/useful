@@ -2,16 +2,18 @@
   (:use [clojure.java.io :only [copy]])
   (:import [java.net URL URLConnection JarURLConnection]
            [java.io File FileInputStream PrintStream]
-           [clojure.lang Atom]))
+           [clojure.lang IDeref]))
 
 (defmacro multi-outstream [var]
-  (letfn [(outs [val] (if (instance? Atom val) (first @val) val))]
+  (let [current-writer
+        `(let [w# ~var]
+           (if (instance? IDeref w#) (first @w#) w#))]
     `(PrintStream.
       (proxy [java.io.BufferedOutputStream] [nil]
         (write
-          ([b#]           (.write (~outs ~var) b#))
-          ([b# off# len#] (.write (~outs ~var) b# off# len#)))
-        (flush [] (.flush (~outs ~var)))))))
+          ([b#]           (.write ~current-writer b#))
+          ([b# off# len#] (.write ~current-writer b# off# len#)))
+        (flush [] (.flush ~current-writer))))))
 
 (defmacro with-outstream [bindings & forms]
   `(do (doseq [[var# outs#] (partition 2 ~bindings)]
