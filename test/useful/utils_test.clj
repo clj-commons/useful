@@ -1,6 +1,12 @@
 (ns useful.utils-test
   (:use clojure.test useful.utils))
 
+(deftest test-invoke
+  (is (= 1 (invoke inc 0)))
+  (is (= (range 5)
+         (map invoke
+              (map constantly
+                   (range 5))))))
 (deftest test-or-min
   (is (= 3   (or-min nil 4 3 nil 9)))
   (is (= 1   (or-min 1 2 3 4)))
@@ -122,9 +128,10 @@
     (is (= [(map-entry 1 2) (map-entry 3 4)]
            (map pair [1 3] [2 4])))))
 
-(deftest test-invoke
-  (is (= 1 (invoke inc 0)))
-  (is (= (range 5)
-         (map invoke
-              (map constantly
-                   (range 5))))))
+(deftest test-trade
+  (testing "trade! returns the old atom value"
+    (let [a (atom 1)]
+      (is (= 1 (trade! a inc)))
+      (is (= 2 @a))
+      (is (= 2 (trade! a + 100)))
+      (is (= 102 @a)))))
