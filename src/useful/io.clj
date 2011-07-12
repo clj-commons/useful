@@ -1,8 +1,7 @@
 (ns useful.io
   (:use [clojure.java.io :only [copy]])
   (:import [java.net URL URLConnection JarURLConnection]
-           [java.io File FileInputStream PrintStream]
-           [clojure.lang IDeref]))
+           [java.io File FileInputStream PrintStream]))
 
 (defn resource-stream [name]
   (if-let [url (.findResource (.getClassLoader clojure.lang.RT) name)]
