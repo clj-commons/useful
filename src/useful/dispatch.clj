@@ -1,6 +1,12 @@
 (ns useful.dispatch
   (:use [useful.map :only [into-map]]
-        [useful.fn :only [any]]))
+        [useful.fn :only [any]]
+        [useful.utils :only [verify]]))
+
+(defn get-sub-type [hierarchy ns]
+  (let [sub-type (get hierarchy ns)]
+    (verify (not= sub-type ns) "a node type cannot have itself as a sub-type")
+    sub-type))
 
 (defn dispatcher
   "Returns a function that dispatches using the given dispatch function to determine the
@@ -24,7 +30,7 @@
                          identity
                          wrap)]
                   (apply (wrap f) args))
-            (recur [(get hierarchy ns) method])))))))
+            (recur [(get-sub-type hierarchy ns) method])))))))
 
 (defmacro defdispatch
   "Defines a function that dispatches using the given dispatch function to determine the

@@ -67,4 +67,15 @@
                  (% (stringify-keys arg))
                  (% arg))))
     (is (= {2 "b" 1 "a"} (invert {:a 1 :b 2})))
-    (is (= [:bar :foo] (invert [:foo :bar])))))
+    (is (= [:bar :foo] (invert [:foo :bar]))))
+
+  (testing "self as sub-type"
+    (defdispatch invert #(cond (map? %)
+                               (symbol "clojure.core" "map-invert")
+
+                               (vector? %)
+                               (symbol "clojure.core" "reverse"))
+      :hierarchy '{clojure.core clojure.foo
+                   clojure.foo  clojure.foo})
+    (is (thrown? java.lang.Exception
+                 (invert {:a 1 :b 2})))))
