@@ -37,6 +37,12 @@
      (cons (vec (map first colls))
            (apply zip (map rest colls))))))
 
+(defn insert
+  "Inserts a seq of items into coll at position n."
+  [items n coll]
+  (let [[before after] (split-at n coll)]
+    (concat before items after)))
+
 (defn slice
   "Divide coll into n approximately equal slices."
   [n coll]
