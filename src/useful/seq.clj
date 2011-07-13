@@ -160,3 +160,15 @@ interleave:
                            (assoc idx (peek coll))
                            pop)]
               (cons val (lazy-recur coll)))))))
+
+(defn foldr
+  [f start coll]
+  (reduce #(f %2 %1) start (reverse coll)))
+
+(defmacro lazy
+  "Return a lazy sequence of the passed-in expressions. Each will be evaluated
+  only if necessary."
+  [& exprs]
+  (foldr (fn [head tail]
+           `(lazy-seq (cons ~head ~tail)))
+         nil, exprs))

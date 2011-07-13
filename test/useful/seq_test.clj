@@ -66,3 +66,19 @@
     (testing "Slices are sized regularly"
       (is (every? #(<= (Math/abs (- % largest)) 1)
                  (map count sliced))))))
+
+(deftest test-foldr
+  (is (= [1 2 3 4]
+         (foldr cons nil [1 2 3 4]))))
+
+(deftest test-lazy
+  (let [realized (atom 0)
+        realize (fn [x] (swap! realized inc) x)
+        the-list (lazy (realize 1) (realize 2))]
+    (is (= 0 @realized))
+    (is (= 1 (first the-list)))
+    (is (= 1 @realized))
+    (is (= 2 (second the-list)))
+    (is (= 2 @realized))
+    (is (nil? (next (next the-list))))
+    (is (= 2 @realized))))
