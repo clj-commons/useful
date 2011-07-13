@@ -18,6 +18,8 @@
     [val]
     (interrogate-form `(print) val))
 
-  (defmacro ?!
-    [file val]
-    (interrogate-form `(spit ~file) val)))
+  (defmacro ^{:dont-test "Complicated to test, and should work if ? does"}
+    ?!
+    ([val] `(?! "/tmp/spit" ~val))
+    ([file val]
+       (interrogate-form `(spit ~file) val))))
