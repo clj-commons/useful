@@ -71,3 +71,7 @@
 (deftest test-assoc-in
   (is (= [1] (-> (assoc-in! {:foo {}} [:foo :bar] [1])
                  :foo :bar))))
+
+(deftest test-multi-map
+  (is (= {:foo #{1 2 3 4}, :bar #{2 3 4 5 6}, :baz #{5 6}}
+         (multi-map {:foo 1, #{:foo :bar} #{2 3 4}, #{:baz :bar} #{5 6}}))))

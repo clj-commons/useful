@@ -1,5 +1,6 @@
 (ns useful.map
-  (:use [useful.utils :only [map-entry]]))
+  (:use [useful.utils :only [map-entry]]
+        [useful.fn :only [to-fix !]]))
 
 (let [transforms {:keys keyword
                   :strs str
@@ -152,3 +153,12 @@
   "Returns a map that only contains keys where (pred key) returns false."
   [pred map]
   (filter-keys (complement pred) map))
+
+(defn multi-map
+  "Takes a map with keys and values that can be sets or individual objects and returns a map from
+  objects to sets. Used to create associations between two sets of objects."
+  [m]
+  (apply merge-with into
+         (for [entry m, :let [[ks vs] (map (to-fix (! set?) hash-set) entry)]
+               k ks]
+           {k vs})))
