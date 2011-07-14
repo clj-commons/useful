@@ -28,6 +28,11 @@
     (vec (for [f [filter remove]]
            (map first (f second pcoll))))))
 
+(defn include?
+  "Check if val exists in coll."
+  [val coll]
+  (some (partial = val) coll))
+
 (defn zip
   "Returns a lazy sequence of vectors of corresponding items from each collection. If one collection
    is longer than the others, the missing items will be filled in with nils."

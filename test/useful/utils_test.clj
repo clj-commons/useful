@@ -34,12 +34,6 @@
   (is (= (into-vec '(4) [5])   [4 5]))
   (is (= (into-vec [2]  [5 6]) [2 5 6])))
 
-(deftest test-include?
-  (is (include? 5 [1 2 3 4 5]))
-  (is (include? :bar '(1 4 :bar)))
-  (is (not (include? 2 '(1 3 4))))
-  (is (not (include? :foo [1 :bar :baz 3]))))
-
 (deftest test-split-vec
   (is (= [[1 2] [3 4]]       (split-vec [1 2 3 4]     2)))
   (is (= [[1 2] [3 4] [5 6]] (split-vec [1 2 3 4 5 6] 2 4)))

@@ -37,11 +37,6 @@
   [to-coll from-coll]
   (into (vec to-coll) from-coll))
 
-(defn include?
-  "Check if val exists in coll."
-  [val coll]
-  (some (partial = val) coll))
-
 (defn split-vec
   "Split the given vector at the provided offsets using subvec. Supports negative offsets."
   [v & ns]
