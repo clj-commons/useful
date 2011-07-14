@@ -174,5 +174,5 @@ interleave:
   "Return a lazy sequence of the passed-in expressions. Each will be evaluated
   only if necessary."
   [& exprs]
-  `(map #(%) (list ~@(for [expr exprs]
-                       `(fn [] ~expr)))))
+  `(map force (list ~@(for [expr exprs]
+                        `(delay ~expr)))))
