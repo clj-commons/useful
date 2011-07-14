@@ -174,6 +174,5 @@ interleave:
   "Return a lazy sequence of the passed-in expressions. Each will be evaluated
   only if necessary."
   [& exprs]
-  (foldr (fn [head tail]
-           `(lazy-seq (cons ~head ~tail)))
-         nil, exprs))
+  `(map #(%) (list ~@(for [expr exprs]
+                       `(fn [] ~expr)))))
