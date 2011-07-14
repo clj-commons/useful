@@ -2,14 +2,18 @@
   (:use [useful.debug :only [?]])
   (:require [clojure.string :as s]))
 
-(defn camelize [str]
-  (s/replace str
+(defn camelize [string]
+  (s/replace string
              #"[-_](\w)"
              (comp s/upper-case second)))
 
+ (defn classify [string]
+   (apply str (map s/capitalize
+                   (s/split string #"[-_]"))))
+
 (defn- from-camel-fn [separator]
-  (fn [name]
-    (-> name
+  (fn [string]
+    (-> string
         (s/replace #"^[A-Z]+" s/lower-case)
         (s/replace #"_?([A-Z]+)"
                    (comp (partial str separator)

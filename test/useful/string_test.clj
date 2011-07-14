@@ -7,6 +7,12 @@
        "this-is-real" "thisIsReal"
        "untouched" "untouched"))
 
+(deftest to-class
+  (are [in out] (= out (classify in))
+       "the-string" "TheString"
+       "this-is-real" "ThisIsReal"
+       "touched" "Touched"))
+
 (deftest from-camel
   (are [in dashed underscored] (= [dashed underscored]
                                   ((juxt dasherize underscore) in))
