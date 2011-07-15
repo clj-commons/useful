@@ -80,7 +80,10 @@
 
         :else right))
 
-(defn pop-if [stack pred? & [default]]
+(defn pop-if
+  "Pop item off the given stack if (pred? item) returns true, returning both the item and the
+  modified stack. If (pred? item) is false, return nil or the optional default value."
+  [stack pred? & [default]]
   (let [[peek pop] (if (instance? clojure.lang.IPersistentStack stack)
                      [peek pop]
                      [first rest])
