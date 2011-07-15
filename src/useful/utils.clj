@@ -80,6 +80,15 @@
 
         :else right))
 
+(defn pop-if [stack pred? & [default]]
+  (let [[peek pop] (if (instance? clojure.lang.IPersistentStack stack)
+                     [peek pop]
+                     [first rest])
+        item (peek stack)]
+    (if (pred? item)
+      [(pop stack) item]
+      [stack default])))
+
 (defmacro with-adjustments
   "Create new bindings for binding args, by applying adjustment
   function to current values of bindings."

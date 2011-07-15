@@ -1,5 +1,5 @@
 (ns useful.map
-  (:use [useful.utils :only [map-entry]]
+  (:use [useful.utils :only [map-entry pop-if]]
         [useful.fn :only [to-fix !]]))
 
 (let [transforms {:keys keyword
@@ -31,16 +31,17 @@
   "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
    maps of keys to values or collections of alternating keys and values."
   [& args]
-  (loop [args args map {}]
-    (if (empty? args)
-      map
-      (let [arg  (first args)
-            args (rest args)]
-       (condp #(%1 %2) arg
-         nil?  (recur args map)
-         map?  (recur args (merge map arg))
-         coll? (recur (into args (reverse arg)) map)
-         (recur (rest args) (assoc map arg (first args))))))))
+  (let [[args combine] (pop-if (apply list args) fn? (fn [_ x] x))]
+    (loop [args args m {}]
+      (if (empty? args)
+        m
+        (let [arg  (first args)
+              args (rest args)]
+          (condp #(%1 %2) arg
+            nil?  (recur args m)
+            map?  (recur args (merge-with combine m arg))
+            coll? (recur (into args (reverse arg)) m)
+            (recur (conj (rest args) {arg (first args)}) m)))))))
 
 (defn map-vals
   "Create a new map from m by calling function f on each value to get a new value."

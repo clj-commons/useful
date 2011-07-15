@@ -15,7 +15,9 @@
 
 (deftest test-into-map
   (is (= {:foo "1", :bar "2", :bang "3", :baz "4", :blah 5}
-         (into-map :foo 1 :bar 2 :bang 3 [:foo "1" :baz "4"] :bar "2" '(:bang "3") {:blah 5}))))
+         (into-map :foo 1 :bar 2 :bang 3 [:foo "1" :baz "4"] :bar "2" '(:bang "3") {:blah 5})))
+  (is (= {:foo {:bap 3, :baz 2, :bar 1}}
+         (into-map merge-in :foo {:bar 1} {:foo {:baz 2}} [:foo {:bap 3}]))))
 
 (deftest test-map-vals
   (is (= {:foo 1 :bar 9 :baz 4}

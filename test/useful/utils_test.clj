@@ -54,6 +54,14 @@
           {:a [1]    :b {"foo" [2 3] "bar" 8 "bap" 9} :c #{2 3 4 6}}
           {:a [2 3]  :b {"foo" [5]   "bar" 7 "baz" 2} :c {3 false 8 true}}))))
 
+(deftest test-pop-if
+  (is (= [[1 2 3]   4]   (pop-if [1 2 3 4] even?)))
+  (is (= [[1 2 3 4] 1]   (pop-if [1 2 3 4] odd? 1)))
+  (is (= ['(2 3)    1]   (pop-if '(1 2 3) odd?)))
+  (is (= ['(1 2 3)  nil] (pop-if '(1 2 3) even?)))
+  (is (= ['(2)      1]   (pop-if (cons 1 [2]) odd?)))
+  (is (= ['(1 2)    nil] (pop-if (cons 1 [2]) neg?))))
+
 (deftest test-queue
   (let [q (queue)]
     (is (instance? clojure.lang.PersistentQueue q))
