@@ -31,5 +31,4 @@
      (plural 1 \"radius\" \"radii\") => \"1 radius\"
      (plural 9 \"radius\" \"radii\") => \"9 radii\""
   [num singular & [plural]]
-  (let [plural (or plural (str singular "s"))]
-    (str num " " (if (= 1 num) singular plural))))
+  (str num " " (if (= 1 num) singular (or plural (str singular "s")))))
