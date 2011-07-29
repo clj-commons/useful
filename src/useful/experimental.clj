@@ -85,46 +85,49 @@
                (print-stub "open" this (list) (jiraph.layer/open (:impl this))))})))
 
 
-(letfn [(symbol ([ns sym]
+(letfn [(mapify [coll] (into {} coll)) ;; just for less-deep indenting
+        (symbol ([ns sym]              ;; annoying that (symbol 'x 'y) fails
                    (clojure.core/symbol (name ns) (name sym))))
         (behavior ([name default exceptions]
-                     (if (exceptions name)
-                       ({:forward :stub, :stub :forward} default)
-                       default)))
+                     (= :forward
+                        (if (exceptions name)
+                          ({:forward :stub, :stub :forward} default)
+                          default))))
         (analyze-var [v]
           (let [{:keys [ns name]} (meta v)
                 ns (ns-name ns)
                 sigs (:sigs @v)]
             (keyed [ns name sigs])))]
+
   (defmacro protocol-stub
     [name trace-fn proto-specs]
-    (let [trace-fn-name (gensym 'trace-fn)
-          impl-field-name (gensym 'impl)
-          proto-fns (into {}
-                          (for [[name opts] proto-specs
-                                :let [default-behavior (:default opts :stub)
-                                      exceptions (set (:exceptions opts))
-                                      proto-var (resolve name)
-                                      {:keys [ns name sigs]} (analyze-var proto-var)]]
-                            {(symbol ns name)
-                             (into {}
-                                   (for [[fn-key {:keys [arglists name]}] sigs
-                                         :let [behave (behavior name default-behavior exceptions)
-                                               should-forward (= :forward behave)
-                                               impl-sym (symbol ns name)]]
-                                     {fn-key
-                                      (cons `fn
-                                            (for [[this & args :as sig] arglists]
-                                              `(~sig (let [~'ret ~(when should-forward
-                                                                    (list* impl-sym `(~(keyword impl-field-name) ~this) args))]
-                                                       (~trace-fn-name
-                                                        '~name
-                                                        (list ~@sig)
-                                                        ~@(when should-forward
-                                                            ['ret]))
-                                                       ~'ret))))}))}))]
+    (let [[trace impl-field ret] (map gensym '(trace impl ret))
+          impl-kw (keyword impl-field)
+
+          proto-fns
+          (mapify
+           (for [[name opts] proto-specs
+                 :let [default-behavior (:default opts :stub)
+                       exceptions (set (:exceptions opts))
+                       proto-var (resolve name)
+                       {:keys [ns name sigs]} (analyze-var proto-var)]]
+             {(symbol ns name)
+              (mapify
+               (for [[fn-key {arglists :arglists, short-name :name}] sigs
+                     :let [forward? (behavior short-name default-behavior exceptions)
+                           fn-name (symbol ns short-name)]]
+                 {fn-key
+                  (cons `fn
+                        (for [[this & args :as argvec] arglists]
+                          `([~@argvec]
+                            (let [~ret ~(when forward?
+                                           `(~fn-name (~impl-kw ~this) ~@args))]
+                              (~trace '~short-name (list ~@argvec)
+                                      ~@(when forward?
+                                          [ret]))
+                              ~ret))))}))}))]
       `(do
-         (defrecord ~name [~impl-field-name])
-         (let [~trace-fn-name ~trace-fn]
+         (defrecord ~name [~impl-field])
+         (let [~trace ~trace-fn]
            (extend ~name
              ~@(apply concat proto-fns)))))))
