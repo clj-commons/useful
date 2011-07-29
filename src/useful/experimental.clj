@@ -97,7 +97,11 @@
           (let [{:keys [ns name]} (meta v)
                 ns (ns-name ns)
                 sigs (:sigs @v)]
-            (keyed [ns name sigs])))]
+            (keyed [ns name sigs])))
+        (append-if [test item coll]
+          (if-not test
+            coll
+            (concat coll [item])))]
 
   (defmacro protocol-stub
     [name trace-fn proto-specs]
@@ -120,12 +124,11 @@
                   (cons `fn
                         (for [[this & args :as argvec] arglists]
                           `([~@argvec]
-                            (let [~ret ~(when forward?
-                                           `(~fn-name (~impl-kw ~this) ~@args))]
-                              (~trace '~short-name (list ~@argvec)
-                                      ~@(when forward?
-                                          [ret]))
-                              ~ret))))}))}))]
+                              (let [~ret ~(when forward?
+                                            `(~fn-name (~impl-kw ~this) ~@args))]
+                                ~(->> `(~trace '~short-name (list ~@argvec))
+                                      (append-if forward? ret))
+                                ~ret))))}))}))]
       `(do
          (defrecord ~name [~impl-field])
          (let [~trace ~trace-fn]
