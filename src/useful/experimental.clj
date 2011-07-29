@@ -56,3 +56,73 @@
     `(if ~test
        (let [~@(interleave names thens)] ~@forms)
        (let [~@(interleave names elses)] ~@forms))))
+
+(comment
+  (record-stub StubLayer
+               (fn pr-stub
+                 ([fn-name this args]
+                    (println fn-name "called with" (pr-str args)))
+                 ([fn-name this args ret]
+                    (pr-stub fn-name this args)
+                    (println "==> return" ret)))
+               {Layer {:default :forward
+                       :exceptions #{append-node!}}
+                Append {:default :stub}})
+  ;; expand to
+  (defrecord StubLayer [impl])
+  (let [print-stub (fn pr-stub
+                     ([fn-name args]
+                        (println fn-name "called with" (pr-str args)))
+                     ([fn-name args ret]
+                        (pr-stub fn-name args)
+                        (println "==> return" ret)))]
+    (extend StubLayer
+      Layer
+      {:append-node! (fn [this node whatever]
+                       (print-stub "append-node!" this (list node whatever)))
+       :open (fn [this]
+               (print-stub "open" this (list) (jiraph.layer/open (:impl this))))})))
+
+
+(let [inverse-behavior {:forward :stub, :stub :forward}
+      symbol (fn
+               ([name] (symbol (str name)))
+               ([ns name] (symbol (str ns) (str name))))]
+  (defmacro protocol-stub
+    [name trace-fn proto-specs]
+    (let [trace-fn-name (gensym 'trace-fn)
+          impl-field-name (gensym 'impl)
+          proto-fns (into {}
+                          (for [[name opts] proto-specs
+                                :let [default-behavior (:default opts :stub)
+                                      exceptions (set (:exceptions opts))
+                                      behavior (fn [name]
+                                                 ((if (exceptions name)
+                                                    inverse-behavior
+                                                    identity) default-behavior))
+                                      proto-var (resolve name)
+                                      ns (ns-name (:ns (meta proto-var)))
+                                      name (:name (meta proto-var))
+                                      sigs (:sigs @proto-var)]]
+                            {(symbol ns name)
+                             (into {}
+                                   (for [[fn-key {:keys [arglists name]}] sigs
+                                         :let [forward (= :forward (behavior name))
+                                               impl-sym (symbol ns name)]]
+                                     {fn-key (cons `fn
+                                                   (for [[this & args :as sig] arglists]
+                                                     `(~sig (let [~'ret ~(when forward
+                                                                           (list* impl-sym `(~(keyword impl-field-name) ~this) args))]
+                                                              (~trace-fn-name
+                                                               '~name
+                                                               (list ~@sig)
+                                                               ~@(when forward
+                                                                   ['ret]))
+                                                              ~'ret))))}))}))]
+      `(do
+         (defrecord ~name [~impl-field-name])
+         (let [~trace-fn-name ~trace-fn]
+           (extend ~name
+             ~@(apply concat
+                      (for [[proto body] proto-fns]
+                        (list proto body)))))))))
