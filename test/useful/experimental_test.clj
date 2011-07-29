@@ -33,22 +33,21 @@
   (define [this k v] false)
   (lookup [this k] :not-found))
 
-(def call-log (atom []))
-
 (protocol-stub StubImpl
-               (fn
-                 ([f [this & args]]
-                    (reset! call-log (keyed [f args])))
-                 ([f [this & args] ret]
-                    (reset! call-log (keyed [f args ret]))))
+
                {Sample {:default :forward}
                 Define {:default :stub,
                         :exceptions [lookup]}})
 
 (deftest stub-test
-  (let [real-impl (Implementor.)
-        stub-impl (StubImpl. real-impl)]
-    (reset! call-log []) ;; in case of stale test state
+  (let [call-log (atom [])
+        real-impl (Implementor.)
+        stub-impl (StubImpl. real-impl
+                             (fn
+                               ([f [this & args]]
+                                  (reset! call-log (keyed [f args])))
+                               ([f [this & args] ret]
+                                  (reset! call-log (keyed [f args ret])))))]
     (testing "default action works without exceptions"
       (is (= [] @call-log))
       (is (= 10 (sample real-impl 'whatever)))

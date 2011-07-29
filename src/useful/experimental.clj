@@ -104,9 +104,10 @@
             (concat coll [item])))]
 
   (defmacro protocol-stub
-    [name trace-fn proto-specs]
-    (let [[trace impl-field ret] (map gensym '(trace impl ret))
-          impl-kw (keyword impl-field)
+    [name proto-specs]
+    (let [[trace-field impl-field ret] (map gensym '(trace impl ret))
+          [impl-kw trace-kw] (map keyword [impl-field trace-field])
+          trace-fn (fn [this] `(~trace-kw ~this))
 
           proto-fns
           (mapify
@@ -126,11 +127,10 @@
                           `([~@argvec]
                               (let [~ret ~(when forward?
                                             `(~fn-name (~impl-kw ~this) ~@args))]
-                                ~(->> `(~trace '~short-name (list ~@argvec))
+                                ~(->> `(~(trace-fn this) '~short-name (list ~@argvec))
                                       (append-if forward? ret))
                                 ~ret))))}))}))]
       `(do
-         (defrecord ~name [~impl-field])
-         (let [~trace ~trace-fn]
-           (extend ~name
-             ~@(apply concat proto-fns)))))))
+         (defrecord ~name [~impl-field ~trace-field])
+         (extend ~name
+           ~@(apply concat proto-fns))))))
