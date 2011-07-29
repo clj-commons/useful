@@ -17,6 +17,7 @@
       (is (= odd  (odd?  a))))))
 
 
+;;; protocols defined for testing protocol-stub
 (defprotocol Sample
   (sample [this data]))
 
@@ -47,6 +48,7 @@
 (deftest stub-test
   (let [real-impl (Implementor.)
         stub-impl (StubImpl. real-impl)]
+    (reset! call-log []) ;; in case of stale test state
     (testing "default action works without exceptions"
       (is (= [] @call-log))
       (is (= 10 (sample real-impl 'whatever)))
