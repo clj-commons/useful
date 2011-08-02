@@ -34,7 +34,6 @@
   (lookup [this k] :not-found))
 
 (protocol-stub StubImpl
-
                {Sample {:default :forward}
                 Define {:default :stub,
                         :exceptions [lookup]}})

@@ -107,7 +107,7 @@
     [name proto-specs]
     (let [[trace-field impl-field ret] (map gensym '(trace impl ret))
           [impl-kw trace-kw] (map keyword [impl-field trace-field])
-          trace-fn (fn [this] `(~trace-kw ~this))
+          trace (fn [this] `(~trace-kw ~this))
 
           proto-fns
           (mapify
@@ -123,11 +123,12 @@
                            fn-name (symbol ns short-name)]]
                  {fn-key
                   (cons `fn
-                        (for [[this & args :as argvec] arglists]
+                        (for [[this & args :as argvec] arglists
+                              :let [proxy-args `((~impl-kw ~this) ~@args)]]
                           `([~@argvec]
                               (let [~ret ~(when forward?
-                                            `(~fn-name (~impl-kw ~this) ~@args))]
-                                ~(->> `(~(trace-fn this) '~short-name (list ~@argvec))
+                                            `(~fn-name ~@proxy-args))]
+                                ~(->> `(~(trace this) '~short-name (list ~@proxy-args))
                                       (append-if forward? ret))
                                 ~ret))))}))}))]
       `(do
