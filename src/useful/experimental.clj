@@ -135,3 +135,25 @@
          (defrecord ~name [~impl-field ~trace-field])
          (extend ~name
            ~@(apply concat proto-fns))))))
+
+(defmacro defn-wrapping [name wrappers-var doc args & body]
+  `(let [impl# (fn ~args ~@body)]
+     (defn ~name ~doc [& args#]
+       (let [wrappers# (seq @~wrappers-var)]
+         (if-not wrappers#
+           (apply impl# args#)
+           (with-bindings {~wrappers-var
+                           (vary-meta wrappers# assoc
+                                      ::call-data {:fn-name '~name})}
+             (apply (reduce (fn [f# wrapper#]
+                              (wrapper# f#))
+                            impl#
+                            wrappers#)
+                    args#)))))))
+
+(defmacro with-wrappers [wrappers-var wrap-fns & body]
+  `(with-bindings {~wrappers-var (into @~wrappers-var ~wrap-fns)}
+     ~@body))
+
+(defmacro with-wrapper [wrappers-var wrap-fn & body]
+  `(with-wrappers ~wrappers-var [~wrap-fn] ~@body))
