@@ -183,7 +183,7 @@
   [name wrappers-var doc args & body]
   `(let [impl# (fn ~args ~@body)]
      (defn ~name ~doc [& args#]
-       (let [wrappers# (seq @~wrappers-var)]
+       (let [wrappers# (not-empty @~wrappers-var)]
          (if-not wrappers#
            (apply impl# args#)
            (with-bindings {~wrappers-var
