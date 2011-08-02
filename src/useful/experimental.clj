@@ -156,7 +156,31 @@
          (extend ~name
            ~@(apply concat proto-fns))))))
 
-(defmacro defn-wrapping [name wrappers-var doc args & body]
+(defmacro defn-wrapping
+  "Define a function as with defn, which checks the contents of wrappers-var
+  whenever it is called. If that var is empty, the underlying defn is called
+  without modification. Otherwise, it is treated as a list of wrapper functions,
+  which are wrapped around the underlying implementation before it is called.
+
+  The wrappers are applied left-to-right, which means that the rightmost
+  wrapper is outermost, and the leftmost wrapper is applied just before the base
+  function.
+
+  The wrappers are not called \"directly\" on the arguments, but are
+  instead called like Ring wrappers, to create a single function composed of
+  all of them; the resulting function is called with the actual arguments to
+  the defn-wrapping function.
+
+  For example, if the wrapped function is -, and the wrappers are
+  [(fn [f] (fn [x] (* 2 (f x)))), (fn [f] (fn [x] (f (+ 10 x))))],
+  then the eventual function will behave like (fn [x] (* 2 (- (+ 10 x)))).
+
+  Swapping the order of the wrappers would yield a function behaving like
+  (fn [x] (* 2 (+ 10 (- x)))).
+
+  Note the order of the wrapping: when called with 10 as an argument, the former
+  will return -40, and the latter 0."
+  [name wrappers-var doc args & body]
   `(let [impl# (fn ~args ~@body)]
      (defn ~name ~doc [& args#]
        (let [wrappers# (seq @~wrappers-var)]
@@ -171,9 +195,17 @@
                             wrappers#)
                     args#)))))))
 
-(defmacro with-wrappers [wrappers-var wrap-fns & body]
+(defmacro with-wrappers
+  "Dynamically bind some additional wrappers to the specified wrapper-var
+  (see defn-wrapping). Each wrapper function will be conj-ed onto the current
+  set of wrappers."
+  [wrappers-var wrap-fns & body]
   `(with-bindings {~wrappers-var (into @~wrappers-var ~wrap-fns)}
      ~@body))
 
-(defmacro with-wrapper [wrappers-var wrap-fn & body]
+(defmacro with-wrapper
+  "Dynamically bind an additional wrapper to the specified wrapper-var
+  (see defn-wrapping). The wrapper function will be conj-ed onto the current
+  set of wrappers."
+  [wrappers-var wrap-fn & body]
   `(with-wrappers ~wrappers-var [~wrap-fn] ~@body))
