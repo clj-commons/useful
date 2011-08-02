@@ -105,4 +105,11 @@
             (with-wrapper vec-wrapper (prepend 'baz)
               (is (= "foobaz123bar" (vec-str 1 2 3))))))
         (with-wrappers cons-wrapper [(prepend 'foo) (append 'bar) (prepend 'baz)]
-          (is (= "bazfoo123bar" (cons-str 1 2 3))))))))
+          (is (= "bazfoo123bar" (cons-str 1 2 3)))))))
+
+  (testing "Metadata is applied properly"
+    (defn-wrapping myfn nil "re-implement clojure.core/first." [[x]]
+      x)
+    (let [meta (meta #'myfn)]
+      (is (= '([[x]]) (:arglists meta)))
+      (is (= "re-implement clojure.core/first." (:doc meta))))))

@@ -2,6 +2,7 @@
   (:use [useful.utils :only [split-vec]]
         [useful.seq :only [alternates]]
         [useful.map :only [keyed]]
+        [useful.macro :only [name-with-attributes]]
         [useful.fn :only [any]]))
 
 (defn comp-partial
@@ -180,20 +181,25 @@
 
   Note the order of the wrapping: when called with 10 as an argument, the former
   will return -40, and the latter 0."
-  [name wrappers-var doc args & body]
-  `(let [impl# (fn ~args ~@body)]
-     (defn ~name ~doc [& args#]
-       (let [wrappers# (not-empty @~wrappers-var)]
-         (if-not wrappers#
-           (apply impl# args#)
-           (with-bindings {~wrappers-var
-                           (vary-meta wrappers# assoc
-                                      ::call-data {:fn-name '~name})}
-             (apply (reduce (fn [f# wrapper#]
-                              (wrapper# f#))
-                            impl#
-                            wrappers#)
-                    args#)))))))
+  [name wrappers-var & defn-args]
+  (let [[name macro-args] (name-with-attributes name defn-args)
+        fake-defn-name (gensym 'tmp)]
+    `(let [impl# (fn ~@macro-args)
+           fake-defn-var# (defn ~fake-defn-name ~@macro-args)
+           arglists# (-> fake-defn-var# meta :arglists)]
+       (ns-unmap *ns* '~fake-defn-name)
+       (defn ~name {:arglists arglists#} [& args#]
+         (let [wrappers# (not-empty @~wrappers-var)]
+           (if-not wrappers#
+             (apply impl# args#)
+             (with-bindings {~wrappers-var
+                             (vary-meta wrappers# assoc
+                                        ::call-data {:fn-name '~name})}
+               (apply (reduce (fn [f# wrapper#]
+                                (wrapper# f#))
+                              impl#
+                              wrappers#)
+                      args#))))))))
 
 (defmacro with-wrappers
   "Dynamically bind some additional wrappers to the specified wrapper-var
