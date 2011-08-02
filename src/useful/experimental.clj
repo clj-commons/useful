@@ -104,6 +104,26 @@
             (concat coll [item])))]
 
   (defmacro protocol-stub
+    "Define a new type of record implementing the specified protocols. Its
+  constructor will take two arguments:
+    - An object which already satisfies the given protocols. This object will
+      be delegated to for functions which are not stubbed out.
+    - A \"log\" function to be called (for side effects) every time a protocol
+      function is called. For functions marked as :stub (see below), the
+      log function will be called with two arguments: the function name (an
+      unqualified symbol), and the arglist (including \"this\"). Functions
+      marked :forward will have a third argument, the function's return value.
+      Use this function to implement your logging (or whatever else).
+
+  The macro itself needs two arguments: the name of the record to define, and:
+    - A map of protocol stubbing specifications. Each key should be a protocol,
+      and the value another map. It may have zero or more of these keys:
+      - A :default key specifying either :stub or :forward, to control whether
+        the underlying implementation is called after logging. Defaults to :stub,
+        meaning that only the logging function will be called, completely
+        stubbing out the backing implementation.
+      - An :exceptions key, listing the functions of this protocol that should
+        behave the opposite of the :default."
     [name proto-specs]
     (let [[trace-field impl-field ret] (map gensym '(trace impl ret))
           [impl-kw trace-kw] (map keyword [impl-field trace-field])
