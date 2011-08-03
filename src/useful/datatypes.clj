@@ -1,5 +1,5 @@
 (ns useful.datatypes
-  (:use [useful :only [position into-map update]])
+  (:use [useful.map :only [position into-map update]])
   (:require [clojure.string :as s]))
 
 (defn- normalize-field-name [field]
@@ -8,7 +8,7 @@
       (s/replace #"_"       "-")
       symbol))
 
-(defn record-fields
+(defn- record-fields
   "Uses reflection to get the declared fields passed to the defrecord call for type. If called on a
    non-record, the behavior is undefined."
   [type]

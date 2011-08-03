@@ -1,19 +1,34 @@
 (ns useful.string
-  (:use [clojure.string :only [join split capitalize]]))
+  (:use [useful.debug :only [?]])
+  (:require [clojure.string :as s]))
 
-(defn camelize [s & [lower]]
-  (let [parts (split (str s) #"-|_")]
-    (apply str
-           (if lower
-             (cons (first parts) (map capitalize (rest parts)))
-             (map capitalize parts)))))
+(defn camelize [string]
+  (s/replace string
+             #"[-_](\w)"
+             (comp s/upper-case second)))
 
-(defn dasherize [s]
-  (.. (re-matcher #"\B([A-Z])" (str s))
-      (replaceAll "-$1")
-      toLowerCase))
+ (defn classify [string]
+   (apply str (map s/capitalize
+                   (s/split string #"[-_]"))))
 
-(defn underscore [s]
-  (.. (re-matcher #"\B([A-Z])" (str s))
-      (replaceAll "_$1")
-      toLowerCase))
+(defn- from-camel-fn [separator]
+  (fn [string]
+    (-> string
+        (s/replace #"^[A-Z]+" s/lower-case)
+        (s/replace #"_?([A-Z]+)"
+                   (comp (partial str separator)
+                         s/lower-case second))
+        (s/replace #"-|_" separator))))
+
+(def dasherize (from-camel-fn "-"))
+(def underscore (from-camel-fn "_"))
+
+(defn pluralize
+  "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
+  For example:
+     (plural 5 \"month\") => \"5 months\"
+     (plural 1 \"month\") => \"1 month\"
+     (plural 1 \"radius\" \"radii\") => \"1 radius\"
+     (plural 9 \"radius\" \"radii\") => \"9 radii\""
+  [num singular & [plural]]
+  (str num " " (if (= 1 num) singular (or plural (str singular "s")))))
