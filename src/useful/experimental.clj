@@ -59,33 +59,6 @@
        (let [~@(interleave names thens)] ~@forms)
        (let [~@(interleave names elses)] ~@forms))))
 
-(comment
-  (record-stub StubLayer
-               (fn pr-stub
-                 ([fn-name this args]
-                    (println fn-name "called with" (pr-str args)))
-                 ([fn-name this args ret]
-                    (pr-stub fn-name this args)
-                    (println "==> return" ret)))
-               {Layer {:default :forward
-                       :exceptions #{append-node!}}
-                Append {:default :stub}})
-  ;; expand to
-  (defrecord StubLayer [impl])
-  (let [print-stub (fn pr-stub
-                     ([fn-name args]
-                        (println fn-name "called with" (pr-str args)))
-                     ([fn-name args ret]
-                        (pr-stub fn-name args)
-                        (println "==> return" ret)))]
-    (extend StubLayer
-      Layer
-      {:append-node! (fn [this node whatever]
-                       (print-stub "append-node!" this (list node whatever)))
-       :open (fn [this]
-               (print-stub "open" this (list) (jiraph.layer/open (:impl this))))})))
-
-
 (letfn [(mapify [coll] (into {} coll)) ;; just for less-deep indenting
         (symbol ([ns sym]              ;; annoying that (symbol 'x 'y) fails
                    (clojure.core/symbol (name ns) (name sym))))
