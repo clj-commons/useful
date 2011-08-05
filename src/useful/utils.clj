@@ -12,7 +12,7 @@
   "Raise exception unless test returns true."
   [test exception]
   `(when-not ~test
-     (throw (fix ~exception string? #(Exception. %)))))
+     (throw (fix ~exception string? #(Exception. ^String %)))))
 
 (def ^{:doc "The minimium value of vals, ignoring nils."
        :arglists '([& args])}
