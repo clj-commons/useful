@@ -65,51 +65,72 @@
       (is (= {:f 'lookup :args [1] :ret :not-found} @call-log)))))
 
 (deftest wrapper-test
-  (testing "Wrapping respects manually-established bindings"
-    (with-local-vars [wrappers ()]
-      (defn-wrapping my-inc wrappers "add one" [x]
-        (+ 1 x))
-      (is (= 2 (my-inc 1)))
-      (let [start-num 1]
-        (is (= (* 2 (inc (+ 10 start-num)))
-               (with-bindings {wrappers (list (fn [f] ;; outermost wrapper
-                                                (fn [x]
-                                                  (* 2 (f x))))
-                                              (fn [f] ;; innermost wrapper
-                                                (fn [x]
-                                                  (f (+ 10 x)))))}
-                 (my-inc start-num)))))
-      (let [call-log (atom nil)]
-        (is (= 2 (with-bindings {wrappers (list (fn [f]
+  (with-local-vars [dummy-wrapper ()]
+    (testing "Wrapping respects manually-established bindings"
+      (with-local-vars [wrappers ()]
+        (defn-wrapping my-inc wrappers "add one" [x]
+          (+ 1 x))
+        (is (= 2 (my-inc 1)))
+        (let [start-num 1]
+          (is (= (* 2 (inc (+ 10 start-num)))
+                 (with-bindings {wrappers (list (fn [f] ;; outermost wrapper
                                                   (fn [x]
-                                                    (let [ret (f x)]
-                                                      (reset! call-log [(-> wrappers deref meta :useful.experimental/call-data :fn-name) x ret])
-                                                      ret))))}
-                   (my-inc 1))))
-        (testing "Wrapping-related metadata bound correctly"
-          (is (= ['my-inc 1 2] @call-log))))))
+                                                    (* 2 (f x))))
+                                                (fn [f] ;; innermost wrapper
+                                                  (fn [x]
+                                                    (f (+ 10 x)))))}
+                   (my-inc start-num)))))
+        (let [call-log (atom nil)]
+          (is (= 2 (with-bindings {wrappers (list (fn [f]
+                                                    (fn [x]
+                                                      (let [ret (f x)]
+                                                        (reset! call-log [(-> wrappers deref meta :useful.experimental/call-data :fn-name) x ret])
+                                                        ret))))}
+                     (my-inc 1))))
+          (testing "Wrapping-related metadata bound correctly"
+            (is (= ['my-inc 1 2] @call-log))))))
 
-  (testing "with-wrapper(s) works"
-    (let [prepend (fn [item] (fn [f] (fn [& args] (apply f item args))))
-          append (fn [item] (fn [f] (fn [& args] (apply f (concat args [item])))))]
-      (with-local-vars [vec-wrapper []
-                        cons-wrapper ()]
-        (defn-wrapping vec-str vec-wrapper "Make stuff a string" [& args]
-          (apply str args))
-        (defn-wrapping cons-str cons-wrapper "Make stuff a string" [& args]
-          (apply str args))
-        (with-wrapper vec-wrapper (prepend 'foo)
-          (is (= "foo123" (vec-str 1 2 3)))
-          (with-wrapper vec-wrapper (append 'bar)
-            (is (= "foo123bar" (vec-str 1 2 3)))
-            (with-wrapper vec-wrapper (prepend 'baz)
-              (is (= "foobaz123bar" (vec-str 1 2 3))))))
-        (with-wrappers cons-wrapper [(prepend 'foo) (append 'bar) (prepend 'baz)]
-          (is (= "bazfoo123bar" (cons-str 1 2 3)))))))
+    (testing "with-wrapper(s) works"
+      (let [prepend (fn [item] (fn [f] (fn [& args] (apply f item args))))
+            append (fn [item] (fn [f] (fn [& args] (apply f (concat args [item])))))]
+        (with-local-vars [vec-wrapper []
+                          cons-wrapper ()]
+          (defn-wrapping vec-str vec-wrapper "Make stuff a string" [& args]
+            (apply str args))
+          (defn-wrapping cons-str cons-wrapper "Make stuff a string" [& args]
+            (apply str args))
+          (with-wrapper vec-wrapper (prepend 'foo)
+            (is (= "foo123" (vec-str 1 2 3)))
+            (with-wrapper vec-wrapper (append 'bar)
+              (is (= "foo123bar" (vec-str 1 2 3)))
+              (with-wrapper vec-wrapper (prepend 'baz)
+                (is (= "foobaz123bar" (vec-str 1 2 3))))))
+          (with-wrappers cons-wrapper [(prepend 'foo) (append 'bar) (prepend 'baz)]
+            (is (= "bazfoo123bar" (cons-str 1 2 3)))))))
 
-  (testing "Metadata is applied properly"
-    (defn-wrapping myfn nil "re-implement clojure.core/first." [[x]]
-      x)
-    (let [meta (meta #'myfn)]
-      (is (= '([[x]]) (:arglists meta)))
-      (is (= "re-implement clojure.core/first." (:doc meta))))))
+    (testing "Metadata is applied properly"
+      (defn-wrapping myfn dummy-wrapper "re-implement clojure.core/first." [[x]]
+        x)
+      (let [meta (meta #'myfn)]
+        (is (= '([[x]]) (:arglists meta)))
+        (is (= "re-implement clojure.core/first." (:doc meta))))
+
+      (testing "Docstring is optional"
+        (defn-wrapping testfn dummy-wrapper [x]
+          (inc x))
+        (is (= 1 (testfn 0)))))
+
+    (let [inc-fn (fn [f] (comp inc f))]
+      (testing "Wrapper can be added after function is defined"
+        (defn frizzle [x] (inc x))
+        (make-wrappable! #'frizzle dummy-wrapper)
+        (is (= 3 (with-wrapper dummy-wrapper inc-fn
+                   (frizzle 1)))))
+
+      (testing "wrap-multiple"
+        (defn frazzle [x] (inc x))
+        (defn zazzle [x] (inc x))
+        (wrap-multiple dummy-wrapper frazzle zazzle)
+        (are [f] (= 3 (with-wrapper dummy-wrapper inc-fn
+                        (f 1)))
+             frazzle zazzle)))))

@@ -130,6 +130,30 @@
          (extend ~name
            ~@(apply concat proto-fns))))))
 
+(defn wrap-with [f wrapper-var & [name]]
+  (with-meta
+    (fn [& args]
+      (let [wrappers (not-empty @wrapper-var)]
+        (if-not wrappers
+          (apply f args)
+          (with-bindings {wrapper-var
+                          (vary-meta wrappers assoc
+                                     ::call-data {:fn-name name})}
+            (apply (reduce (fn [f wrapper]
+                             (wrapper f))
+                           f
+                           wrappers)
+                   args)))))
+    (meta f)))
+
+(defn make-wrappable! [fn-var wrappers-var & [name]]
+  (alter-var-root fn-var wrap-with wrappers-var name))
+
+(defmacro wrap-multiple [wrappers-var & fn-syms]
+  (cons `do
+        (for [f fn-syms]
+          `(make-wrappable! #'~f ~wrappers-var '~f))))
+
 (defmacro defn-wrapping
   "Define a function as with defn, which checks the contents of wrappers-var
   whenever it is called. If that var is empty, the underlying defn is called
@@ -155,24 +179,9 @@
   Note the order of the wrapping: when called with 10 as an argument, the former
   will return -40, and the latter 0."
   [name wrappers-var & defn-args]
-  (let [[name macro-args] (name-with-attributes name defn-args)
-        fake-defn-name (gensym 'tmp)]
-    `(let [impl# (fn ~@macro-args)
-           fake-defn-var# (defn ~fake-defn-name ~@macro-args)
-           arglists# (-> fake-defn-var# meta :arglists)]
-       (ns-unmap *ns* '~fake-defn-name)
-       (defn ~name {:arglists arglists#} [& args#]
-         (let [wrappers# (not-empty @~wrappers-var)]
-           (if-not wrappers#
-             (apply impl# args#)
-             (with-bindings {~wrappers-var
-                             (vary-meta wrappers# assoc
-                                        ::call-data {:fn-name '~name})}
-               (apply (reduce (fn [f# wrapper#]
-                                (wrapper# f#))
-                              impl#
-                              wrappers#)
-                      args#))))))))
+  (let [[name macro-args] (name-with-attributes name defn-args)]
+    `(doto (defn ~name ~@macro-args)
+       (make-wrappable! ~wrappers-var '~name))))
 
 (defmacro with-wrappers
   "Dynamically bind some additional wrappers to the specified wrapper-var
