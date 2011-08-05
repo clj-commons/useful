@@ -79,3 +79,16 @@
     ([a b & more]
        (when-let [items (seq (remove nil? (list* a b more)))]
          (apply f items)))))
+
+(defn key-comparator
+  "Given a transformation function (and optionally a direction), return a
+  comparator which does its work by comparing the values of (transform x) and
+  (transform y)."
+  ([modifier]
+     (fn [a b]
+       (- (modifier a) (modifier b))))
+  ([direction modifier]
+     (let [f (comparator modifier)]
+       (condp #(% %2) direction
+         #{:desc :descending -} (comp - f)
+         #{:asc :ascending +} f))))

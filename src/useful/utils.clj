@@ -153,4 +153,3 @@
              (apply f val args))
            args)
     (var-get prev)))
-
