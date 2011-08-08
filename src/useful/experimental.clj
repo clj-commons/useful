@@ -130,7 +130,8 @@
          (extend ~name
            ~@(apply concat proto-fns))))))
 
-(defn wrap-with [f wrapper-var & [name]]
+(defn wrap-with ^{:dont-test "Tested by make-wrappable!, wrap-multiple"}
+  [f wrapper-var & [name]]
   (with-meta
     (fn [& args]
       (let [wrappers (not-empty @wrapper-var)]
