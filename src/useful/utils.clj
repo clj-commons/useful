@@ -14,6 +14,14 @@
   `(when-not ~test
      (throw (fix ~exception string? #(Exception. ^String %)))))
 
+(defmacro returning
+  "Compute a return value, then execute other forms for side effects.
+  Like prog1 in common lisp, or a (do) that returns the first form."
+  [value & forms]
+  `(let [value# ~value]
+     ~@forms
+     value#))
+
 (def ^{:doc "The minimium value of vals, ignoring nils."
        :arglists '([& args])}
   or-min (ignoring-nils min))

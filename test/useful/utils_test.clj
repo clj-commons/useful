@@ -7,6 +7,7 @@
          (map invoke
               (map constantly
                    (range 5))))))
+
 (deftest test-or-min
   (is (= 3   (or-min nil 4 3 nil 9)))
   (is (= 1   (or-min 1 2 3 4)))
@@ -47,6 +48,13 @@
   (if-ns (:require clojure.string)
     (is true)
     (is false)))
+
+(deftest test-returning
+  (let [side-effects (atom 0)]
+    (is (= "TEST"
+           (returning "TEST"
+             (swap! side-effects inc))))
+    (is (= 1 @side-effects))))
 
 (deftest test-adjoin
   (is (= {:a [1 2 3] :b {"foo" [2 3 5] "bar" 7 "bap" 9 "baz" 2} :c #{2 4 6 8}}
