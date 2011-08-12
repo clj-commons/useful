@@ -61,10 +61,10 @@
   (let [m '{a 0, b 1, c 11, d 92}]
     (is (= '#{a d} (filter-keys-by-val even? m)))
     (is (= '#{b c} (remove-keys-by-val even? m)))
-    (is (= '{a 0} (filter-vals zero? m)))
-    (is (= '{b 1, c 11, d 92} (remove-vals zero? m)))
-    (is (= '{a 0} (filter-keys '#{a} m)))
-    (is (= '{b 1, c 11, d 92} (remove-keys '#{a} m)))))
+    (is (= '{a 0} (filter-vals m zero?)))
+    (is (= '{b 1, c 11, d 92} (remove-vals m zero?)))
+    (is (= '{a 0} (filter-keys m '#{a})))
+    (is (= '{b 1, c 11, d 92} (remove-keys m '#{a})))))
 
 (deftest test-update-in
   (is (= [1] (-> (update-in! {:foo (transient {:bar []})} [:foo :bar] conj 1)

@@ -135,25 +135,25 @@
 
 (defn filter-vals
   "Returns a map that only contains values where (pred value) returns true."
-  [pred map]
+  [map pred]
   (when map
     (select-keys map (filter-keys-by-val pred map))))
 
 (defn remove-vals
   "Returns a map that only contains values where (pred value) returns false."
-  [pred map]
-  (filter-vals (complement pred) map))
+  [map pred]
+  (filter-vals map (complement pred)))
 
 (defn filter-keys
   "Returns a map that only contains keys where (pred key) returns true."
-  [pred map]
+  [map pred]
   (when map
     (select-keys map (filter pred (keys map)))))
 
 (defn remove-keys
   "Returns a map that only contains keys where (pred key) returns false."
-  [pred map]
-  (filter-keys (complement pred) map))
+  [map pred]
+  (filter-keys map (complement pred)))
 
 (defn multi-map
   "Takes a map with keys and values that can be sets or individual objects and returns a map from
