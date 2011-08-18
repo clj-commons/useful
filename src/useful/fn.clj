@@ -40,6 +40,11 @@
   (fn [x]
     (apply fix x clauses)))
 
+(defn as-fn
+  "Turn an object into a fn if it is not already by wrapping it in constantly."
+  [x]
+  (fix x (! ifn?) constantly))
+
 (defmacro given
   "A macro version of fix: instead of taking multiple clauses, it treats any
   further arguments as additional args to be passed to the transform function,
