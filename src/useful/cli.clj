@@ -1,10 +1,12 @@
 (ns useful.cli
-  (:use [useful.utils :only [into-vec conj-vec]]
-        [useful.experimental :only [cond-let]]
+  (:use [useful.experimental :only [cond-let]]
         [useful.map :only [update]]))
 
 (defn- parse-opt [default opts arg]
-  (let [m re-matches, key (comp keyword str)]
+  (let [m        re-matches
+        key      (comp keyword str)
+        into-vec (fnil into [])
+        conj-vec (fnil conj [])]
     (cond-let
      [[_ ks]  (m #"-(\w+)"           arg)] (apply merge-with into-vec opts (for [k ks] {(key k) [""]}))
      [[_ k v] (m #"--?([-\w]+)=(.+)" arg)] (update opts (key k) into-vec (.split #"," v))

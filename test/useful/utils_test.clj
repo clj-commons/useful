@@ -20,21 +20,6 @@
   (is (= 1   (or-max 1 nil)))
   (is (= nil (or-max nil nil nil))))
 
-(deftest test-conj-vec
-  (is (= (conj-vec nil  5) [5]))
-  (is (= (conj-vec '(4) 5) [4 5]))
-  (is (= (conj-vec #{3} 5) [3 5])))
-
-(deftest test-conj-set
-  (is (= (conj-set nil  5) #{5}))
-  (is (= (conj-set '(4) 5) #{4 5}))
-  (is (= (conj-set [2]  5) #{2 5})))
-
-(deftest test-into-vec
-  (is (= (into-vec nil  [3 4]) [3 4]))
-  (is (= (into-vec '(4) [5])   [4 5]))
-  (is (= (into-vec [2]  [5 6]) [2 5 6])))
-
 (deftest test-split-vec
   (is (= [[1 2] [3 4]]       (split-vec [1 2 3 4]     2)))
   (is (= [[1 2] [3 4] [5 6]] (split-vec [1 2 3 4 5 6] 2 4)))

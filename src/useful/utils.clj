@@ -30,21 +30,6 @@
        :arglists '([& args])}
   or-max (ignoring-nils max))
 
-(defn conj-vec
-  "Conj onto collection ensuring it is a vector."
-  [coll item]
-  (conj (vec coll) item))
-
-(defn conj-set
-  "Conj onto collection ensuring it is a set."
-  [coll item]
-  (conj (set coll) item))
-
-(defn into-vec
-  "Returns a new vector consisting of to-coll with all of the items of from-coll conjoined."
-  [to-coll from-coll]
-  (into (vec to-coll) from-coll))
-
 (defn split-vec
   "Split the given vector at the provided offsets using subvec. Supports negative offsets."
   [v & ns]
