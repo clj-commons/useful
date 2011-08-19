@@ -21,15 +21,15 @@
 
 (deftest test-map-vals
   (is (= {:foo 1 :bar 9 :baz 4}
-         (map-vals inc {:foo 0 :bar 8 :baz 3}))))
+         (map-vals {:foo 0 :bar 8 :baz 3} inc))))
 
 (deftest test-map-vals-with-keys
   (is (= {1 3, 7 8, 9 14}
-         (map-vals-with-keys + {1 2, 7 1, 9 5}))))
+         (map-vals-with-keys {1 2, 7 1, 9 5} +))))
 
 (deftest test-map-keys-and-vals
   (is (= {"a" "b" "c" "d"}
-         (map-keys-and-vals name {:a :b :c :d}))))
+         (map-keys-and-vals {:a :b :c :d} name))))
 
 (deftest test-update
   (is (= {:a 3 :b 3}
