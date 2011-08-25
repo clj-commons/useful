@@ -78,10 +78,10 @@
 
 (defn merge-in
   "Merge two nested maps."
-  [left right]
-  (if (map? left)
-    (merge-with merge-in left right)
-    right))
+  [& args]
+  (if (map? (first args))
+    (apply merge-with merge-in args)
+    (last args)))
 
 (defn update-in!
   "'Updates' a value in a nested associative structure, where ks is a sequence of keys and

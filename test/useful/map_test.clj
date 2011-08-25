@@ -43,7 +43,11 @@
 (deftest test-merge-in
   (is (= {:a {:b {:c 4} :d 2 :e 3} :e 3 :f 2 :g 1}
          (merge-in {:a {:b {:c 1} :d 2} :e 3 :f 4}
-                   {:a {:b {:c 4} :e 3} :f 2 :g 1}))))
+                   {:a {:b {:c 4} :e 3} :f 2 :g 1})))
+  (is (= {:a {:b {:c 1 :d 2} :e 2}}
+         (merge-in {:a {:b {:c 1}}}
+                   {:a {:b {:d 2}}}
+                   {:a {:b {} :e 2}}))))
 
 (deftest test-map-to
   (is (= {1 2 3 4 5 6} (map-to inc [1 3 5])))
