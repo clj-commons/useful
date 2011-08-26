@@ -28,8 +28,13 @@
   (is (= ['(5 1 7) '(2 4 6 2)] (separate odd?  [2 4 6 5 1 2 7])))
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
 
-(deftest test-partition-on
-  (is (= [[1] [nil 4 3] [nil 8]] (partition-on nil? [1 nil 4 3 nil 8]))))
+(deftest test-partition-between
+  (let [input [1 nil nil 2 3 nil 4]]
+    (are [f output] (= output (partition-between f input))
+         (fn [[a b]] (not (nil? a)))           [[1] [nil nil 2] [3] [nil 4]],
+         (fn [[a b]] (not (nil? b)))           [[1 nil nil] [2] [3 nil] [4]],
+         (partial some nil?)                   [[1] [nil] [nil] [2 3] [nil] [4]],
+         (fn [[a b]] (not= (nil? a) (nil? b))) [[1] [nil nil] [2 3] [nil] [4]])))
 
 (deftest test-include?
   (is (include? 5 [1 2 3 4 5]))

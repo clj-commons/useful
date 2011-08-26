@@ -28,16 +28,6 @@
     (vec (for [f [filter remove]]
            (map first (f second pcoll))))))
 
-(defn partition-on
-  "Applies f to each value in coll, splitting it each time f returns true.
-  Returns a lazy seq of partitions."
-  [f coll]
-  (lazy-seq
-   (when-let [s (seq coll)]
-     (let [[head tail] (split-with (complement f) (rest coll))]
-       (cons (cons (first coll) head)
-             (partition-on f tail))))))
-
 (defn include?
   "Check if val exists in coll."
   [val coll]
@@ -186,3 +176,26 @@ interleave:
   [& exprs]
   `(map force (list ~@(for [expr exprs]
                         `(delay ~expr)))))
+
+(defn partition-between
+  "Partition an input seq into multiple sequences, as with partition-by.
+   Walks the collection two at a time, calling (split? [a b]) for each pair.
+   Any time split? returns truthy, the partition containing a ends, and a new
+   one containing b begins. Note that the split? predicate should not take two
+   arguments, but instead a single argument, a pair.
+
+   Like partition-by, a lazy sequence of paritions is returned, but the
+   partitions themselves are eager.
+
+   For example, to cause each nil to be folded into the next partition:
+   (partition-between (fn [[a b]] (not (nil? a))) '[1 nil nil 2 nil 3])
+   => ([1] [nil nil 2] [nil 3])"
+  [split? coll]
+  (lazy-seq
+   (when-let [[x & more] (seq coll)]
+     (lazy-loop [items [x], coll more]
+       (if-let [[x & more] (seq coll)]
+         (if (split? [(peek items) x])
+           (cons items (lazy-recur [x] more))
+           (lazy-recur (conj items x) more))
+         [items])))))
