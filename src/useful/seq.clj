@@ -28,6 +28,16 @@
     (vec (for [f [filter remove]]
            (map first (f second pcoll))))))
 
+(defn partition-on
+  "Applies f to each value in coll, splitting it each time f returns true.
+  Returns a lazy seq of partitions."
+  [f coll]
+  (lazy-seq
+   (when-let [s (seq coll)]
+     (let [[head tail] (split-with (complement f) (rest coll))]
+       (cons (cons (first coll) head)
+             (partition-on f tail))))))
+
 (defn include?
   "Check if val exists in coll."
   [val coll]

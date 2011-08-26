@@ -28,6 +28,9 @@
   (is (= ['(5 1 7) '(2 4 6 2)] (separate odd?  [2 4 6 5 1 2 7])))
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
 
+(deftest test-partition-on
+  (is (= [[1] [nil 4 3] [nil 8]] (partition-on nil? [1 nil 4 3 nil 8]))))
+
 (deftest test-include?
   (is (include? 5 [1 2 3 4 5]))
   (is (include? :bar '(1 4 :bar)))
