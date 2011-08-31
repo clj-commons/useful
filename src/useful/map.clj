@@ -45,25 +45,25 @@
 
 (defn map-vals
   "Create a new map from m by calling function f on each value to get a new value."
-  [m f]
+  [m f & args]
   (into {}
         (for [[k v] m]
-          (map-entry k (f v)))))
+          (map-entry k (apply f v args)))))
 
 (defn map-vals-with-keys
   "Create a new map from m by calling function f, with two arguments (the key and value)
   to get a new value."
-  [m f]
+  [m f & args]
   (into {}
         (for [[k v] m]
-          (map-entry k (f k v)))))
+          (map-entry k (apply f k v args)))))
 
 (defn map-keys-and-vals
   "Create a new map from m by calling function f on each key & each value to get a new key & value"
-  [m f]
+  [m f & args]
   (into {}
         (for [[k v] m]
-          (map-entry (f k) (f v)))))
+          (map-entry (apply f k args) (apply f v args)))))
 
 (defn update
   "Update value in map where f is a function that takes the old value and the supplied args and
