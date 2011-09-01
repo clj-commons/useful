@@ -16,6 +16,14 @@
       (is (= even (even? a)))
       (is (= odd  (odd?  a))))))
 
+(deftest test-order-let-if
+  (order-let-if true
+                [a 1, b 2]
+    (is (and (= a 1) (= b 2))))
+  (order-let-if false
+                [a 1, b 2]
+    (is (and (= a 2) (= b 1)))))
+
 
 ;;; protocols defined for testing protocol-stub
 (defprotocol Sample
