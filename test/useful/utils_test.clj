@@ -130,3 +130,21 @@
       (is (= 2 @a))
       (is (= 2 (trade! a + 100)))
       (is (= 102 @a)))))
+
+(deftest thread-locals
+  (let [times-called (atom 0)
+        inst (thread-local
+              (swap! times-called inc)
+              (gensym))]
+    (testing "thread-local caches return values"
+      (is (= 0 @times-called))
+      (is (symbol? @inst))
+      (is (= 1 @times-called))
+      (is (symbol? @inst))
+      (is (= 1 @times-called)))
+
+    (testing "thread has only one thread-local"
+      (is (= @inst @inst)))
+
+    (testing "new thread gets new value"
+      (is (not= @inst @(future @inst))))))
