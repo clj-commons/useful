@@ -137,17 +137,6 @@
   [a b]
   (map-entry a b))
 
-(defn trade!
-  "Like swap!, except it returns the old value of the atom."
-  [atom f & args]
-  (with-local-vars [prev nil]
-    (apply swap! atom
-           (fn [val & args]
-             (var-set prev val)
-             (apply f val args))
-           args)
-    (var-get prev)))
-
 (defn ^{:dont-test "Used in impl of thread-local"}
   thread-local*
   "Non-macro version of thread-local - see documentation for same."

@@ -123,14 +123,6 @@
     (is (= [(map-entry 1 2) (map-entry 3 4)]
            (map pair [1 3] [2 4])))))
 
-(deftest test-trade
-  (testing "trade! returns the old atom value"
-    (let [a (atom 1)]
-      (is (= 1 (trade! a inc)))
-      (is (= 2 @a))
-      (is (= 2 (trade! a + 100)))
-      (is (= 102 @a)))))
-
 (deftest thread-locals
   (let [times-called (atom 0)
         inst (thread-local
@@ -148,3 +140,4 @@
 
     (testing "new thread gets new value"
       (is (not= @inst @(future @inst))))))
+
