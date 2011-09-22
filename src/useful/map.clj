@@ -69,7 +69,9 @@
   "Update a value for the given key in a map where f is a function that takes the
   previous value and the supplied args and returns the new value."
   [m key f & args]
-  (assoc m key (apply f (get m key) args)))
+  (if-let [val (apply f (get m key) args)]
+    (assoc m key val)
+    (dissoc m key)))
 
 (defn update-each
   "Update the values for each of the given keys in a map where f is a function that takes
