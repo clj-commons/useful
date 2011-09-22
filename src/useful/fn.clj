@@ -103,8 +103,3 @@
        (condp #(% %2) direction
          #{:desc :descending -} (comp - f)
          #{:asc :ascending +} f))))
-
-(defn flip
-  "Create a function that applies f to its arguments reversed, 'flipping'
-   the argument order."
-  [f] #(apply f (reverse %&)))
