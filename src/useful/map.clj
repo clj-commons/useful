@@ -66,15 +66,18 @@
           (map-entry (apply f k args) (apply f v args)))))
 
 (defn update
-  "Update value in map where f is a function that takes the old value and the supplied args and
-  returns the new value. For efficiency, Do not change map if the old value is the same as the new
-  value. If key is sequential, update all keys in the sequence with the same function."
+  "Update a value for the given key in a map where f is a function that takes the
+  previous value and the supplied args and returns the new value."
   [m key f & args]
-  (if (sequential? key)
-    (reduce #(apply update %1 %2 f args) m key)
-    (let [old (get m key)
-          new (apply f old args)]
-      (if (= old new) m (assoc m key new)))))
+  (assoc m key (apply f (get m key) args)))
+
+(defn update-each
+  "Update the values for each of the given keys in a map where f is a function that takes
+  each previous value and the supplied args and returns a new value."
+  [m keys f & args]
+  (reduce (fn [m key]
+            (apply update m key f args))
+          m keys))
 
 (defn merge-in
   "Merge two nested maps."

@@ -35,10 +35,12 @@
   (is (= {:a 3 :b 3}
          (-> {:a 2 :b 4}
              (update :a inc)
-             (update :b dec))))
+             (update :b dec)))))
+
+(deftest test-update-each
   (is (= {:a 6 :b 8}
          (-> {:a 3 :b 4}
-             (update [:a :b] * 2)))))
+             (update-each [:a :b] * 2)))))
 
 (deftest test-merge-in
   (is (= {:a {:b {:c 4} :d 2 :e 3} :e 3 :f 2 :g 1}
