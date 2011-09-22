@@ -75,12 +75,18 @@
 ((ignoring-nils +) 1 nil 2 3 nil) yields 6."
   [f]
   (fn
-    ([])
-    ([a] (f a))
+    ([] (f))
+    ([a] (if (nil? a)
+           (f)
+           (f a)))
     ([a b]
-       (cond (nil? b) (f a)
-             (nil? a) (f b)
-             :else (f a b)))
+       (if (nil? a)
+         (if (nil? b)
+           (f)
+           (f b))
+         (if (nil? b)
+           (f a)
+           (f a b))))
     ([a b & more]
        (when-let [items (seq (remove nil? (list* a b more)))]
          (apply f items)))))

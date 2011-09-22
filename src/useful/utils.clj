@@ -23,13 +23,18 @@
      ~@forms
      value#))
 
-(def ^{:doc "The minimium value of vals, ignoring nils."
-       :arglists '([& args])}
-  or-min (ignoring-nils min))
+(letfn [(no-arg-nil [f]
+          (fn
+            ([] nil)
+            ([& args] (apply f args))))]
 
-(def ^{:doc "The maximium value of vals, ignoring nils."
-       :arglists '([& args])}
-  or-max (ignoring-nils max))
+  (def ^{:doc "The minimium value of vals, ignoring nils."
+         :arglists '([& args])}
+    or-min (ignoring-nils (no-arg-nil min)))
+
+  (def ^{:doc "The maximium value of vals, ignoring nils."
+         :arglists '([& args])}
+    or-max (ignoring-nils (no-arg-nil max))))
 
 (defn split-vec
   "Split the given vector at the provided offsets using subvec. Supports negative offsets."
