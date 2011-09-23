@@ -69,9 +69,7 @@
   "Update a value for the given key in a map where f is a function that takes the
   previous value and the supplied args and returns the new value."
   [m key f & args]
-  (if-let [val (apply f (get m key) args)]
-    (assoc m key val)
-    (dissoc m key)))
+  (assoc m key (apply f (get m key) args)))
 
 (defn update-each
   "Update the values for each of the given keys in a map where f is a function that takes
@@ -80,6 +78,15 @@
   (reduce (fn [m key]
             (apply update m key f args))
           m keys))
+
+(defn update-dissoc
+  "Update a value for the given key in a map where f is a function that takes the
+  previous value and the supplied args and returns the new value. When f returns nil,
+  the key is dissociated from the map instead of setting the value to nil."
+  [m key f & args]
+  (if-let [val (apply f (get m key) args)]
+    (assoc m key val)
+    (dissoc m key)))
 
 (defn merge-in
   "Merge multiple nested maps."

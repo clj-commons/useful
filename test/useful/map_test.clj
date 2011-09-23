@@ -32,15 +32,23 @@
          (map-keys-and-vals {:a :b :c :d} name))))
 
 (deftest test-update
-  (is (= {:a 3 :b 3}
-         (-> {:a 2 :b 4}
+  (is (= {:a 3 :b 3 :c nil}
+         (-> {:a 2 :b 4 :c ()}
              (update :a inc)
-             (update :b dec)))))
+             (update :b dec)
+             (update :c seq)))))
 
 (deftest test-update-each
   (is (= {:a 6 :b 8}
          (-> {:a 3 :b 4}
              (update-each [:a :b] * 2)))))
+
+(deftest test-update-dissoc
+  (is (= {:a 3 :b 3}
+         (-> {:a 2 :b 4 :c ()}
+             (update-dissoc :a inc)
+             (update-dissoc :b dec)
+             (update-dissoc :c seq)))))
 
 (deftest test-merge-in
   (is (= {:a {:b {:c 4} :d 2 :e 3} :e 3 :f 2 :g 1}
