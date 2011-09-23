@@ -59,6 +59,12 @@
             (printf "%s: %s %s" (.getName (class e#)) (.getMessage e#) '~ns-reference))
           (eval '~else-form))))
 
+(defn into-set
+  "Update the given set using an existence map."
+  [set map]
+  (reduce (fn [set [k v]] ((if v conj disj) set k))
+          set map))
+
 (defn adjoin
   "Merge two data structures by combining the contents. For maps, merge recursively by
   adjoining values with the same key. For collections, combine the right and left using
@@ -71,8 +77,7 @@
         (merge-with adjoin left right)
 
         (and (set? left) (map? right))
-        (reduce (fn [set [k v]] ((if v conj disj) set k))
-                left right)
+        (into-set left right)
 
         (coll? left)
         ((if (coll? right) into conj) left right)

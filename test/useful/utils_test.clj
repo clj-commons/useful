@@ -41,6 +41,10 @@
              (swap! side-effects inc))))
     (is (= 1 @side-effects))))
 
+(deftest test-into-set
+  (is (= #{1 2 3 4}
+         (into-set #{3 1 5} {5 false 4 true 2 true}))))
+
 (deftest test-adjoin
   (is (= {:a [1 2 3] :b {"foo" [2 3 5] "bar" 7 "bap" 9 "baz" 2} :c #{2 4 6 8}}
          (adjoin

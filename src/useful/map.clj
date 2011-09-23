@@ -82,7 +82,7 @@
           m keys))
 
 (defn merge-in
-  "Merge two nested maps."
+  "Merge multiple nested maps."
   [& args]
   (if (map? (first args))
     (apply merge-with merge-in args)
