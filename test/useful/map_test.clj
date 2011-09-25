@@ -23,6 +23,10 @@
   (is (= {:foo 1 :bar 9 :baz 4}
          (map-vals {:foo 0 :bar 8 :baz 3} inc))))
 
+(deftest test-map-keys
+  (is (= {"foo" 1 "bar" 2 "baz" 3}
+         (map-keys {:foo 1 :bar 2 :baz 3} name))))
+
 (deftest test-map-vals-with-keys
   (is (= {1 3, 7 8, 9 14}
          (map-vals-with-keys {1 2, 7 1, 9 5} +))))

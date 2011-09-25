@@ -50,6 +50,13 @@
         (for [[k v] m]
           (map-entry k (apply f v args)))))
 
+(defn map-keys
+  "Create a new map from m by calling function f on each key to get a new key."
+  [m f & args]
+  (into {}
+        (for [[k v] m]
+          (map-entry (apply f k args) v))))
+
 (defn map-vals-with-keys
   "Create a new map from m by calling function f, with two arguments (the key and value)
   to get a new value."

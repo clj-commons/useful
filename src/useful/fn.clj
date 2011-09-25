@@ -72,7 +72,7 @@
 
 (defn ignoring-nils
   "Create a new version of a function which ignores all nils in its arguments:
-((ignoring-nils +) 1 nil 2 3 nil) yields 6."
+  ((ignoring-nils +) 1 nil 2 3 nil) yields 6."
   [f]
   (fn
     ([] (f))
