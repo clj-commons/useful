@@ -45,14 +45,10 @@
 (deftest test-update-each
   (is (= {:a 6 :b 8}
          (-> {:a 3 :b 4}
-             (update-each [:a :b] * 2)))))
+             (update-each [:a :b] * 2))))
 
-(deftest test-update-dissoc
-  (is (= {:a 3 :b 3}
-         (-> {:a 2 :b 4 :c ()}
-             (update-dissoc :a inc)
-             (update-dissoc :b dec)
-             (update-dissoc :c seq)))))
+  (let [m {:a 1 :b 2}]
+    (is (identical? m (update-each m [:a :b] identity)))))
 
 (deftest test-merge-in
   (is (= {:a {:b {:c 4} :d 2 :e 3} :e 3 :f 2 :g 1}

@@ -83,17 +83,12 @@
   each previous value and the supplied args and returns a new value."
   [m keys f & args]
   (reduce (fn [m key]
-            (apply update m key f args))
+            (let [old-val (get m key)
+                  new-val (apply f old-val args)]
+              (if (identical? old-val new-val)
+                m
+                (assoc m key new-val))))
           m keys))
-
-(defn update-dissoc
-  "Update a value for the given key in a map where f is a function that takes the
-  previous value and the supplied args and returns the new value. When f returns nil,
-  the key is dissociated from the map instead of setting the value to nil."
-  [m key f & args]
-  (if-let [val (apply f (get m key) args)]
-    (assoc m key val)
-    (dissoc m key)))
 
 (defn merge-in
   "Merge multiple nested maps."
