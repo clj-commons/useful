@@ -1,7 +1,5 @@
-(ns
-    #^{:author "Justin Balthrop"
-       :doc "Modify bean attributes in clojure."}
-  useful.bean
+(ns useful.bean
+  "Modify bean attributes in clojure."
   (:import [java.beans Introspector]))
 
 (defn- property-key [property]
