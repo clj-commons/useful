@@ -91,14 +91,16 @@
 
 (defn alternates
   "Split coll into 'threads' subsequences (defaults to 2), feeding
-each alternately from the input sequence. Effectively the inverse of
-interleave:
+  each alternately from the input sequence. Effectively the inverse of
+  interleave:
 
-    (alternates 3 (range 9))
-;=> ((0 3 6) (1 4 7) (2 5 8))"
+  (alternates 3 (range 9))
+  ;=> ((0 3 6) (1 4 7) (2 5 8))"
   ([coll] (alternates 2 coll))
   ([threads coll]
-   (apply map list (partition threads coll))))
+     (lazy-seq
+      (when (seq coll)
+        (apply map list (partition threads coll))))))
 
 (defmacro lazy-loop
   "Provide a simplified version of lazy-seq to eliminate
