@@ -22,4 +22,4 @@
     ?!
     ([val] `(?! "/tmp/spit" ~val))
     ([file val]
-       (interrogate-form `(spit ~file :append true) val))))
+       (interrogate-form `(#(spit ~file % :append true)) val))))
