@@ -62,13 +62,22 @@
   (is (= (range 10)
          (lazy-loop [i 0]
            (when-not (= i 10)
-             (cons i (lazy-recur (inc i))))))))
+             (cons i (lazy-recur (inc i)))))))
+  (testing "0-arg lazy-loop"
+    (is (= [1 1 1] (take 3
+                         (lazy-loop []
+                           (cons 1 (lazy-recur))))))))
 
 (deftest test-alternates
   (is (= '[[a b] [1 2]]
          (alternates '[a 1 b 2])))
   (is (= '[[0 3 6] [1 4 7] [2 5 8]]
-         (alternates 3 (range 9)))))
+         (alternates 3 (range 9))))
+  (testing "Doesn't blow up for empty seqs"
+    (let [a (alternates [])]
+      (testing "Lazy if nothing forced."
+        (is a))
+      (is (not (seq a))))))
 
 (deftest test-slice
   (let [size 900, slices 7, coll (range size),
