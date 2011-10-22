@@ -20,8 +20,7 @@
 
 (defmulti coerce (fn [bean-class type val] [type (class val)]))
 (defmethod coerce :default [_ type val]
-  (if (= String type)
-    (str val)
+  (when-not (nil? val)
     (try (cast type val)
          (catch ClassCastException e
            val))))
@@ -33,8 +32,7 @@
         setters    (property-setters bean-class)]
     (doseq [[key val] attrs]
       (if-let [^Method setter (setters key)]
-        (when-not (nil? val)
-          (let [type (first (.getParameterTypes setter))]
-            (.invoke setter instance (into-array [(coerce bean-class type val)]))))
+        (let [type (first (.getParameterTypes setter))]
+          (.invoke setter instance (to-array [(coerce bean-class type val)])))
         (throw (Exception. (str "property not found for " key)))))
     instance))
