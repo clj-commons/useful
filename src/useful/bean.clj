@@ -1,17 +1,20 @@
 (ns useful.bean
   "Modify bean attributes in clojure."
-  (:import [java.beans Introspector]))
+  (:require [clojure.string :as s])
+  (:import (java.beans Introspector PropertyDescriptor)
+           (java.lang.reflect Method)))
 
-(defn- property-key [property]
-  (keyword (.. (re-matcher #"\B([A-Z])" (.getName property))
-               (replaceAll "-$1")
-               toLowerCase)))
+(defn- property-key [^PropertyDescriptor property]
+  (keyword (-> property
+               .getName
+               (s/replace #"\B([A-Z])" "-$1")
+               .toLowerCase)))
 
 (defn property-setters
   "Returns a map of keywords to property setter methods for a given class."
   [class]
   (reduce
-   (fn [map property]
+   (fn [map ^PropertyDescriptor property]
      (assoc map (property-key property) (.getWriteMethod property)))
    {} (.getPropertyDescriptors (Introspector/getBeanInfo class))))
 
@@ -29,7 +32,7 @@
   (let [bean-class (class instance)
         setters    (property-setters bean-class)]
     (doseq [[key val] attrs]
-      (if-let [setter (setters key)]
+      (if-let [^Method setter (setters key)]
         (when-not (nil? val)
           (let [type (first (.getParameterTypes setter))]
             (.invoke setter instance (into-array [(coerce bean-class type val)]))))
