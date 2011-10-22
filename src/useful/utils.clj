@@ -171,3 +171,11 @@
    thread-local objects."
   [& body]
   `(thread-local* (fn [] ~@body)))
+
+(defn read-seq
+  "Read all forms from *in* until an EOF is reached. Throws an exception on incomplete forms."
+  []
+  (lazy-seq
+   (let [form (read *in* false ::EOF)]
+     (when-not (= ::EOF form)
+       (cons form (read-seq))))))

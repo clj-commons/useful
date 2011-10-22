@@ -1,5 +1,7 @@
-(ns useful.debug
-  (:use clojure.stacktrace))
+(ns useful.debug)
+
+;; leave out of ns decl so we can load with classlojure.io/resource-forms
+(require 'clojure.stacktrace)
 
 (letfn [(interrogate-form [list-head form]
           `(let [display# (fn [val#]
@@ -8,7 +10,7 @@
                   (catch Throwable t#
                     (display# {:thrown t#
                                :trace (with-out-str
-                                        (print-cause-trace t#))})
+                                        (clojure.stacktrace/print-cause-trace t#))})
                     (throw t#)))))]
 
   (defmacro ?
