@@ -81,7 +81,10 @@
   "Defines optimized macro accessors using interop and typehints for all fields in the given records."
   [& types]
   `(do ~@(for [type  types
+               :let [tag (symbol (.getName (coerce-class type)))]
                field (record-fields type)]
            `(defmacro ~field [~'record]
-              (list '~(symbol (str "." field))
-                    (with-meta ~'record {:tag '~(symbol (.getName (coerce-class type)))}))))))
+              (with-meta
+                (list '. (with-meta ~'record {:tag '~tag})
+                      '~field)
+                (meta ~'&form))))))
