@@ -19,6 +19,11 @@
 (deftest test-to-fix
   (is (= [1 -2 3 -4] (map (to-fix (! odd?) -) [1 2 3 4]))))
 
+(deftest test-as-fn
+  (is (= 3    ((as-fn 3)       :foo)))
+  (is (= :foo ((as-fn #{:foo}) :foo)))
+  (is (= 9    ((as-fn inc)     8))))
+
 (deftest test-given
   (is (= 1
          (-> {:value 0}

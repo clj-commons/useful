@@ -1,26 +1,26 @@
-(ns
-    #^{:author "Justin Balthrop"
-       :doc "Modify bean attributes in clojure."}
-  useful.bean
-  (:import [java.beans Introspector]))
+(ns useful.bean
+  "Modify bean attributes in clojure."
+  (:require [clojure.string :as s])
+  (:import (java.beans Introspector PropertyDescriptor)
+           (java.lang.reflect Method)))
 
-(defn- property-key [property]
-  (keyword (.. (re-matcher #"\B([A-Z])" (.getName property))
-               (replaceAll "-$1")
-               toLowerCase)))
+(defn- property-key [^PropertyDescriptor property]
+  (keyword (-> property
+               .getName
+               (s/replace #"\B([A-Z])" "-$1")
+               .toLowerCase)))
 
 (defn property-setters
   "Returns a map of keywords to property setter methods for a given class."
   [class]
   (reduce
-   (fn [map property]
+   (fn [map ^PropertyDescriptor property]
      (assoc map (property-key property) (.getWriteMethod property)))
    {} (.getPropertyDescriptors (Introspector/getBeanInfo class))))
 
 (defmulti coerce (fn [bean-class type val] [type (class val)]))
 (defmethod coerce :default [_ type val]
-  (if (= String type)
-    (str val)
+  (when-not (nil? val)
     (try (cast type val)
          (catch ClassCastException e
            val))))
@@ -31,9 +31,8 @@
   (let [bean-class (class instance)
         setters    (property-setters bean-class)]
     (doseq [[key val] attrs]
-      (if-let [setter (setters key)]
-        (when-not (nil? val)
-          (let [type (first (.getParameterTypes setter))]
-            (.invoke setter instance (into-array [(coerce bean-class type val)]))))
+      (if-let [^Method setter (setters key)]
+        (let [type (first (.getParameterTypes setter))]
+          (.invoke setter instance (to-array [(coerce bean-class type val)])))
         (throw (Exception. (str "property not found for " key)))))
     instance))

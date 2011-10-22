@@ -59,6 +59,22 @@
        (let [~@(interleave names thens)] ~@forms)
        (let [~@(interleave names elses)] ~@forms))))
 
+(defmacro order-let-if
+  "If predicate is true, bind the names provided, otherwise reverse those bindings.
+
+   Example:
+    (order-let-if false [a \"foo\" b \"bar\"] [a b]) = [\"bar\" \"foo\"]"
+  [pred bindings & body]
+  `(if ~pred
+     (let ~bindings ~@body)
+     (let
+         ~(vec
+           (let [parts (partition 2 bindings)]
+             (mapcat #(vector % (second %2))
+                     (reverse (map first parts))
+                     parts)))
+       ~@body)))
+
 (letfn [(mapify [coll] (into {} coll)) ;; just for less-deep indenting
         (symbol ([ns sym]              ;; annoying that (symbol 'x 'y) fails
                    (clojure.core/symbol (name ns) (name sym))))
@@ -130,7 +146,8 @@
          (extend ~name
            ~@(apply concat proto-fns))))))
 
-(defn wrap-with [f wrapper-var & [name]]
+(defn wrap-with ^{:dont-test "Tested by make-wrappable!, wrap-multiple"}
+  [f wrapper-var & [name]]
   (with-meta
     (fn [& args]
       (let [wrappers (not-empty @wrapper-var)]
@@ -197,3 +214,4 @@
   set of wrappers."
   [wrappers-var wrap-fn & body]
   `(with-wrappers ~wrappers-var [~wrap-fn] ~@body))
+

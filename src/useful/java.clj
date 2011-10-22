@@ -1,4 +1,5 @@
-(ns useful.java)
+(ns useful.java
+  (:import (java.lang.reflect Method)))
 
 (defn ^{:dont-test "Can't test killing the JVM"} abort ;;
   "Print message then exit."
@@ -29,11 +30,11 @@
    I take no responsibility for the trouble you get yourself into."
   [instance method & params]
   (let [signature (into-array Class (map class params))
-        c (.getClass instance)]
-    (when-let [method (some #(try
-                               (.getDeclaredMethod % method signature)
-                               (catch NoSuchMethodException e))
-                            (conj (ancestors c) c))]
+        c (class instance)]
+    (when-let [^Method method (some #(try
+                                       (.getDeclaredMethod ^Class % method signature)
+                                       (catch NoSuchMethodException e))
+                                    (conj (ancestors c) c))]
       (let [accessible (.isAccessible method)]
         (.setAccessible method true)
         (let [result (.invoke method instance (into-array params))]
@@ -42,7 +43,7 @@
 
 (defn ^{:dont-test "Can't test shutting down JVM"} on-shutdown
   "Execute the given function on jvm shutdown."
-  [f]
+  [^Runnable f]
   (.addShutdownHook
    (Runtime/getRuntime)
    (Thread. f)))

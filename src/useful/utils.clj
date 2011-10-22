@@ -1,6 +1,7 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils fix]]))
+        [useful.fn :only [decorate ignoring-nils fix]])
+  (:import clojure.lang.IDeref))
 
 (defn invoke
   "Like clojure.core/apply, but doesn't expand/splice the last argument."
@@ -14,28 +15,26 @@
   `(when-not ~test
      (throw (fix ~exception string? #(Exception. ^String %)))))
 
-(def ^{:doc "The minimium value of vals, ignoring nils."
-       :arglists '([& args])}
-  or-min (ignoring-nils min))
+(defmacro returning
+  "Compute a return value, then execute other forms for side effects.
+  Like prog1 in common lisp, or a (do) that returns the first form."
+  [value & forms]
+  `(let [value# ~value]
+     ~@forms
+     value#))
 
-(def ^{:doc "The maximium value of vals, ignoring nils."
-       :arglists '([& args])}
-  or-max (ignoring-nils max))
+(letfn [(no-arg-nil [f]
+          (fn
+            ([] nil)
+            ([& args] (apply f args))))]
 
-(defn conj-vec
-  "Conj onto collection ensuring it is a vector."
-  [coll item]
-  (conj (vec coll) item))
+  (def ^{:doc "The minimium value of vals, ignoring nils."
+         :arglists '([& args])}
+    or-min (ignoring-nils (no-arg-nil min)))
 
-(defn conj-set
-  "Conj onto collection ensuring it is a set."
-  [coll item]
-  (conj (set coll) item))
-
-(defn into-vec
-  "Returns a new vector consisting of to-coll with all of the items of from-coll conjoined."
-  [to-coll from-coll]
-  (into (vec to-coll) from-coll))
+  (def ^{:doc "The maximium value of vals, ignoring nils."
+         :arglists '([& args])}
+    or-max (ignoring-nils (no-arg-nil max))))
 
 (defn split-vec
   "Split the given vector at the provided offsets using subvec. Supports negative offsets."
@@ -60,6 +59,12 @@
             (printf "%s: %s %s" (.getName (class e#)) (.getMessage e#) '~ns-reference))
           (eval '~else-form))))
 
+(defn into-set
+  "Update the given set using an existence map."
+  [set map]
+  (reduce (fn [set [k v]] ((if v conj disj) set k))
+          set map))
+
 (defn adjoin
   "Merge two data structures by combining the contents. For maps, merge recursively by
   adjoining values with the same key. For collections, combine the right and left using
@@ -72,8 +77,7 @@
         (merge-with adjoin left right)
 
         (and (set? left) (map? right))
-        (reduce (fn [set [k v]] ((if v conj disj) set k))
-                left right)
+        (into-set left right)
 
         (coll? left)
         ((if (coll? right) into conj) left right)
@@ -143,13 +147,27 @@
   [a b]
   (map-entry a b))
 
-(defn trade!
-  "Like swap!, except it returns the old value of the atom."
-  [atom f & args]
-  (with-local-vars [prev nil]
-    (apply swap! atom
-           (fn [val & args]
-             (var-set prev val)
-             (apply f val args))
-           args)
-    (var-get prev)))
+(defn ^{:dont-test "Used in impl of thread-local"}
+  thread-local*
+  "Non-macro version of thread-local - see documentation for same."
+  [init]
+  (let [generator (proxy [ThreadLocal] []
+                    (initialValue [] (init)))]
+    (reify IDeref
+      (deref [this]
+        (.get generator)))))
+
+(defmacro thread-local
+  "Takes a body of expressions, and returns a java.lang.ThreadLocal object.
+   (see http://download.oracle.com/javase/6/docs/api/java/lang/ThreadLocal.html).
+
+   To get the current value of the thread-local binding, you must deref (@) the
+   thread-local object. The body of expressions will be executed once per thread
+   and future derefs will be cached.
+
+   Note that while nothing is preventing you from passing these objects around
+   to other threads (once you deref the thread-local, the resulting object knows
+   nothing about threads), you will of course lose some of the benefit of having
+   thread-local objects."
+  [& body]
+  `(thread-local* (fn [] ~@body)))

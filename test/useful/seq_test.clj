@@ -28,6 +28,14 @@
   (is (= ['(5 1 7) '(2 4 6 2)] (separate odd?  [2 4 6 5 1 2 7])))
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
 
+(deftest test-partition-between
+  (let [input [1 nil nil 2 3 nil 4]]
+    (are [f output] (= output (partition-between f input))
+         (fn [[a b]] (not (nil? a)))           [[1] [nil nil 2] [3] [nil 4]],
+         (fn [[a b]] (not (nil? b)))           [[1 nil nil] [2] [3 nil] [4]],
+         (partial some nil?)                   [[1] [nil] [nil] [2 3] [nil] [4]],
+         (fn [[a b]] (not= (nil? a) (nil? b))) [[1] [nil nil] [2 3] [nil] [4]])))
+
 (deftest test-include?
   (is (include? 5 [1 2 3 4 5]))
   (is (include? :bar '(1 4 :bar)))
@@ -54,13 +62,22 @@
   (is (= (range 10)
          (lazy-loop [i 0]
            (when-not (= i 10)
-             (cons i (lazy-recur (inc i))))))))
+             (cons i (lazy-recur (inc i)))))))
+  (testing "0-arg lazy-loop"
+    (is (= [1 1 1] (take 3
+                         (lazy-loop []
+                           (cons 1 (lazy-recur))))))))
 
 (deftest test-alternates
   (is (= '[[a b] [1 2]]
          (alternates '[a 1 b 2])))
   (is (= '[[0 3 6] [1 4 7] [2 5 8]]
-         (alternates 3 (range 9)))))
+         (alternates 3 (range 9))))
+  (testing "Doesn't blow up for empty seqs"
+    (let [a (alternates [])]
+      (testing "Lazy if nothing forced."
+        (is a))
+      (is (not (seq a))))))
 
 (deftest test-slice
   (let [size 900, slices 7, coll (range size),

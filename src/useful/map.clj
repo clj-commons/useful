@@ -17,15 +17,15 @@
 
 (defn assoc-or
   "Create mapping from each key to val in map only if existing val is nil."
-  ([map key val]
-     (if (nil? (map key))
-       (assoc map key val)
-       map))
-  ([map key val & kvs]
-     (let [map (assoc-or map key val)]
+  ([m key val]
+     (if (nil? (m key))
+       (assoc m key val)
+       m))
+  ([m key val & kvs]
+     (let [m (assoc-or m key val)]
        (if kvs
-         (recur map (first kvs) (second kvs) (nnext kvs))
-         map))))
+         (recur m (first kvs) (second kvs) (nnext kvs))
+         m))))
 
 (defn into-map
   "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
@@ -45,43 +45,57 @@
 
 (defn map-vals
   "Create a new map from m by calling function f on each value to get a new value."
-  [f m]
+  [m f & args]
   (into {}
         (for [[k v] m]
-          (map-entry k (f v)))))
+          (map-entry k (apply f v args)))))
+
+(defn map-keys
+  "Create a new map from m by calling function f on each key to get a new key."
+  [m f & args]
+  (into {}
+        (for [[k v] m]
+          (map-entry (apply f k args) v))))
 
 (defn map-vals-with-keys
   "Create a new map from m by calling function f, with two arguments (the key and value)
   to get a new value."
-  [f m]
+  [m f & args]
   (into {}
         (for [[k v] m]
-          (map-entry k (f k v)))))
+          (map-entry k (apply f k v args)))))
 
 (defn map-keys-and-vals
   "Create a new map from m by calling function f on each key & each value to get a new key & value"
-  [f m]
+  [m f & args]
   (into {}
         (for [[k v] m]
-          (map-entry (f k) (f v)))))
+          (map-entry (apply f k args) (apply f v args)))))
 
 (defn update
-  "Update value in map where f is a function that takes the old value and the supplied args and
-  returns the new value. For efficiency, Do not change map if the old value is the same as the new
-  value. If key is sequential, update all keys in the sequence with the same function."
-  [map key f & args]
-  (if (sequential? key)
-    (reduce #(apply update %1 %2 f args) map key)
-    (let [old (get map key)
-          new (apply f old args)]
-      (if (= old new) map (assoc map key new)))))
+  "Update a value for the given key in a map where f is a function that takes the
+  previous value and the supplied args and returns the new value."
+  [m key f & args]
+  (assoc m key (apply f (get m key) args)))
+
+(defn update-each
+  "Update the values for each of the given keys in a map where f is a function that takes
+  each previous value and the supplied args and returns a new value."
+  [m keys f & args]
+  (reduce (fn [m key]
+            (let [old-val (get m key)
+                  new-val (apply f old-val args)]
+              (if (identical? old-val new-val)
+                m
+                (assoc m key new-val))))
+          m keys))
 
 (defn merge-in
-  "Merge two nested maps."
-  [left right]
-  (if (map? left)
-    (merge-with merge-in left right)
-    right))
+  "Merge multiple nested maps."
+  [& args]
+  (if (map? (first args))
+    (apply merge-with merge-in args)
+    (last args)))
 
 (defn update-in!
   "'Updates' a value in a nested associative structure, where ks is a sequence of keys and
@@ -124,36 +138,36 @@
 
 (defn filter-keys-by-val
   "Returns all keys in map for which (pred value) returns true."
-  [pred map]
-  (when map
-    (set (for [[key val] map :when (pred val)] key))))
+  [pred m]
+  (when m
+    (set (for [[key val] m :when (pred val)] key))))
 
 (defn remove-keys-by-val
   "Returns all keys of map for which (pred value) returns false."
-  [pred map]
-  (filter-keys-by-val (complement pred) map))
+  [pred m]
+  (filter-keys-by-val (complement pred) m))
 
 (defn filter-vals
   "Returns a map that only contains values where (pred value) returns true."
-  [pred map]
-  (when map
-    (select-keys map (filter-keys-by-val pred map))))
+  [m pred]
+  (when m
+    (select-keys m (filter-keys-by-val pred m))))
 
 (defn remove-vals
   "Returns a map that only contains values where (pred value) returns false."
-  [pred map]
-  (filter-vals (complement pred) map))
+  [m pred]
+  (filter-vals m (complement pred)))
 
 (defn filter-keys
   "Returns a map that only contains keys where (pred key) returns true."
-  [pred map]
-  (when map
-    (select-keys map (filter pred (keys map)))))
+  [m pred]
+  (when m
+    (select-keys m (filter pred (keys m)))))
 
 (defn remove-keys
   "Returns a map that only contains keys where (pred key) returns false."
-  [pred map]
-  (filter-keys (complement pred) map))
+  [m pred]
+  (filter-keys m (complement pred)))
 
 (defn multi-map
   "Takes a map with keys and values that can be sets or individual objects and returns a map from

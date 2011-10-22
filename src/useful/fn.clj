@@ -40,6 +40,11 @@
   (fn [x]
     (apply fix x clauses)))
 
+(defn as-fn
+  "Turn an object into a fn if it is not already by wrapping it in constantly."
+  [x]
+  (fix x (! ifn?) constantly))
+
 (defmacro given
   "A macro version of fix: instead of taking multiple clauses, it treats any
   further arguments as additional args to be passed to the transform function,
@@ -67,15 +72,21 @@
 
 (defn ignoring-nils
   "Create a new version of a function which ignores all nils in its arguments:
-((ignoring-nils +) 1 nil 2 3 nil) yields 6."
+  ((ignoring-nils +) 1 nil 2 3 nil) yields 6."
   [f]
   (fn
-    ([])
-    ([a] (f a))
+    ([] (f))
+    ([a] (if (nil? a)
+           (f)
+           (f a)))
     ([a b]
-       (cond (nil? b) (f a)
-             (nil? a) (f b)
-             :else (f a b)))
+       (if (nil? a)
+         (if (nil? b)
+           (f)
+           (f b))
+         (if (nil? b)
+           (f a)
+           (f a b))))
     ([a b & more]
        (when-let [items (seq (remove nil? (list* a b more)))]
          (apply f items)))))

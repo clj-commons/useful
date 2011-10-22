@@ -7,6 +7,7 @@
          (map invoke
               (map constantly
                    (range 5))))))
+
 (deftest test-or-min
   (is (= 3   (or-min nil 4 3 nil 9)))
   (is (= 1   (or-min 1 2 3 4)))
@@ -18,21 +19,6 @@
   (is (= 4   (or-max 1 2 3 4)))
   (is (= 1   (or-max 1 nil)))
   (is (= nil (or-max nil nil nil))))
-
-(deftest test-conj-vec
-  (is (= (conj-vec nil  5) [5]))
-  (is (= (conj-vec '(4) 5) [4 5]))
-  (is (= (conj-vec #{3} 5) [3 5])))
-
-(deftest test-conj-set
-  (is (= (conj-set nil  5) #{5}))
-  (is (= (conj-set '(4) 5) #{4 5}))
-  (is (= (conj-set [2]  5) #{2 5})))
-
-(deftest test-into-vec
-  (is (= (into-vec nil  [3 4]) [3 4]))
-  (is (= (into-vec '(4) [5])   [4 5]))
-  (is (= (into-vec [2]  [5 6]) [2 5 6])))
 
 (deftest test-split-vec
   (is (= [[1 2] [3 4]]       (split-vec [1 2 3 4]     2)))
@@ -47,6 +33,17 @@
   (if-ns (:require clojure.string)
     (is true)
     (is false)))
+
+(deftest test-returning
+  (let [side-effects (atom 0)]
+    (is (= "TEST"
+           (returning "TEST"
+             (swap! side-effects inc))))
+    (is (= 1 @side-effects))))
+
+(deftest test-into-set
+  (is (= #{1 2 3 4}
+         (into-set #{3 1 5} {5 false 4 true 2 true}))))
 
 (deftest test-adjoin
   (is (= {:a [1 2 3] :b {"foo" [2 3 5] "bar" 7 "bap" 9 "baz" 2} :c #{2 4 6 8}}
@@ -130,10 +127,21 @@
     (is (= [(map-entry 1 2) (map-entry 3 4)]
            (map pair [1 3] [2 4])))))
 
-(deftest test-trade
-  (testing "trade! returns the old atom value"
-    (let [a (atom 1)]
-      (is (= 1 (trade! a inc)))
-      (is (= 2 @a))
-      (is (= 2 (trade! a + 100)))
-      (is (= 102 @a)))))
+(deftest thread-locals
+  (let [times-called (atom 0)
+        inst (thread-local
+              (swap! times-called inc)
+              (gensym))]
+    (testing "thread-local caches return values"
+      (is (= 0 @times-called))
+      (is (symbol? @inst))
+      (is (= 1 @times-called))
+      (is (symbol? @inst))
+      (is (= 1 @times-called)))
+
+    (testing "thread has only one thread-local"
+      (is (= @inst @inst)))
+
+    (testing "new thread gets new value"
+      (is (not= @inst @(future @inst))))))
+

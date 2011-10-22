@@ -21,29 +21,43 @@
 
 (deftest test-map-vals
   (is (= {:foo 1 :bar 9 :baz 4}
-         (map-vals inc {:foo 0 :bar 8 :baz 3}))))
+         (map-vals {:foo 0 :bar 8 :baz 3} inc))))
+
+(deftest test-map-keys
+  (is (= {"foo" 1 "bar" 2 "baz" 3}
+         (map-keys {:foo 1 :bar 2 :baz 3} name))))
 
 (deftest test-map-vals-with-keys
   (is (= {1 3, 7 8, 9 14}
-         (map-vals-with-keys + {1 2, 7 1, 9 5}))))
+         (map-vals-with-keys {1 2, 7 1, 9 5} +))))
 
 (deftest test-map-keys-and-vals
   (is (= {"a" "b" "c" "d"}
-         (map-keys-and-vals name {:a :b :c :d}))))
+         (map-keys-and-vals {:a :b :c :d} name))))
 
 (deftest test-update
-  (is (= {:a 3 :b 3}
-         (-> {:a 2 :b 4}
+  (is (= {:a 3 :b 3 :c nil}
+         (-> {:a 2 :b 4 :c ()}
              (update :a inc)
-             (update :b dec))))
+             (update :b dec)
+             (update :c seq)))))
+
+(deftest test-update-each
   (is (= {:a 6 :b 8}
          (-> {:a 3 :b 4}
-             (update [:a :b] * 2)))))
+             (update-each [:a :b] * 2))))
+
+  (let [m {:a 1 :b 2}]
+    (is (identical? m (update-each m [:a :b] identity)))))
 
 (deftest test-merge-in
   (is (= {:a {:b {:c 4} :d 2 :e 3} :e 3 :f 2 :g 1}
          (merge-in {:a {:b {:c 1} :d 2} :e 3 :f 4}
-                   {:a {:b {:c 4} :e 3} :f 2 :g 1}))))
+                   {:a {:b {:c 4} :e 3} :f 2 :g 1})))
+  (is (= {:a {:b {:c 1 :d 2} :e 2}}
+         (merge-in {:a {:b {:c 1}}}
+                   {:a {:b {:d 2}}}
+                   {:a {:b {} :e 2}}))))
 
 (deftest test-map-to
   (is (= {1 2 3 4 5 6} (map-to inc [1 3 5])))
@@ -61,10 +75,10 @@
   (let [m '{a 0, b 1, c 11, d 92}]
     (is (= '#{a d} (filter-keys-by-val even? m)))
     (is (= '#{b c} (remove-keys-by-val even? m)))
-    (is (= '{a 0} (filter-vals zero? m)))
-    (is (= '{b 1, c 11, d 92} (remove-vals zero? m)))
-    (is (= '{a 0} (filter-keys '#{a} m)))
-    (is (= '{b 1, c 11, d 92} (remove-keys '#{a} m)))))
+    (is (= '{a 0} (filter-vals m zero?)))
+    (is (= '{b 1, c 11, d 92} (remove-vals m zero?)))
+    (is (= '{a 0} (filter-keys m '#{a})))
+    (is (= '{b 1, c 11, d 92} (remove-keys m '#{a})))))
 
 (deftest test-update-in
   (is (= [1] (-> (update-in! {:foo (transient {:bar []})} [:foo :bar] conj 1)

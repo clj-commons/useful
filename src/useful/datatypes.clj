@@ -1,6 +1,9 @@
 (ns useful.datatypes
-  (:use [useful.map :only [position into-map update]])
-  (:require [clojure.string :as s]))
+  (:use [useful.map :only [position into-map update]]
+        [useful.fn :only [fix]])
+  (:require [clojure.string :as s])
+  (:import (java.lang.reflect Field)
+           (clojure.lang Compiler$LocalBinding)))
 
 (defn- normalize-field-name [field]
   (-> (name field)
@@ -8,13 +11,18 @@
       (s/replace #"_"       "-")
       symbol))
 
+(defn- ^Class coerce-class
+  "Get a Class object from either a Symbol (by resolving it) or a Class."
+  [type]
+  (fix type symbol? resolve))
+
 (defn- record-fields
   "Uses reflection to get the declared fields passed to the defrecord call for type. If called on a
    non-record, the behavior is undefined."
   [type]
-  (->> (.getDeclaredFields (eval type))
-       (remove #(java.lang.reflect.Modifier/isStatic (.getModifiers %)))
-       (map #(symbol (normalize-field-name (.getName %))))))
+  (->> (.getDeclaredFields (coerce-class type))
+       (remove #(java.lang.reflect.Modifier/isStatic (.getModifiers ^Field %)))
+       (map #(symbol (normalize-field-name (.getName ^Field %))))))
 
 (defmacro make-record
   "Construct a record given a pairs of lists and values. Mapping fields into constuctor arguments is
@@ -31,7 +39,7 @@
                        (into-map attrs))]
     `(new ~type ~@vals)))
 
-(defn- type-hint [binding]
+(defn- type-hint [^Compiler$LocalBinding binding]
   (and binding (.hasJavaClass binding) (.getJavaClass binding)))
 
 (defmacro assoc-record
@@ -76,4 +84,4 @@
                field (record-fields type)]
            `(defmacro ~field [~'record]
               (list '~(symbol (str "." field))
-                    (with-meta ~'record {:tag '~(symbol (.getName (eval type)))}))))))
+                    (with-meta ~'record {:tag '~(symbol (.getName (coerce-class type)))}))))))

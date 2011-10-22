@@ -91,14 +91,16 @@
 
 (defn alternates
   "Split coll into 'threads' subsequences (defaults to 2), feeding
-each alternately from the input sequence. Effectively the inverse of
-interleave:
+  each alternately from the input sequence. Effectively the inverse of
+  interleave:
 
-    (alternates 3 (range 9))
-;=> ((0 3 6) (1 4 7) (2 5 8))"
+  (alternates 3 (range 9))
+  ;=> ((0 3 6) (1 4 7) (2 5 8))"
   ([coll] (alternates 2 coll))
   ([threads coll]
-   (apply map list (partition threads coll))))
+     (lazy-seq
+      (when (seq coll)
+        (apply map list (partition threads coll))))))
 
 (defmacro lazy-loop
   "Provide a simplified version of lazy-seq to eliminate
@@ -176,3 +178,26 @@ interleave:
   [& exprs]
   `(map force (list ~@(for [expr exprs]
                         `(delay ~expr)))))
+
+(defn partition-between
+  "Partition an input seq into multiple sequences, as with partition-by.
+   Walks the collection two at a time, calling (split? [a b]) for each pair.
+   Any time split? returns truthy, the partition containing a ends, and a new
+   one containing b begins. Note that the split? predicate should not take two
+   arguments, but instead a single argument, a pair.
+
+   Like partition-by, a lazy sequence of paritions is returned, but the
+   partitions themselves are eager.
+
+   For example, to cause each nil to be folded into the next partition:
+   (partition-between (fn [[a b]] (not (nil? a))) '[1 nil nil 2 nil 3])
+   => ([1] [nil nil 2] [nil 3])"
+  [split? coll]
+  (lazy-seq
+   (when-let [[x & more] (seq coll)]
+     (lazy-loop [items [x], coll more]
+       (if-let [[x & more] (seq coll)]
+         (if (split? [(peek items) x])
+           (cons items (lazy-recur [x] more))
+           (lazy-recur (conj items x) more))
+         [items])))))
