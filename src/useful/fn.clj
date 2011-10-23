@@ -1,5 +1,4 @@
-(ns useful.fn
-  (:use useful.debug))
+(ns useful.fn)
 
 (def ! complement)
 
