@@ -2,10 +2,13 @@
 
 ;; leave out of ns decl so we can load with classlojure.io/resource-forms
 (require 'clojure.stacktrace)
+(require 'clojure.pprint)
 
 (letfn [(interrogate-form [list-head form]
           `(let [display# (fn [val#]
-                            (~@list-head (prn-str '~form '~'is val#)))]
+                            (~@list-head (let [pretty# (with-out-str
+                                                         (clojure.pprint/pprint ['~form '~'is val#]))]
+                                           (subs pretty# 1 (- (count pretty#) 2)))))]
              (try (doto ~form display#)
                   (catch Throwable t#
                     (display# {:thrown t#
@@ -18,10 +21,10 @@
   wrap a form with ?, and the form will be printed alongside
   its result. The result will still be passed along."
     [val]
-    (interrogate-form `(print) val))
+    (interrogate-form `(println) val))
 
   (defmacro ^{:dont-test "Complicated to test, and should work if ? does"}
     ?!
     ([val] `(?! "/tmp/spit" ~val))
     ([file val]
-       (interrogate-form `(#(spit ~file % :append true)) val))))
+       (interrogate-form `(#(spit ~file (str % "\n") :append true)) val))))
