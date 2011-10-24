@@ -1,14 +1,21 @@
 (ns useful.debug)
 
 ;; leave out of ns decl so we can load with classlojure.io/resource-forms
-(require 'clojure.stacktrace)
-(require 'clojure.pprint)
+(require '[clojure.pprint :as p])
+(require '[clojure.stacktrace :as s])
 
 (letfn [(interrogate-form [list-head form]
           `(let [display# (fn [val#]
-                            (~@list-head (let [pretty# (with-out-str
-                                                         (clojure.pprint/pprint ['~form '~'is val#]))]
-                                           (subs pretty# 1 (- (count pretty#) 2)))))]
+                            (let [form# (with-out-str
+                                          (clojure.pprint/with-pprint-dispatch
+                                            clojure.pprint/code-dispatch
+                                            (clojure.pprint/pprint '~form)))
+                                  val# (with-out-str (clojure.pprint/pprint val#))]
+                              (~@list-head
+                               (if (every? (partial > clojure.pprint/*print-miser-width*)
+                                           [(count form#) (count val#)])
+                                 (str (subs form# 0 (dec (count form#))) " is " val#)
+                                 (str form# "--------- is ---------\n" val#)))))]
              (try (doto ~form display#)
                   (catch Throwable t#
                     (display# {:thrown t#
@@ -21,10 +28,10 @@
   wrap a form with ?, and the form will be printed alongside
   its result. The result will still be passed along."
     [val]
-    (interrogate-form `(println) val))
+    (interrogate-form `(print) val))
 
   (defmacro ^{:dont-test "Complicated to test, and should work if ? does"}
     ?!
     ([val] `(?! "/tmp/spit" ~val))
     ([file val]
-       (interrogate-form `(#(spit ~file (str % "\n") :append true)) val))))
+       (interrogate-form `(#(spit ~file % :append true)) val))))
