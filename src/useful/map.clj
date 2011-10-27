@@ -29,7 +29,8 @@
 
 (defn into-map
   "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
-   maps of keys to values or collections of alternating keys and values."
+  maps of keys to values or collections of alternating keys and values. If the first arg is
+  a function, it will be used for merging duplicate values."
   [& args]
   (let [[args combine] (pop-if (apply list args) fn? (fn [_ x] x))]
     (loop [args args m {}]
