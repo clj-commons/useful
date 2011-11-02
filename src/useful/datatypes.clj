@@ -39,14 +39,17 @@
                        (into-map attrs))]
     `(new ~type ~@vals)))
 
-(defn- type-hint [^Compiler$LocalBinding binding]
-  (and binding (.hasJavaClass binding) (.getJavaClass binding)))
+(defn- type-hint [form &env fn-name]
+  (or (:tag (meta form))
+      (let [^Compiler$LocalBinding binding (get &env form)]
+        (and binding (.hasJavaClass binding) (.getJavaClass binding)))
+      (throw (Exception. (str "type hint required on record to use " fn-name)))))
 
 (defmacro assoc-record
   "Assoc attrs into a record. Mapping fields into constuctor arguments is done at compile time,
    so this is more efficient than calling assoc on an existing record."
   [record & attrs]
-  (let [type   (or (type-hint (get &env record)) (throw (Exception. "type hint required on record to use assoc-record")))
+  (let [type   (type-hint record &env 'assoc-record)
         fields (record-fields type)
         index  (position fields)
         vals   (reduce (fn [vals [field val]]
@@ -63,7 +66,7 @@
   into constuctor arguments is done at compile time, so this is more efficient than calling assoc on
   an existing record."
   [record & forms]
-  (let [type   (or (type-hint (get &env record)) (throw (Exception. "type hint required on record to use update-record")))
+  (let [type   (type-hint record &env 'update-record)
         fields (record-fields type)
         index  (position fields)
         vals   (reduce (fn [vals [f field & args]]
