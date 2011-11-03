@@ -49,7 +49,8 @@
   "Assoc attrs into a record. Mapping fields into constuctor arguments is done at compile time,
    so this is more efficient than calling assoc on an existing record."
   [record & attrs]
-  (let [type   (type-hint record &env 'assoc-record)
+  (let [r (gensym 'record)
+        type   (type-hint record &env 'assoc-record)
         fields (record-fields type)
         index  (position fields)
         vals   (reduce (fn [vals [field val]]
@@ -57,16 +58,18 @@
                            (assoc vals i val)
                            (assoc-in vals
                              [(index '--extmap) (keyword field)] val)))
-                       (vec (map #(list (symbol (str "." %)) record) fields))
+                       (vec (map #(list '. r %) fields))
                        (into-map attrs))]
-    `(new ~type ~@vals)))
+    `(let [~r ~record]
+       (new ~type ~@vals))))
 
 (defmacro update-record
   "Construct a record given a list of forms like (update-fn record-field & args). Mapping fields
   into constuctor arguments is done at compile time, so this is more efficient than calling assoc on
   an existing record."
   [record & forms]
-  (let [type   (type-hint record &env 'update-record)
+  (let [r      (gensym 'record)
+        type   (type-hint record &env 'update-record)
         fields (record-fields type)
         index  (position fields)
         vals   (reduce (fn [vals [f field & args]]
@@ -76,9 +79,10 @@
                            (let [i (index '--extmap)]
                              (assoc vals
                                i (apply list `update (get vals i) (keyword field) args)))))
-                       (vec (map #(list (symbol (str "." %)) record) fields))
+                       (vec (map #(list '. r %) fields))
                        forms)]
-    `(new ~type ~@vals)))
+    `(let [~r ~record]
+       (new ~type ~@vals))))
 
 (defmacro record-accessors
   "Defines optimized macro accessors using interop and typehints for all fields in the given records."
