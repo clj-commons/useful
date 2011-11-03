@@ -22,6 +22,9 @@
   [type]
   (->> (.getDeclaredFields (coerce-class type))
        (remove #(java.lang.reflect.Modifier/isStatic (.getModifiers ^Field %)))
+       (remove #(let [name (.getName ^Field %)]
+                  (and (not (#{"__extmap" "__meta"} name))
+                       (.startsWith name "__"))))
        (map #(symbol (normalize-field-name (.getName ^Field %))))))
 
 (defmacro make-record
