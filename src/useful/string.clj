@@ -1,5 +1,4 @@
 (ns useful.string
-  (:use [useful.debug :only [?]])
   (:require [clojure.string :as s]))
 
 (defn camelize [string]
