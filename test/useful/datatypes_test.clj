@@ -12,7 +12,7 @@
 
 (defrecord Implementor [x]
   Inline
-  (foo [this] "x"))
+  (foo [this] (bar this)))
 
 (extend-type Implementor
   Dynamic
@@ -38,6 +38,6 @@
         (assoc-record ^Test (do (swap! times-evaled inc) r) :a :x :b :y :c :z)
         (is (= 1 @times-evaled))))
 
-    (testing "Works with implemented protocols"
+    (testing "Works calling implemented protocols"
       (let [r (Implementor. 1)]
         (assoc-record r :x 5)))))
