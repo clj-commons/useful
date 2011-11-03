@@ -49,7 +49,7 @@
   "Assoc attrs into a record. Mapping fields into constuctor arguments is done at compile time,
    so this is more efficient than calling assoc on an existing record."
   [record & attrs]
-  (let [r (gensym 'record)
+  (let [r      (gensym 'record)
         type   (type-hint record &env 'assoc-record)
         fields (record-fields type)
         index  (position fields)
