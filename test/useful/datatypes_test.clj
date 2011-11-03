@@ -16,4 +16,10 @@
             r (Test. 1 2 3 m {})]
         (is (= m (meta (assoc-record r :b 10))))))
     (testing "Inline typehinting"
-      (is (= second (assoc-record ^Test (assoc init :b 5) :c 4))))))
+      (is (= second (assoc-record ^Test (assoc init :b 5) :c 4))))
+
+    (testing "Don't eval more than once"
+      (let [times-evaled (atom 0)
+            r (Test. 1 2 3)]
+        (assoc-record ^Test (do (swap! times-evaled inc) r) :a :x :b :y :c :z)
+        (is (= 1 @times-evaled))))))
