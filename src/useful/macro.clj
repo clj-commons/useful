@@ -40,26 +40,6 @@ myconst 10)."
                             ~body))
                     ~(partition-params macro-args args)))))
 
-;; copied from clojure.contrib.def
-(defmacro ^{:dont-test "Exists in contrib, and has gross side effects anyway"}
-  defalias
-  "Defines an alias for a var: a new var with the same root binding (if
-  any) and similar metadata. The metadata of the alias is its initial
-  metadata (as provided by def) merged into the metadata of the original."
-  ([name orig]
-     `(do
-        (alter-meta!
-         (if (.hasRoot (var ~orig))
-           (def ~name (.getRoot (var ~orig)))
-           (def ~name))
-         ;; When copying metadata, disregard {:macro false}.
-         ;; Workaround for http://www.assembla.com/spaces/clojure/tickets/273
-         #(conj (dissoc % :macro)
-                (apply dissoc (meta (var ~orig)) (remove #{:macro} (keys %)))))
-        (var ~name)))
-  ([name orig doc]
-     (list `defalias (with-meta name (assoc (meta name) :doc doc)) orig)))
-
 (defmacro with-altered-var
   "Binds var-name to the result of (f current-value args) for the dynamic
   scope of body. Basically like swap! or alter, but for vars."
