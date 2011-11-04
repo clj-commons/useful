@@ -43,9 +43,10 @@
                       #(zero? (rem % 3)))
                  (range 11)))))
 
-(deftest test-collude
+(deftest test-knit
   (is (= [5 \t 9]
-         ((collude inc last #(* 3 %)) 4 "last" 3))))
+         ((knit inc last #(* 3 %))
+          [4 "last" 3]))))
 
 (deftest test-thrush
   (is (= 5 (thrush 1 inc inc inc inc))))

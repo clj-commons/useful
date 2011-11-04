@@ -63,13 +63,13 @@
   (fn [& args]
     (every? #(apply % args) preds)))
 
-(defn collude
+(defn knit
   "Takes a list of functions (f1 f2 ... fn) and returns a new function F. F takes
-   n arguments (x1 x2 ... xn) and returns the list ((f1 x1) (f2 x2) ... (fn xn)).
+   a collection of size n (x1 x2 ... xn) and returns the list ((f1 x1) (f2 x2) ... (fn xn)).
    Similar to Haskell's ***, and a nice complement to juxt (which is Haskell's &&&)."
   [& fs]
-  (fn [& args]
-    (map #(% %2) fs args)))
+  (fn [arg-coll]
+    (map #(% %2) fs arg-coll)))
 
 (defn thrush
   "Takes the first argument and applies the remaining arguments to it as functions from left to right.
