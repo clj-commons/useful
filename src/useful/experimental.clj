@@ -2,7 +2,7 @@
   (:use [useful.utils :only [split-vec]]
         [useful.seq :only [alternates]]
         [useful.map :only [keyed]]
-        [useful.macro :only [name-with-attributes]]
+        [clojure.tools.macro :only [name-with-attributes]]
         [useful.fn :only [any]]))
 
 (defn comp-partial
@@ -214,4 +214,3 @@
   set of wrappers."
   [wrappers-var wrap-fn & body]
   `(with-wrappers ~wrappers-var [~wrap-fn] ~@body))
-
