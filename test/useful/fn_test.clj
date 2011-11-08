@@ -1,6 +1,11 @@
 (ns useful.fn-test
   (:use clojure.test useful.fn))
 
+(deftest test-validator
+  (is (= [0 2 4 6 8]
+         (keep (validator even?)
+               (range 10)))))
+
 (deftest test-decorate
   (is (= [[1 2] [2 3] [3 4]] (map (decorate inc) [1 2 3]))))
 

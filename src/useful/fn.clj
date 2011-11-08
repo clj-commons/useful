@@ -2,6 +2,16 @@
 
 (def ! complement)
 
+(defn validator
+  "Create a version of a predicate that only tests its output for truthiness,
+  returning the original input value if the predicate evaluates to anything
+  truthy, and nil otherwise. ((validator even?) 10) => 10, even though
+  (even? 10) is true."
+  [pred]
+  (fn [x]
+    (when (pred x)
+      x)))
+
 (defn decorate
   "Return a function f such that (f x) => [x (f1 x) (f2 x) ...]."
   [& fs]
