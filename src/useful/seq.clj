@@ -169,6 +169,7 @@
               (cons val (lazy-recur coll)))))))
 
 (defn foldr
+  "http://www.haskell.org/haskellwiki/Fold"
   [f start coll]
   (reduce #(f %2 %1) start (reverse coll)))
 
