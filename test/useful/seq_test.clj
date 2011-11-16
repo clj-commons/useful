@@ -88,7 +88,7 @@
       (is (= slices (count sliced))))
     (testing "Slices are sized regularly"
       (is (every? #(<= (Math/abs (- % largest)) 1)
-                 (map count sliced))))))
+                  (map count sliced))))))
 
 (deftest test-foldr
   (is (= [1 2 3 4]
