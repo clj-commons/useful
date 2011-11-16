@@ -1,5 +1,6 @@
 (ns useful.io
-  (:use [clojure.java.io :only [reader]])
+  (:use [clojure.java.io :only [reader]]
+        [useful.ns :only [defalias]])
   (:import (java.io Reader PushbackReader)))
 
 (defprotocol PushbackFactory
@@ -17,6 +18,8 @@
   Object
   (pushback-reader [this]
     (pushback-reader (reader this))))
+
+(defalias pbr pushback-reader)
 
 (let [sentinel (Object.)
       valid? #(not (identical? % sentinel))]
