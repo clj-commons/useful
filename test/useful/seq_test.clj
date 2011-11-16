@@ -94,6 +94,17 @@
   (is (= [1 2 3 4]
          (foldr cons nil [1 2 3 4]))))
 
+(deftest test-unchunk
+  (let [a (atom 0)
+        f (fn [_] (swap! a inc))
+        coll (range 100)]
+    (is (= 1 (first (map f coll))))
+    (is (< 1 @a)) ;; multiple elements realized
+
+    (reset! a 0)
+    (is (= 1 (first (map f (unchunk coll)))))
+    (is (= 1 @a)))) ;; only one element realized
+
 (deftest test-lazy
   (let [realized (atom 0)
         realize (fn [x] (swap! realized inc) x)

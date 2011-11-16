@@ -173,6 +173,14 @@
   [f start coll]
   (reduce #(f %2 %1) start (reverse coll)))
 
+(defn unchunk
+  "Create a one-at-a-time sequence out of a chunked sequence."
+  [s]
+  (lazy-seq
+   (when-let [s (seq s)]
+     (cons (first s)
+           (unchunk (rest s))))))
+
 (defmacro lazy
   "Return a lazy sequence of the passed-in expressions. Each will be evaluated
   only if necessary."
