@@ -13,7 +13,8 @@
   namespace and function to call."
   [dispatch-fn & options]
   (let [{:keys [hierarchy wrap default]} (into-map options)
-        wrap (or wrap identity)]
+        wrap    (or wrap identity)
+        require (memoize require)]
     (fn [& args]
       (let [fname   (apply dispatch-fn args)
             default (or default
