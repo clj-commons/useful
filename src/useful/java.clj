@@ -47,3 +47,17 @@
   (.addShutdownHook
    (Runtime/getRuntime)
    (Thread. f)))
+
+(defmacro multi-hinted-let
+  "Test expr for instance-of each class in classes. When a match is found,
+   evaluate body with name bound to expr and type-hinted as the matching class.
+
+   For example, (multi-hinted-let [x {:foo 1} [Collection Map]] (.size x))."
+  [[name expr classes] & body]
+  (let [x (gensym)]
+    `(let [~x ~expr]
+       (condp instance? ~x
+         ~@(for [class classes
+                 clause [class `(let [~(with-meta name {:tag class}) ~x] ~@body)]]
+             clause)
+         (throw (IllegalArgumentException. (str "No matching class for " ~x " in " '~classes)))))))
