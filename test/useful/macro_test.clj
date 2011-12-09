@@ -21,7 +21,7 @@
                123
                abc))))))
 
-(def *value* 1)
+(def ^{:dynamic true} *value* 1)
 
 (deftest test-alter-var
   (let [get-value (fn [] *value*)]

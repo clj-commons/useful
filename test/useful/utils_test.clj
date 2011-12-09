@@ -70,7 +70,7 @@
     (is (= 4 (-> q pop pop pop first)))
     (is (= 4 (count q)))))
 
-(def *i* 1)
+(def ^{:dynamic true} *i* 1)
 
 (deftest test-memoize-deref
   (let [count (atom 0)
