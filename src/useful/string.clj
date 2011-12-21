@@ -31,3 +31,12 @@
      (plural 9 \"radius\" \"radii\") => \"9 radii\""
   [num singular & [plural]]
   (str num " " (if (= 1 num) singular (or plural (str singular "s")))))
+
+(defn substring-after
+  "Find the part of the string s which comes after the last instance of delim."
+  [^String delim]
+  (fn [^String s]
+    (let [idx (.lastIndexOf s delim)]
+      (if (neg? idx)
+        s ;; no match
+        (subs s (inc idx))))))
