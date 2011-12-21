@@ -210,3 +210,12 @@
            (cons items (lazy-recur [x] more))
            (lazy-recur (conj items x) more))
          [items])))))
+
+(defn prefix-of?
+  "Given needle is N elements long, are the first N elements of haystack equal to needle?"
+  [haystack needle]
+  (if-let [[n & ns] (seq needle)]
+    (when-let [[h & hs] (seq haystack)]
+      (and (= h (first needle))
+           (recur hs (rest needle))))
+    true))
