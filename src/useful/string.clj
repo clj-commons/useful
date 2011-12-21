@@ -6,9 +6,9 @@
              #"[-_](\w)"
              (comp s/upper-case second)))
 
- (defn classify [string]
-   (apply str (map s/capitalize
-                   (s/split string #"[-_]"))))
+(defn classify [string]
+  (apply str (map s/capitalize
+                  (s/split string #"[-_]"))))
 
 (defn- from-camel-fn [separator]
   (fn [string]
