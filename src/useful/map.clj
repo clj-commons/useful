@@ -118,6 +118,13 @@
   [m ks v]
   (update-in! m ks (constantly v)))
 
+(defn assoc-levels
+  "Like assoc-in, but an empty keyseq replaces whole map."
+  [m ks v]
+  (if-let [[k & ks] (seq ks)]
+    (assoc m k (assoc-levels (get m k) ks v))
+    v))
+
 (defn map-to
   "Returns a map from each item in coll to f applied to that item."
   [f coll]
