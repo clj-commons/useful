@@ -10,17 +10,17 @@
   (apply str (map s/capitalize
                   (s/split string #"[-_]"))))
 
-(defn- from-camel-fn [separator]
-  (fn [string]
-    (-> string
-        (s/replace #"^[A-Z]+" s/lower-case)
-        (s/replace #"_?([A-Z]+)"
-                   (comp (partial str separator)
-                         s/lower-case second))
-        (s/replace #"-|_" separator))))
+(letfn [(from-camel-fn [separator]
+          (fn [string]
+            (-> string
+                (s/replace #"^[A-Z]+" s/lower-case)
+                (s/replace #"_?([A-Z]+)"
+                           (comp (partial str separator)
+                                 s/lower-case second))
+                (s/replace #"-|_" separator))))]
 
-(def dasherize (from-camel-fn "-"))
-(def underscore (from-camel-fn "_"))
+  (def dasherize (from-camel-fn "-"))
+  (def underscore (from-camel-fn "_")))
 
 (defn pluralize
   "Return a pluralized phrase, appending an s to the singular form if no plural is provided.
