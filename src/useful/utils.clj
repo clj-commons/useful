@@ -1,6 +1,7 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils fix]])
+        [useful.fn :only [decorate ignoring-nils fix]]
+        [clojure.tools.macro :only [symbol-macrolet]])
   (:import clojure.lang.IDeref))
 
 (defn invoke
@@ -179,3 +180,15 @@
    (let [form (read *in* false ::EOF)]
      (when-not (= ::EOF form)
        (cons form (read-seq))))))
+
+(defmacro let-later [bindings & body]
+  (reduce (fn [body [name val]]
+            (if (and (symbol? name) (:delay (meta name)))
+              (let [delay-sym (gensym (str "delay-" name))]
+                `(let [~delay-sym (delay ~val)]
+                   (symbol-macrolet [~name (force ~delay-sym)]
+                     ~body)))
+              `(let [~name ~val]
+                 ~body)))
+          `(do ~@body)
+          (reverse (partition 2 bindings))))
