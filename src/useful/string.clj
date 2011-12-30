@@ -39,4 +39,4 @@
     (let [idx (.lastIndexOf s delim)]
       (if (neg? idx)
         s ;; no match
-        (subs s (inc idx))))))
+        (subs s (+ (.length delim) idx))))))
