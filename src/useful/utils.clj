@@ -181,7 +181,16 @@
      (when-not (= ::EOF form)
        (cons form (read-seq))))))
 
-(defmacro let-later [bindings & body]
+(defmacro let-later
+  "Behaves like let, but symbols which have :delay metadata on them are
+   evaluated lazily, by placing their values in a delay and forcing the
+   delay whenever the body of the let-later needs the value. For example,
+
+   (let-later [^:delay a (do-stuff)]
+     (when (whatever) a))
+
+   will only evaluate (do-stuff) if (whatever) is true."
+  [bindings & body]
   (reduce (fn [body [name val]]
             (if (and (symbol? name) (:delay (meta name)))
               (let [delay-sym (gensym (str "delay-" name))]
