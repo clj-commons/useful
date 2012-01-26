@@ -61,3 +61,17 @@
                  clause [class `(let [~(with-meta name {:tag class}) ~x] ~@body)]]
              clause)
          (throw (IllegalArgumentException. (str "No matching class for " ~x " in " '~classes)))))))
+
+(defn compare-bytes [^bytes a, ^bytes b]
+  (let [len-a (alength a), len-b (alength b)]
+    (loop [i 0]
+      (if (= len-a i)
+        (if (= len-b i)
+          0 ;; equal
+          -1) ;; a is shorter, thus less than b
+        (if (= len-b i)
+          1 ;; a is longer, thus greater than b
+          (let [diff (- (aget a i) (aget b i))]
+            (if (= 0 diff)
+              (recur (inc i))
+              diff)))))))
