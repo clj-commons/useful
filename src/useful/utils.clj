@@ -201,3 +201,15 @@
                  ~body)))
           `(do ~@body)
           (reverse (partition 2 bindings))))
+
+(defn copy-meta
+  "Copy all the metadata from src to dest."
+  [dest src]
+  (with-meta dest (meta src)))
+
+(defn empty-coll?
+  "Is x a collection and also empty?"
+  [x]
+  (or (nil? x)
+      (and (coll? x)
+           (empty? x))))

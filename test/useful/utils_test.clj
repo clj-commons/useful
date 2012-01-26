@@ -155,3 +155,18 @@
     (is (= 2 @a) "and now the atom should have changed")
     (is (= 2 c) "shouldn't be eval'd again")
     (is (= 2 @a))))
+
+(deftest test-copy-meta
+  (let [x (-> [1 2 3]
+              (with-meta {:foo 1}))
+        y [4 5 6]
+        z (copy-meta y x)]
+    (is (= y z))
+    (is (= (meta z) (meta x)))))
+
+(deftest test-empty-coll
+  (are [x] (empty-coll? x)
+       nil, (), {}, [])
+  (are [x] (not (empty-coll? x))
+       "", [1], [[]], '(()),
+       1, {1 2}))
