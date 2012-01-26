@@ -1,14 +1,26 @@
-(ns useful.debug
-  (:use clojure.stacktrace))
+(ns useful.debug)
+
+;; leave out of ns decl so we can load with classlojure.io/resource-forms
+(require '[clojure.pprint :as p])
+(require '[clojure.stacktrace :as s])
 
 (letfn [(interrogate-form [list-head form]
           `(let [display# (fn [val#]
-                            (~@list-head (prn-str '~form '~'is val#)))]
+                            (let [form# (with-out-str
+                                          (clojure.pprint/with-pprint-dispatch
+                                            clojure.pprint/code-dispatch
+                                            (clojure.pprint/pprint '~form)))
+                                  val# (with-out-str (clojure.pprint/pprint val#))]
+                              (~@list-head
+                               (if (every? (partial > clojure.pprint/*print-miser-width*)
+                                           [(count form#) (count val#)])
+                                 (str (subs form# 0 (dec (count form#))) " is " val#)
+                                 (str form# "--------- is ---------\n" val#)))))]
              (try (doto ~form display#)
                   (catch Throwable t#
                     (display# {:thrown t#
                                :trace (with-out-str
-                                        (print-cause-trace t#))})
+                                        (clojure.stacktrace/print-cause-trace t#))})
                     (throw t#)))))]
 
   (defmacro ?

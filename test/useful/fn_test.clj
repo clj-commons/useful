@@ -1,6 +1,11 @@
 (ns useful.fn-test
   (:use clojure.test useful.fn))
 
+(deftest test-validator
+  (is (= [0 2 4 6 8]
+         (keep (validator even?)
+               (range 10)))))
+
 (deftest test-decorate
   (is (= [[1 2] [2 3] [3 4]] (map (decorate inc) [1 2 3]))))
 
@@ -42,6 +47,15 @@
          (filter (all #(zero? (rem % 2))
                       #(zero? (rem % 3)))
                  (range 11)))))
+
+(deftest test-knit
+  (is (= [5 \t 9]
+         ((knit inc last #(* 3 %))
+          [4 "last" 3])))
+  (is (= {"A" 10 "B" 1}
+         (into {}
+               (map (knit #(.toUpperCase %) inc)
+                    {"a" 9 "b" 0})))))
 
 (deftest test-thrush
   (is (= 5 (thrush 1 inc inc inc inc))))

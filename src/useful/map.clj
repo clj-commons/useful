@@ -29,7 +29,8 @@
 
 (defn into-map
   "Convert a list of heterogeneous args into a map. Args can be alternating keys and values,
-   maps of keys to values or collections of alternating keys and values."
+  maps of keys to values or collections of alternating keys and values. If the first arg is
+  a function, it will be used for merging duplicate values."
   [& args]
   (let [[args combine] (pop-if (apply list args) fn? (fn [_ x] x))]
     (loop [args args m {}]
@@ -116,6 +117,13 @@
   be created."
   [m ks v]
   (update-in! m ks (constantly v)))
+
+(defn assoc-levels
+  "Like assoc-in, but an empty keyseq replaces whole map."
+  [m ks v]
+  (if-let [[k & ks] (seq ks)]
+    (assoc m k (assoc-levels (get m k) ks v))
+    v))
 
 (defn map-to
   "Returns a map from each item in coll to f applied to that item."

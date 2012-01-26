@@ -169,8 +169,17 @@
               (cons val (lazy-recur coll)))))))
 
 (defn foldr
+  "http://www.haskell.org/haskellwiki/Fold"
   [f start coll]
   (reduce #(f %2 %1) start (reverse coll)))
+
+(defn unchunk
+  "Create a one-at-a-time sequence out of a chunked sequence."
+  [s]
+  (lazy-seq
+   (when-let [s (seq s)]
+     (cons (first s)
+           (unchunk (rest s))))))
 
 (defmacro lazy
   "Return a lazy sequence of the passed-in expressions. Each will be evaluated
@@ -201,3 +210,12 @@
            (cons items (lazy-recur [x] more))
            (lazy-recur (conj items x) more))
          [items])))))
+
+(defn prefix-of?
+  "Given needle is N elements long, are the first N elements of haystack equal to needle?"
+  [haystack needle]
+  (if-let [[n & ns] (seq needle)]
+    (when-let [[h & hs] (seq haystack)]
+      (and (= h (first needle))
+           (recur hs (rest needle))))
+    true))

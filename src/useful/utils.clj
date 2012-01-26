@@ -1,6 +1,7 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils fix]])
+        [useful.fn :only [decorate ignoring-nils fix]]
+        [clojure.tools.macro :only [symbol-macrolet]])
   (:import clojure.lang.IDeref))
 
 (defn invoke
@@ -171,3 +172,44 @@
    thread-local objects."
   [& body]
   `(thread-local* (fn [] ~@body)))
+
+(defn read-seq
+  "Read all forms from *in* until an EOF is reached. Throws an exception on incomplete forms."
+  []
+  (lazy-seq
+   (let [form (read *in* false ::EOF)]
+     (when-not (= ::EOF form)
+       (cons form (read-seq))))))
+
+(defmacro let-later
+  "Behaves like let, but symbols which have :delay metadata on them are
+   evaluated lazily, by placing their values in a delay and forcing the
+   delay whenever the body of the let-later needs the value. For example,
+
+   (let-later [^:delay a (do-stuff)]
+     (when (whatever) a))
+
+   will only evaluate (do-stuff) if (whatever) is true."
+  [bindings & body]
+  (reduce (fn [body [name val]]
+            (if (and (symbol? name) (:delay (meta name)))
+              (let [delay-sym (gensym (str "delay-" name))]
+                `(let [~delay-sym (delay ~val)]
+                   (symbol-macrolet [~name (force ~delay-sym)]
+                     ~body)))
+              `(let [~name ~val]
+                 ~body)))
+          `(do ~@body)
+          (reverse (partition 2 bindings))))
+
+(defn copy-meta
+  "Copy all the metadata from src to dest."
+  [dest src]
+  (with-meta dest (meta src)))
+
+(defn empty-coll?
+  "Is x a collection and also empty?"
+  [x]
+  (or (nil? x)
+      (and (coll? x)
+           (empty? x))))

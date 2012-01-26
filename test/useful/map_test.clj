@@ -93,3 +93,12 @@
          (multi-map {:foo 1, #{:foo :bar} #{2 3 4}, #{:baz :bar} #{5 6}})))
   (is (= {:foo #{1 2}, :bar #{2 3}}
          (multi-map {:foo #{1 2}, :bar #{2 3}}))))
+
+(deftest test-assoc-levels
+  (let [init {:a 1}]
+    (is (= {:a 1 :b {:c 2}}
+           (assoc-levels init [:b :c] 2)))
+    (let [m {:c 2}]
+      (is (= m
+             (assoc-levels init [] m)
+             (assoc-levels init nil m))))))

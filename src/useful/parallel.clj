@@ -1,7 +1,7 @@
 (ns useful.parallel
   (:use [useful.seq :only [slice]]))
 
-(def *pcollect-thread-num* (.. Runtime getRuntime availableProcessors))
+(def ^{:dynamic true} *pcollect-thread-num* (.. Runtime getRuntime availableProcessors))
 
 (defn pcollect
   "Like pmap but not lazy and more efficient for less computationally intensive functions

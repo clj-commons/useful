@@ -22,6 +22,9 @@
   [type]
   (->> (.getDeclaredFields (coerce-class type))
        (remove #(java.lang.reflect.Modifier/isStatic (.getModifiers ^Field %)))
+       (remove #(let [name (.getName ^Field %)]
+                  (and (not (#{"__extmap" "__meta"} name))
+                       (.startsWith name "__"))))
        (map #(symbol (normalize-field-name (.getName ^Field %))))))
 
 (defmacro make-record
@@ -39,14 +42,18 @@
                        (into-map attrs))]
     `(new ~type ~@vals)))
 
-(defn- type-hint [^Compiler$LocalBinding binding]
-  (and binding (.hasJavaClass binding) (.getJavaClass binding)))
+(defn- type-hint [form &env fn-name]
+  (or (:tag (meta form))
+      (let [^Compiler$LocalBinding binding (get &env form)]
+        (and binding (.hasJavaClass binding) (.getJavaClass binding)))
+      (throw (Exception. (str "type hint required on record to use " fn-name)))))
 
 (defmacro assoc-record
   "Assoc attrs into a record. Mapping fields into constuctor arguments is done at compile time,
    so this is more efficient than calling assoc on an existing record."
   [record & attrs]
-  (let [type   (or (type-hint (get &env record)) (throw (Exception. "type hint required on record to use assoc-record")))
+  (let [r      (gensym 'record)
+        type   (type-hint record &env 'assoc-record)
         fields (record-fields type)
         index  (position fields)
         vals   (reduce (fn [vals [field val]]
@@ -54,16 +61,18 @@
                            (assoc vals i val)
                            (assoc-in vals
                              [(index '--extmap) (keyword field)] val)))
-                       (vec (map #(list (symbol (str "." %)) record) fields))
+                       (vec (map #(list '. r %) fields))
                        (into-map attrs))]
-    `(new ~type ~@vals)))
+    `(let [~r ~record]
+       (new ~type ~@vals))))
 
 (defmacro update-record
   "Construct a record given a list of forms like (update-fn record-field & args). Mapping fields
   into constuctor arguments is done at compile time, so this is more efficient than calling assoc on
   an existing record."
   [record & forms]
-  (let [type   (or (type-hint (get &env record)) (throw (Exception. "type hint required on record to use update-record")))
+  (let [r      (gensym 'record)
+        type   (type-hint record &env 'update-record)
         fields (record-fields type)
         index  (position fields)
         vals   (reduce (fn [vals [f field & args]]
@@ -73,9 +82,10 @@
                            (let [i (index '--extmap)]
                              (assoc vals
                                i (apply list `update (get vals i) (keyword field) args)))))
-                       (vec (map #(list (symbol (str "." %)) record) fields))
+                       (vec (map #(list '. r %) fields))
                        forms)]
-    `(new ~type ~@vals)))
+    `(let [~r ~record]
+       (new ~type ~@vals))))
 
 (defmacro record-accessors
   "Defines optimized macro accessors using interop and typehints for all fields in the given records."

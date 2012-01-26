@@ -70,7 +70,7 @@
     (is (= 4 (-> q pop pop pop first)))
     (is (= 4 (count q)))))
 
-(def *i* 1)
+(def ^{:dynamic true} *i* 1)
 
 (deftest test-memoize-deref
   (let [count (atom 0)
@@ -145,3 +145,28 @@
     (testing "new thread gets new value"
       (is (not= @inst @(future @inst))))))
 
+(deftest test-let-later
+  (let-later [a (atom 0)
+              b (swap! a inc)
+              ^{:delay true} c (swap! a inc)]
+    (is (= 1 b))
+    (is (= 1 @a) "delay shouldn't have been forced yet")
+    (is (= 2 c) "delay should fire when its value is needed")
+    (is (= 2 @a) "and now the atom should have changed")
+    (is (= 2 c) "shouldn't be eval'd again")
+    (is (= 2 @a))))
+
+(deftest test-copy-meta
+  (let [x (-> [1 2 3]
+              (with-meta {:foo 1}))
+        y [4 5 6]
+        z (copy-meta y x)]
+    (is (= y z))
+    (is (= (meta z) (meta x)))))
+
+(deftest test-empty-coll
+  (are [x] (empty-coll? x)
+       nil, (), {}, [])
+  (are [x] (not (empty-coll? x))
+       "", [1], [[]], '(()),
+       1, {1 2}))

@@ -1,7 +1,16 @@
-(ns useful.fn
-  (:use useful.debug))
+(ns useful.fn)
 
 (def ! complement)
+
+(defn validator
+  "Create a version of a predicate that only tests its output for truthiness,
+  returning the original input value if the predicate evaluates to anything
+  truthy, and nil otherwise. ((validator even?) 10) => 10, even though
+  (even? 10) is true."
+  [pred]
+  (fn [x]
+    (when (pred x)
+      x)))
 
 (defn decorate
   "Return a function f such that (f x) => [x (f1 x) (f2 x) ...]."
@@ -63,6 +72,14 @@
   [& preds]
   (fn [& args]
     (every? #(apply % args) preds)))
+
+(defn knit
+  "Takes a list of functions (f1 f2 ... fn) and returns a new function F. F takes
+   a collection of size n (x1 x2 ... xn) and returns a vector [(f1 x1) (f2 x2) ... (fn xn)].
+   Similar to Haskell's ***, and a nice complement to juxt (which is Haskell's &&&)."
+  [& fs]
+  (fn [arg-coll]
+    (vec (map #(% %2) fs arg-coll))))
 
 (defn thrush
   "Takes the first argument and applies the remaining arguments to it as functions from left to right.

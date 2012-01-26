@@ -88,11 +88,22 @@
       (is (= slices (count sliced))))
     (testing "Slices are sized regularly"
       (is (every? #(<= (Math/abs (- % largest)) 1)
-                 (map count sliced))))))
+                  (map count sliced))))))
 
 (deftest test-foldr
   (is (= [1 2 3 4]
          (foldr cons nil [1 2 3 4]))))
+
+(deftest test-unchunk
+  (let [a (atom 0)
+        f (fn [_] (swap! a inc))
+        coll (range 100)]
+    (is (= 1 (first (map f coll))))
+    (is (< 1 @a)) ;; multiple elements realized
+
+    (reset! a 0)
+    (is (= 1 (first (map f (unchunk coll)))))
+    (is (= 1 @a)))) ;; only one element realized
 
 (deftest test-lazy
   (let [realized (atom 0)
@@ -105,3 +116,12 @@
     (is (= 2 @realized))
     (is (nil? (next (next the-list))))
     (is (= 2 @realized))))
+
+(deftest test-prefix-of?
+  (let [a [1 2 3], b [1 2], c [2 3], d []]
+    (is (prefix-of? a b))
+    (is (prefix-of? a a))
+    (is (not (prefix-of? b a)))
+    (is (not (prefix-of? a c)))
+    (is (prefix-of? a d))
+    (is (prefix-of? b d))))
