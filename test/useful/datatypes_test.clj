@@ -2,8 +2,26 @@
   (:use clojure.test useful.datatypes))
 
 (defrecord Test [a b c])
-(record-accessors Test)
+(defrecord Other [dash-thing question? bang!])
+(record-accessors Test Other)
 
+(deftest test-munged-names
+  (let [x (Other. 1 2 3)]
+    (testing "Accessor functions"
+      (is (= 1 (dash-thing x)))
+      (is (= 2 (question? x)))
+      (is (= 3 (bang! x))))
+
+    (testing "assoc-record"
+      (is (= x (assoc-record x :dash-thing 1)))
+      (is (= x (assoc-record x :question? 2)))
+      (is (= x (assoc-record x :bang! 3))))
+
+    (testing "update-record"
+      (is (= x (update-record x
+                              (identity dash-thing)
+                              (identity question?)
+                              (identity bang!)))))))
 
 (defprotocol Inline
   (foo [this]))
