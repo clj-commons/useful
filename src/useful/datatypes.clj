@@ -7,8 +7,6 @@
 
 (defn- normalize-field-name [field]
   (-> (name field)
-      (s/replace #"_QMARK_" "?")
-      (s/replace #"_"       "-")
       symbol))
 
 (defn- ^Class coerce-class
@@ -37,7 +35,7 @@
                          (if-let [i (index (normalize-field-name field))]
                            (assoc vals i val)
                            (assoc-in vals
-                             [(index '--extmap) (keyword field)] val)))
+                             [(index '__extmap) (keyword field)] val)))
                        (vec (repeat (count fields) nil))
                        (into-map attrs))]
     `(new ~type ~@vals)))
@@ -78,10 +76,10 @@
         vals   (reduce (fn [vals [f field & args]]
                          (if-let [i (index (normalize-field-name field))]
                            (assoc vals
-                             i (apply list f (get vals i) args))
-                           (let [i (index '--extmap)]
+                             i `(~f ~(get vals i) ~@args))
+                           (let [i (index '__extmap)]
                              (assoc vals
-                               i (apply list `update (get vals i) (keyword field) args)))))
+                               i `(update ~(get vals i) ~(keyword field) ~@args)))))
                        (vec (map #(list '. r %) fields))
                        forms)]
     `(let [~r ~record]
