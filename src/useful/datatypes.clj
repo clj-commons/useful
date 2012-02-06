@@ -76,10 +76,10 @@
         vals   (reduce (fn [vals [f field & args]]
                          (if-let [i (index (normalize-field-name field))]
                            (assoc vals
-                             i (apply list f (get vals i) args))
+                             i `(~f ~(get vals i) ~@args))
                            (let [i (index '__extmap)]
                              (assoc vals
-                               i (apply list `update (get vals i) (keyword field) args)))))
+                               i `(update ~(get vals i) ~(keyword field) ~@args)))))
                        (vec (map #(list '. r %) fields))
                        forms)]
     `(let [~r ~record]
