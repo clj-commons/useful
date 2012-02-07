@@ -1,4 +1,4 @@
-(defproject useful "0.7.7"
+(defproject useful "0.7.8"
   :description "A collection of generally-useful Clojure utility functions"
   :dependencies [[clojure "1.4.0-beta1"]
                  [org.clojure/tools.macro "0.1.1"]]
