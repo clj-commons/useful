@@ -7,11 +7,6 @@
   (apply println message)
   (System/exit 1))
 
-(defmacro rescue
-  "Evaluate form, returning error-form on any Exception."
-  [form error-form]
-  `(try ~form (catch Exception e# ~error-form)))
-
 (defn ^{:dont-test "Can't send a signal in order to catch it!"} trap
   "Register signal handling function."
   [signal f]
