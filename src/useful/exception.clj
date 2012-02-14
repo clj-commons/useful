@@ -1,4 +1,6 @@
-(ns useful.exception)
+(ns useful.exception
+  (:use [clojure.stacktrace :only [print-cause-trace]]
+        [clojure.string :only [split-lines trim]]))
 
 (defmacro rescue
   "Evaluate form, returning error-form on any Exception."
