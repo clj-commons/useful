@@ -1,7 +1,7 @@
 (ns useful.java
   (:import (java.lang.reflect Method)))
 
-(defn ^{:dont-test "Can't test killing the JVM"} abort ;;
+(defn ^{:dont-test "Can't test killing the JVM"} abort
   "Print message then exit."
   [& message]
   (apply println message)
