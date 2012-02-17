@@ -3,7 +3,7 @@
         [useful.seq :only [alternates]]
         [useful.map :only [keyed]]
         [clojure.tools.macro :only [name-with-attributes]]
-        [useful.fn :only [any]]))
+        [useful.fn :only [any as-fn]]))
 
 (defn comp-partial
   "A version of comp that \"rescues\" the first N args, passing them to every composed function
@@ -214,3 +214,15 @@
   set of wrappers."
   [wrappers-var wrap-fn & body]
   `(with-wrappers ~wrappers-var [~wrap-fn] ~@body))
+
+(defn fixes [x & clauses]
+  "Like fix, but each clause is tested whether or not the previous clauses matched, so multiple
+   transformations may be applied. Unlike fix, fixes does not support a final one-element \"pair\"."
+  (if (odd? (count clauses))
+    (throw (IllegalArgumentException. "Fixes does not support a fallback clause."))
+    (reduce (fn [acc [pred transform]]
+              (if ((as-fn pred) acc)
+                ((as-fn transform) acc)
+                acc))
+            x
+            (partition 2 clauses))))
