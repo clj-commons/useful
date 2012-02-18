@@ -29,12 +29,24 @@
   (is (= :foo ((as-fn #{:foo}) :foo)))
   (is (= 9    ((as-fn inc)     8))))
 
+(deftest test-fixing
+  (let [m (atom {:x 1})]
+    (is (= {:x 3}
+           (swap! m update-in [:x] fixing odd? + 2)))
+    (is (= {:x 1}
+           (fixing {:x 1} seq? conj 1 2 3 4)))))
+
 (deftest test-given
   (is (= 1
          (-> {:value 0}
-             (given map? update-in [:value] inc) ; matches
+             (given map? (update-in [:value] inc)) ; matches
              (given sequential? reverse) ; doesn't match
-             (given :value :value)))))
+             (given :value :value))))
+  (is (= {:value 1}
+         (-> {:value 0}
+             (given map? (update-in [:value] inc) ; matches
+                    sequential? reverse ; these next two are never tested
+                    :value :value)))))
 
 (deftest test-any
   (is (= [0 2 3 4 6 8 9 10]

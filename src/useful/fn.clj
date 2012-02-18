@@ -22,6 +22,11 @@
   [x & fs]
   ((apply decorate fs) x))
 
+(defn as-fn
+  "Turn an object into a fn if it is not already, by wrapping it in constantly."
+  [x]
+  (if (ifn? x) x, (constantly x)))
+
 (defn fix
   "Walk through clauses, a series of predicate/transform pairs. The
   first predicate that x satisfies has its transformation clause
@@ -34,7 +39,7 @@
 
   If no predicate matches, then x is returned unchanged."
   [x & clauses]
-  (let [call #(if (ifn? %) (% x) %)]
+  (let [call #((as-fn %) x)]
     (first (or (seq (for [[pred & [transform :as exists?]] (partition-all 2 clauses)
                           :let [[pred transform] ;; handle odd number of clauses
                                 (if exists? [pred transform] [true pred])]
@@ -49,17 +54,26 @@
   (fn [x]
     (apply fix x clauses)))
 
-(defn as-fn
-  "Turn an object into a fn if it is not already by wrapping it in constantly."
-  [x]
-  (fix x (! ifn?) constantly))
+(defn fixing
+  "A version of fix that fits better with the unified update model: instead of multiple clauses,
+   additional args to the transform function are permitted. For example,
+   (swap! my-atom fixing map? update-in [k] inc)"
+  [x pred transform & args]
+  (if ((as-fn pred) x)
+    (apply (as-fn transform) x args)
+    x))
 
 (defmacro given
-  "A macro version of fix: instead of taking multiple clauses, it treats any
-  further arguments as additional args to be passed to the transform function,
-  similarly to functions such as swap! and update-in."
-  [x pred transform & args]
-  `(fix ~x ~pred (fn [x#] (~transform x# ~@args))))
+  "A macro combining the features of fix and fixing, by using parentheses to group the
+   additional arguments to each clause:
+   (-> x
+       (given string? read-string
+              map? (dissoc :x :y :z)
+              even? (/ 2)))"
+  [x & clauses]
+  `(fix ~x ~@(for [[pred & transform] (partition 2 clauses)
+                   arg [pred `#(-> % ~@transform)]]
+               arg)))
 
 (defn any
   "Takes a list of predicates and returns a new predicate that returns true if any do."

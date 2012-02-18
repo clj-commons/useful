@@ -1,16 +1,11 @@
 (ns useful.java
   (:import (java.lang.reflect Method)))
 
-(defn ^{:dont-test "Can't test killing the JVM"} abort ;;
+(defn ^{:dont-test "Can't test killing the JVM"} abort
   "Print message then exit."
   [& message]
   (apply println message)
   (System/exit 1))
-
-(defmacro rescue
-  "Evaluate form, returning error-form on any Exception."
-  [form error-form]
-  `(try ~form (catch Exception e# ~error-form)))
 
 (defn ^{:dont-test "Can't send a signal in order to catch it!"} trap
   "Register signal handling function."

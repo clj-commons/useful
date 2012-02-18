@@ -142,3 +142,16 @@
         (are [f] (= 3 (with-wrapper dummy-wrapper inc-fn
                         (f 1)))
              frazzle zazzle)))))
+
+(deftest fixes-test
+  (is (= 4 (fixes {:value 9}
+                  map? :value
+                  string? read-string
+                  odd? dec
+                  even? #(/ % 2))))
+  (let [a (atom 0)]
+    (is (thrown? Exception
+                 (fixes a
+                        identity #(swap! % inc)
+                        identity)))
+    (is (= 0 @a) "Should throw an exception before trying any clauses")))
