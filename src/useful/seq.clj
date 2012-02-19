@@ -123,26 +123,21 @@
   seed value into a (possibly infinite) lazy sequence of output
   values.
 
-  Next and done? are functions that operate on a seed. next should
+  Next is a function that operate on a seed: it should
   return a pair, [value new-seed]; the value half of the pair is
-  inserted into the resulting list, while the new-seed is used to
+  inserted into the resulting list, while the new seed is used to
   continue unfolding. Notably, the value is never passed as an
-  argument to either next or done?.
+  argument to next. If nil is returned instead of a pair, the resulting
+  sequence will terminate.
 
-  If done? is omitted, the sequence will be unfolded forever, for
-  example
   (defn fibs []
     (unfold (fn [[a b]]
               [a [b (+ a b)]])
             [0 1]))"
-  ([next seed]
-     (unfold next (constantly false) seed))
-  ([next done? seed]
-     (lazy-loop [seed seed]
-       (when-not (done? seed)
-         (let [[value new-seed] (next seed)]
-           (cons value
-                 (lazy-recur new-seed)))))))
+  [next seed]
+  (lazy-loop [seed seed]
+    (when-let [[val seed] (next seed)]
+      (cons val (lazy-recur seed)))))
 
 (defn take-shuffled
   "Lazily take (at most) n elements at random from coll, without
