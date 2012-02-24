@@ -155,3 +155,8 @@
                         identity #(swap! % inc)
                         identity)))
     (is (= 0 @a) "Should throw an exception before trying any clauses")))
+
+(deftest lift-meta-test
+  (= (-> {:b 2}
+         (with-meta {:a 1}))
+     (lift-meta {:a 1 :b 2} [:a])))

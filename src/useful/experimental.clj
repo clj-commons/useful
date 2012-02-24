@@ -226,3 +226,10 @@
                 acc))
             x
             (partition 2 clauses))))
+
+(defn lift-meta
+  "Move some of the keys from m into its metadata, overriding existing values.
+   (lift-meta {:a 1 :b 2} [:a]) -> ^{:a 1} {:b 2]"
+  [m & ks]
+  (-> (apply dissoc m ks)
+      (vary-meta merge (select-keys (meta m) ks))))
