@@ -232,4 +232,4 @@
    (lift-meta {:a 1 :b 2} [:a]) -> ^{:a 1} {:b 2]"
   [m & ks]
   (-> (apply dissoc m ks)
-      (vary-meta merge (select-keys (meta m) ks))))
+      (vary-meta merge (select-keys m ks))))

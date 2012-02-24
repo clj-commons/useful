@@ -157,6 +157,6 @@
     (is (= 0 @a) "Should throw an exception before trying any clauses")))
 
 (deftest lift-meta-test
-  (= (-> {:b 2}
-         (with-meta {:a 1}))
-     (lift-meta {:a 1 :b 2} [:a])))
+  (let [m (lift-meta {:a 1 :b 2} :a)]
+    (is (= {:b 2} m))
+    (is (= {:a 1} (meta m)))))
