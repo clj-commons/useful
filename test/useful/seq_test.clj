@@ -138,3 +138,18 @@
   (is (= '(0) (take-to-subs '(1 2) (range))))
   (is (= '() (take-to-subs '(0 1) (range))))
   (is (= (range 10) (take-to-subs '(23 42) (range 10)))))
+
+(deftest test-prefixes
+  (is (= '() (prefixes '())))
+  (is (= '((0) (0 1) (0 1 2)) (prefixes (range 3))))
+  (is (= '((0) (0 1) (0 1 2)) (take 3 (prefixes (range)))))
+  (is (= '((0 1 2)) (prefixes (range 3) :min-length 3)))
+  (is (= '((0 1) (0 1 2)) (prefixes (range 3) :min-length 2)))
+  (is (= '() (prefixes (range 23) :min-length 42))))
+
+(deftest test-suffixes
+  (is (= '() (suffixes '())))
+  (is (= '((2) (1 2) (0 1 2)) (suffixes (range 3))))
+  (is (= '((0 1 2)) (suffixes (range 3) :min-length 3)))
+  (is (= '((1 2) (0 1 2)) (suffixes (range 3) :min-length 2)))
+  (is (= '() (suffixes (range 23) :min-length 42))))
