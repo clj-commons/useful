@@ -125,3 +125,16 @@
     (is (not (prefix-of? a c)))
     (is (prefix-of? a d))
     (is (prefix-of? b d))))
+
+(deftest test-split-at-subs
+  (is (= '(() (1 2 3 4 5 6 7 8 9)) (split-at-subs '(0) (range 10))))
+  (is (= '((0) (3 4 5 6 7 8 9)) (split-at-subs '(1 2) (range 10))))
+  (is (= '(() () () ()) (split-at-subs '(1 2) '(1 2 1 2 1 2 1 2))))
+  (is (= '(() (0) (1) (2)) (split-at-subs '(1 2) '(1 2 0 1 2 1 1 2 2 1 2))))
+  (is (= (list (range 10)) (split-at-subs '(23 42) (range 10))))
+  (is (= 3 (first (second (split-at-subs '(1 2) (range)))))))
+
+(deftest test-take-to-subs
+  (is (= '(0) (take-to-subs '(1 2) (range))))
+  (is (= '() (take-to-subs '(0 1) (range))))
+  (is (= (range 10) (take-to-subs '(23 42) (range 10)))))

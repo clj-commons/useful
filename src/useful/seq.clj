@@ -214,3 +214,23 @@
       (and (= h (first needle))
            (recur hs (rest needle))))
     true))
+
+(defn split-at-subs
+  "Splits sequence at instances of a subsequence."
+  [sub s]
+  (when-let [s (seq s)]
+    (let [len (count sub)
+          parts (partition-all len 1 s)
+          step (fn step [pieces]
+                 (when pieces
+                   (let [[fst rst]  (split-with #(not= sub %)
+                                                pieces)
+                         tail       (lazy-seq (step (nthnext rst
+                                                             len)))]
+                     (list* (map first fst) tail))))]
+      (step parts))))
+
+(defn take-to-subs
+  "Returns the items before sub."
+  [sub s]
+  (first (split-at-subs sub s)))
