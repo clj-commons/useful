@@ -1,9 +1,17 @@
 (ns useful.datatypes
   (:use [useful.map :only [position into-map update]]
+        [useful.utils :only [invoke]]
         [useful.fn :only [fix]])
   (:require [clojure.string :as s])
   (:import (java.lang.reflect Field)
            (clojure.lang Compiler$LocalBinding)))
+
+(defn as-int [x]
+  (condp invoke x
+    integer? x
+    string? (Integer/parseInt x)
+    float? (int x)
+    nil))
 
 (let [munge-ops [["?" "_QMARK_"]
                  ["!" "_BANG_"]
