@@ -214,3 +214,44 @@
       (and (= h (first needle))
            (recur hs (rest needle))))
     true))
+
+(defn split-at-subs
+  "Splits sequence at instances of a subsequence."
+  [sub s]
+  (when-let [s (seq s)]
+    (let [len (count sub)
+          parts (partition-all len 1 s)
+          step (fn step [pieces]
+                 (when pieces
+                   (let [[fst rst]  (split-with #(not= sub %)
+                                                pieces)
+                         tail       (lazy-seq (step (nthnext rst
+                                                             len)))]
+                     (list* (map first fst) tail))))]
+      (step parts))))
+
+(defn take-to-subs
+  "Returns the items before sub."
+  [sub s]
+  (first (split-at-subs sub s)))
+
+(defn prefixes
+  "Returns a lazy seq of prefixes of s.
+
+  Takes an optional argument :min-length (default: 1) to filter shorter
+  prefixes."
+  [s & {:keys [min-length] :or {min-length 1}}]
+  (lazy-seq
+   (let [[pre suff] (split-at min-length s)]
+     (if (seq suff)
+       (cons pre (prefixes s :min-length (inc min-length)))
+       (if (= (count pre) min-length)
+         (list pre))))))
+
+(defn suffixes
+  "Returns a lazy seq of suffixes of s.
+
+  Takes an optional argument :min-length (default: 1) to filter shorter
+  suffixes."
+  [s & {:keys [min-length] :or {min-length 1}}]
+  (map reverse (prefixes (reverse s) :min-length min-length)))
