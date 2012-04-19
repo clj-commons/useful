@@ -215,9 +215,10 @@
   [wrappers-var wrap-fn & body]
   `(with-wrappers ~wrappers-var [~wrap-fn] ~@body))
 
-(defn fixes [x & clauses]
+(defn fixes
   "Like fix, but each clause is tested whether or not the previous clauses matched, so multiple
    transformations may be applied. Unlike fix, fixes does not support a final one-element \"pair\"."
+  [x & clauses]
   (if (odd? (count clauses))
     (throw (IllegalArgumentException. "Fixes does not support a fallback clause."))
     (reduce (fn [acc [pred transform]]
