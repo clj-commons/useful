@@ -214,3 +214,23 @@
       (and (= h (first needle))
            (recur hs (rest needle))))
     true))
+
+(defn merge-sorted
+  "Merge N sorted sequences together, as in the merge phase of a merge-sort.
+   Comparator should be a two-argument predicate like `<`, which returns true if
+   its first argument belongs before its second element in the merged sequence.
+   The collections themselves should already be sorted in the order your
+   comparator would put them; otherwise ordering is undefined."
+  ([comparator xs ys]
+     (lazy-loop [xs xs, ys ys]
+       (if-let [[x & more-xs] (seq xs)]
+         (if-let [[y & more-ys] (seq ys)]
+           (if (comparator x y)
+             (cons x (lazy-recur more-xs ys))
+             (cons y (lazy-recur xs more-ys)))
+           xs)
+         ys)))
+  ([comparator xs ys & more]
+     (apply merge-sorted comparator
+            (merge-sorted comparator xs ys)
+            more)))
