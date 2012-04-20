@@ -80,6 +80,9 @@
         (and (set? left) (map? right))
         (into-set left right)
 
+        (seq? left)
+        (concat left right)
+
         (coll? left)
         ((if (coll? right) into conj) left right)
 
