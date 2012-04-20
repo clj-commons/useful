@@ -190,7 +190,7 @@
    one containing b begins. Note that the split? predicate should not take two
    arguments, but instead a single argument, a pair.
 
-   Like partition-by, a lazy sequence of paritions is returned, but the
+   Like partition-by, a lazy sequence of partitions is returned, but the
    partitions themselves are eager.
 
    For example, to cause each nil to be folded into the next partition:
