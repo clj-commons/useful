@@ -2,7 +2,7 @@
   (:use [clojure.walk :only [walk]]
         [useful.fn :only [decorate ignoring-nils fix]]
         [clojure.tools.macro :only [symbol-macrolet]])
-  (:import clojure.lang.IDeref))
+  (:import (clojure.lang IDeref ISeq IPersistentMap IPersistentSet IPersistentCollection)))
 
 (defn invoke
   "Like clojure.core/apply, but doesn't expand/splice the last argument."
@@ -63,30 +63,44 @@
 (defn into-set
   "Update the given set using an existence map."
   [set map]
-  (reduce (fn [set [k v]] ((if v conj disj) set k))
-          set map))
+  (if (map? map)
+    (reduce (fn [set [k v]] ((if v conj disj) set k))
+            set map)
+    (into set map)))
 
-(defn adjoin
-  "Merge two data structures by combining the contents. For maps, merge recursively by
+(defprotocol Adjoin
+  (adjoin [left right]
+    "Merge two data structures by combining the contents. For maps, merge recursively by
   adjoining values with the same key. For collections, combine the right and left using
   into or conj. If the left value is a set and the right value is a map, the right value
   is assumed to be an existence map where the value determines whether the key is in the
   merged set. This makes sets unique from other collections because items can be deleted
-  from them."
-  [left right]
-  (cond (map? left)
-        (merge-with adjoin left right)
+  from them."))
 
-        (and (set? left) (map? right))
-        (into-set left right)
+(extend-protocol Adjoin
+  IPersistentMap
+  (adjoin [this other]
+    (merge-with adjoin this other))
 
-        (seq? left)
-        (concat left right)
+  IPersistentSet
+  (adjoin [this other]
+    (into-set this other))
 
-        (coll? left)
-        ((if (coll? right) into conj) left right)
+  ISeq
+  (adjoin [this other]
+    (concat this other))
 
-        :else right))
+  IPersistentCollection
+  (adjoin [this other]
+    (into this other))
+
+  Object
+  (adjoin [this other]
+    other)
+
+  nil
+  (adjoin [this other]
+    other))
 
 (defn pop-if
   "Pop item off the given stack if (pred? item) returns true, returning both the item and the
