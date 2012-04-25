@@ -1,6 +1,6 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils fix given]]
+        [useful.fn :only [decorate ignoring-nils fix]]
         [clojure.tools.macro :only [symbol-macrolet]])
   (:import (clojure.lang IDeref ISeq IPersistentMap IPersistentSet IPersistentCollection)))
 
@@ -236,8 +236,11 @@
   require a default clause. Of course, switch is not as efficient as case, but it works for things
   like functions, which case cannot support."
   [expr & clauses]
-  `(condp contains? ~expr
-     ~@(mapcat (fn [clause]
-                 (given (vec clause) next
-                        (update-in [0] fix list? set hash-set)))
-               (partition-all 2 clauses))))
+  (let [[clauses default] (if (even? (count clauses))
+                            [clauses nil]
+                            [(butlast clauses) (last clauses)])]
+    `(condp contains? ~expr
+       ~@(mapcat (fn [[val form]]
+                   [(fix val, list? set, hash-set) form])
+                 (partition 2 clauses))
+       ~default)))

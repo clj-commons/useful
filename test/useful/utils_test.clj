@@ -173,10 +173,11 @@
 
 (deftest test-switch
   (testing "without default"
-    (is (= :a (switch #{1}, #{1} :a, (2 3) :b, inc :c)))
-    (is (= :b (switch 2,    #{1} :a, (2 3) :b, inc :c)))
-    (is (= :b (switch 3,    #{1} :a, (2 3) :b, inc :c)))
-    (is (= :c (switch inc,  #{1} :a, (2 3) :b, inc :c))))
+    (is (= :a  (switch #{1}, #{1} :a, (2 3) :b, inc :c)))
+    (is (= :b  (switch 2,    #{1} :a, (2 3) :b, inc :c)))
+    (is (= :b  (switch 3,    #{1} :a, (2 3) :b, inc :c)))
+    (is (= :c  (switch inc,  #{1} :a, (2 3) :b, inc :c)))
+    (is (= nil (switch :foo, #{1} :a, (2 3) :b, inc :c))))
   (testing "with default"
     (is (= :a (switch #{1}, #{1} :a, (2 3) :b, inc :c, :d)))
     (is (= :b (switch 2,    #{1} :a, (2 3) :b, inc :c, :d)))
