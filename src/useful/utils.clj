@@ -1,6 +1,6 @@
 (ns useful.utils
   (:use [clojure.walk :only [walk]]
-        [useful.fn :only [decorate ignoring-nils fix]]
+        [useful.fn :only [decorate ignoring-nils fix given]]
         [clojure.tools.macro :only [symbol-macrolet]])
   (:import (clojure.lang IDeref ISeq IPersistentMap IPersistentSet IPersistentCollection)))
 
@@ -230,3 +230,14 @@
   (or (nil? x)
       (and (coll? x)
            (empty? x))))
+
+(defmacro switch
+  "Like case, but uses object equality instead of the compile-time hash. Also, switch does not
+  require a default clause. Of course, switch is not as efficient as case, but it works for things
+  like functions, which case cannot support."
+  [expr & clauses]
+  `(condp contains? ~expr
+     ~@(mapcat (fn [clause]
+                 (given (vec clause) next
+                        (update-in [0] fix list? set hash-set)))
+               (partition-all 2 clauses))))
