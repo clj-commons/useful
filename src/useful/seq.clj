@@ -1,5 +1,6 @@
 (ns useful.seq
-  (:use [useful.fn :only [decorate]]))
+  (:use [useful.fn :only [decorate]]
+        [useful.utils :only [pair]]))
 
 (defn find-first
   "Returns the first item of coll where (pred item) returns logical true."
@@ -236,3 +237,8 @@
      (apply merge-sorted comparator
             (merge-sorted comparator xs ys)
             more)))
+
+(defn indexed
+  "Returns a lazy sequence of pairs of index and item."
+  [coll]
+  (map-indexed pair coll))
