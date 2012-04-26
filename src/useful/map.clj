@@ -129,7 +129,7 @@
   "Returns a map from each item in coll to f applied to that item."
   [f coll]
   (into {}
-        (for [item coll]
+        (for [item (distinct coll)]
           (map-entry item (f item)))))
 
 (defn index-by
