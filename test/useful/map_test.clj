@@ -88,6 +88,16 @@
   (is (= [1] (-> (assoc-in! {:foo {}} [:foo :bar] [1])
                  :foo :bar))))
 
+(deftest test-dissoc-in
+  (is (= {}
+         (dissoc-in {:foo {:bar 3}} [:foo :bar])))
+  (is (= {:foo {:baz 8}}
+         (dissoc-in {:foo {:bar 3 :baz 8}} [:foo :bar])))
+  (is (= {:bam 3}
+         (dissoc-in {:foo {:bar 3 :baz 8} :bam 3} [:foo])))
+  (is (= {}
+         (dissoc-in {:foo {:bar 3 :baz 8}} []))))
+
 (deftest test-multi-map
   (is (= {:foo #{1 2 3 4}, :bar #{2 3 4 5 6}, :baz #{5 6}}
          (multi-map {:foo 1, #{:foo :bar} #{2 3 4}, #{:baz :bar} #{5 6}})))

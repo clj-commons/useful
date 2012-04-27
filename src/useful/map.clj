@@ -118,6 +118,21 @@
   [m ks v]
   (update-in! m ks (constantly v)))
 
+(defn dissoc-in
+  "Associates a value in a nested associative structure, where ks is a sequence of keys and returns
+  a new nested structure. If any resulting maps are empty, they will be removed from the new
+  structure. This implementation was adapted from clojure.core.contrib, but the behavior is more
+  correct if keys is empty."
+  [m [k & ks :as keys]]
+  (cond ks (if-let [old (get m k)]
+             (let [new (dissoc-in old ks)]
+               (if (seq new)
+                 (assoc m k new)
+                 (dissoc m k)))
+             m)
+        (seq keys) (dissoc m k)
+        :else {}))
+
 (defn assoc-levels
   "Like assoc-in, but an empty keyseq replaces whole map."
   [m ks v]
