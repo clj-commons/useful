@@ -124,14 +124,14 @@
   structure. This implementation was adapted from clojure.core.contrib, but the behavior is more
   correct if keys is empty."
   [m [k & ks :as keys]]
-  (cond ks (if-let [old (get m k)]
-             (let [new (dissoc-in* old ks)]
-               (if (seq new)
-                 (assoc m k new)
-                 (dissoc m k)))
-             m)
-        (seq keys) (dissoc m k)
-        :else {}))
+  (if (seq keys)
+    (if-let [old (get m k)]
+      (let [new (dissoc-in* old ks)]
+        (if (seq new)
+          (assoc m k new)
+          (dissoc m k)))
+      m)
+    {}))
 
 (defn assoc-in*
   "Associates a value in a nested associative structure, where ks is a sequence of keys and v is the
@@ -139,9 +139,9 @@
   created. This implementation was adapted from clojure.core, but the behavior is more correct if
   keys is empty."
   [m [k & ks :as keys] v]
-  (cond ks (assoc m k (assoc-in (get m k) ks v))
-        (seq keys) (assoc m k v)
-        :else v))
+  (if (seq keys)
+    (assoc m k (assoc-in* (get m k) ks v))
+    v))
 
 (defn assoc-levels
   "Like assoc-in, but an empty keyseq replaces whole map."
