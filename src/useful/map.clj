@@ -119,7 +119,7 @@
   (update-in! m ks (constantly v)))
 
 (defn dissoc-in
-  "Associates a value in a nested associative structure, where ks is a sequence of keys and returns
+  "Dissociates a value in a nested associative structure, where ks is a sequence of keys and returns
   a new nested structure. If any resulting maps are empty, they will be removed from the new
   structure. This implementation was adapted from clojure.core.contrib, but the behavior is more
   correct if keys is empty."
