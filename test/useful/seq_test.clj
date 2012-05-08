@@ -125,3 +125,25 @@
     (is (not (prefix-of? a c)))
     (is (prefix-of? a d))
     (is (prefix-of? b d))))
+
+(deftest test-sequeue
+  (testing "lookahead"
+    (let [a (atom 0)
+          xs (list* 1 2 3 4 5 6 7 8 9 [10]) ;; avoid chunking
+          coll (for [x xs] (do (swap! a inc) x))]
+      (is (zero? @a))
+      (let [s (sequeue 5 coll)]
+        (Thread/sleep 100)
+        (is (< 0 @a 10)) ;; should have some queued, but not all
+        (is (= coll (doall s)))
+        (is (= 10 @a)))))
+  (testing "error propagation"
+    (let [coll (lazy-seq
+                 (list* 1 2 3 4 5 6 7 8 9
+                        (lazy-seq
+                          (cons 10
+                                (lazy-seq
+                                  (throw (IllegalStateException. "Broken")))))))
+          s (sequeue 2 coll)]
+      (is (= 1 (first s)))
+      (is (thrown? Throwable (dorun s))))))

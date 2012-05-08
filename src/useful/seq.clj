@@ -1,6 +1,8 @@
 (ns useful.seq
   (:use [useful.fn :only [decorate]]
-        [useful.utils :only [pair]]))
+        [useful.utils :only [pair]])
+  (:import (java.util.concurrent LinkedBlockingQueue
+                                 BlockingQueue)))
 
 (defn find-first
   "Returns the first item of coll where (pred item) returns logical true."
@@ -242,3 +244,39 @@
   "Returns a lazy sequence of pairs of index and item."
   [coll]
   (map-indexed pair coll))
+
+(defn sequeue
+  "A version of seque from clojure.core that uses a future instead of an agent.
+The agent version was causing problems because you can't depend on an agent from
+within another agent's action, which means you can't use seque inside an agent.
+
+This version is probably less performant, because it keeps a thread running
+until the sequence is entirely consumed, and it attempts to refill the queue as
+soon as there is space, rather than when the queue is emptied.
+
+More importantly, though, this version may be *DANGEROUS* if you are not careful:
+if you do not consume the entire output sequence, the future-thread will remain
+active indefinitely, blocking on the queue and holding the lazy sequence open,
+ineligible for garbage collection."
+  ([s] (sequeue 100 s))
+  ([n-or-q s]
+     (let [^BlockingQueue q (if (instance? BlockingQueue n-or-q)
+                              n-or-q
+                              (LinkedBlockingQueue. (int n-or-q)))
+           NIL (Object.)            ;nil sentinel since LBQ doesn't support nils
+           worker (future
+                    (try
+                      (loop [[x & xs :as s] (seq s)]
+                        (if s
+                          (do (.put q (if (nil? x) NIL x))
+                              (recur xs))
+                          (.put q q)))  ; q itself is eos sentinel
+                      (catch Exception e
+                        (.put q q)
+                        (throw e))))]
+       (lazy-loop []
+         (let [x (.take q)]
+           (if (identical? x q)         ;q itself is eos sentinel
+             (do @worker nil)           ;just to propagate errors
+             (cons (if (identical? x NIL) nil x)
+                   (lazy-recur))))))))
