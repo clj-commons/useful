@@ -108,6 +108,16 @@
   (is (= {:bar 1}
          (assoc-in* {:foo 1} [] {:bar 1}))))
 
+(deftest test-update-in*
+  (is (= {:foo {:bar 1}}
+         (update-in* {} [:foo :bar] (constantly 1))))
+  (is (= {:foo 2}
+         (update-in* {:foo {:bar 3 :baz 8}} [:foo] count)))
+  (is (= {:foo {:bar 4} :bam 3}
+         (update-in* {:foo {:bar 3} :bam 3} [:foo :bar] inc)))
+  (is (= 2
+         (update-in* {:foo 1 :bar 2} [] count))))
+
 (deftest test-multi-map
   (is (= {:foo #{1 2 3 4}, :bar #{2 3 4 5 6}, :baz #{5 6}}
          (multi-map {:foo 1, #{:foo :bar} #{2 3 4}, #{:baz :bar} #{5 6}})))
