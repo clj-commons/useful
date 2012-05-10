@@ -71,9 +71,13 @@
               map? (dissoc :x :y :z)
               even? (/ 2)))"
   [x & clauses]
-  `(fix ~x ~@(for [[pred & transform] (partition 2 clauses)
-                   arg [pred `#(-> % ~@transform)]]
-               arg)))
+  (let [[clauses default] (if (even? (count clauses))
+                            [clauses `identity]
+                            [(butlast clauses) (last clauses)])]
+    `(fix ~x ~@(for [[pred transform] (partition 2 clauses)
+                     arg [pred `#(-> % ~transform)]]
+                 arg)
+          ~default)))
 
 (defn any
   "Takes a list of predicates and returns a new predicate that returns true if any do."
