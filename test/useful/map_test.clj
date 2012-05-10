@@ -116,7 +116,9 @@
   (is (= {:foo {:bar 4} :bam 3}
          (update-in* {:foo {:bar 3} :bam 3} [:foo :bar] inc)))
   (is (= 2
-         (update-in* {:foo 1 :bar 2} [] count))))
+         (update-in* {:foo 1 :bar 2} [] count)))
+  (is (= {}
+         (update-in* {} [:foo :bar :baz] identity))))
 
 (deftest test-multi-map
   (is (= {:foo #{1 2 3 4}, :bar #{2 3 4 5 6}, :baz #{5 6}}

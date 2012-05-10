@@ -73,22 +73,60 @@
         (for [[k v] m]
           (map-entry (apply f k args) (apply f v args)))))
 
+(defn dissoc-in*
+  "Dissociates a value in a nested associative structure, where ks is a sequence of keys and returns
+  a new nested structure. If any resulting maps are empty, they will be removed from the new
+  structure. This implementation was adapted from clojure.core.contrib, but the behavior is more
+  correct if keys is empty."
+  [m keys]
+  (if-let [[k & ks] (seq keys)]
+    (if-let [old (get m k)]
+      (let [new (dissoc-in* old ks)]
+        (if (seq new)
+          (assoc m k new)
+          (dissoc m k)))
+      m)
+    {}))
+
+(defn assoc-in*
+  "Associates a value in a nested associative structure, where ks is a sequence of keys and v is the
+  new value and returns a new nested structure.  If any levels do not exist, hash-maps will be
+  created. This implementation was adapted from clojure.core, but the behavior is more correct if
+  keys is empty."
+  [m keys v]
+  (if-let [[k & ks] (seq keys)]
+    (assoc m k (assoc-in* (get m k) ks v))
+    v))
+
+(defn update-in*
+  "Updates a value in a nested associative structure, where ks is a sequence of keys and f is a
+  function that will take the old value and any supplied args and return the new value, and returns
+  a new nested structure. If any levels do not exist, hash-maps will be created. This implementation
+  was adapted from clojure.core, but the behavior is more correct if keys is empty and unchanged
+  values are not re-assoc'd."
+  [m keys f & args]
+  (if-let [[k & ks] (seq keys)]
+    (let [old (get m k)
+          new (apply update-in* old ks f args)]
+      (if (identical? old new)
+        m
+        (assoc m k new)))
+     (apply f m args)))
+
 (defn update
-  "Update a value for the given key in a map where f is a function that takes the
-  previous value and the supplied args and returns the new value."
+  "Update a value for the given key in a map where f is a function that takes the previous value and
+  the supplied args and returns the new value. Like update-in*, unchanged values are not
+  re-assoc'd."
   [m key f & args]
-  (assoc m key (apply f (get m key) args)))
+  (apply update-in* m [key] f args))
 
 (defn update-each
-  "Update the values for each of the given keys in a map where f is a function that takes
-  each previous value and the supplied args and returns a new value."
+  "Update the values for each of the given keys in a map where f is a function that takes each
+  previous value and the supplied args and returns a new value. Like update-in*, unchanged values
+  are not re-assoc'd."
   [m keys f & args]
   (reduce (fn [m key]
-            (let [old-val (get m key)
-                  new-val (apply f old-val args)]
-              (if (identical? old-val new-val)
-                m
-                (assoc m key new-val))))
+            (apply update-in* m [key] f args))
           m keys))
 
 (defn merge-in
@@ -117,41 +155,6 @@
   be created."
   [m ks v]
   (update-in! m ks (constantly v)))
-
-(defn dissoc-in*
-  "Dissociates a value in a nested associative structure, where ks is a sequence of keys and returns
-  a new nested structure. If any resulting maps are empty, they will be removed from the new
-  structure. This implementation was adapted from clojure.core.contrib, but the behavior is more
-  correct if keys is empty."
-  [m [k & ks :as keys]]
-  (if (seq keys)
-    (if-let [old (get m k)]
-      (let [new (dissoc-in* old ks)]
-        (if (seq new)
-          (assoc m k new)
-          (dissoc m k)))
-      m)
-    {}))
-
-(defn assoc-in*
-  "Associates a value in a nested associative structure, where ks is a sequence of keys and v is the
-  new value and returns a new nested structure.  If any levels do not exist, hash-maps will be
-  created. This implementation was adapted from clojure.core, but the behavior is more correct if
-  keys is empty."
-  [m [k & ks :as keys] v]
-  (if (seq keys)
-    (assoc m k (assoc-in* (get m k) ks v))
-    v))
-
-(defn update-in*
-  "Updates a value in a nested associative structure, where ks is a sequence of keys and f is a
-  function that will take the old value and any supplied args and return the new value, and returns
-  a new nested structure. If any levels do not exist, hash-maps will be created. This implementation
-  was adapted from clojure.core, but the behavior is more correct if keys is empty."
-  ([m [k & ks :as keys] f & args]
-   (if (seq keys)
-     (assoc m k (apply update-in* (get m k) ks f args))
-     (apply f m args))))
 
 (defn assoc-levels
   "Like assoc-in, but an empty keyseq replaces whole map."
