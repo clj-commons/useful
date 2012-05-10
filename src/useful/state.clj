@@ -47,3 +47,23 @@
              (apply f val args))
            args)
     @m))
+
+(defn wait-until [reference pred]
+  (let [curr @reference] ;; try to get out fast - not needed for correctness, just performance
+    (if (pred curr)
+      curr
+      (let [result (promise)]
+        (add-watch reference result
+                   (fn this [_ _ old new]
+                     (when (pred new)
+                       (try ;; multiple delivers throw an exception in clojure 1.2
+                         (when (deliver result new)
+                           (remove-watch reference result))
+                         (catch Exception e
+                           nil)))))
+        (let [curr @reference] ; needed for correctness, in case it's become acceptable since adding
+                               ; watcher and will never change again
+          (if (pred curr)
+            (do (remove-watch reference result)
+                curr)
+            @result))))))
