@@ -210,12 +210,12 @@
          [items])))))
 
 (defn prefix-of?
-  "Given needle is N elements long, are the first N elements of haystack equal to needle?"
-  [haystack needle]
-  (if-let [[n & ns] (seq needle)]
-    (when-let [[h & hs] (seq haystack)]
-      (and (= h (first needle))
-           (recur hs (rest needle))))
+  "Given prefix is N elements long, are the first N elements of coll equal to prefix?"
+  [coll prefix]
+  (if-let [[n & ns] (seq prefix)]
+    (when-let [[h & hs] (seq coll)]
+      (and (= h (first prefix))
+           (recur hs (rest coll))))
     true))
 
 (defn merge-sorted
