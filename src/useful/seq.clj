@@ -126,7 +126,7 @@
   seed value into a (possibly infinite) lazy sequence of output
   values.
 
-  Next is a function that operate on a seed: it should
+  Next is a function that operates on a seed: it should
   return a pair, [value new-seed]; the value half of the pair is
   inserted into the resulting list, while the new seed is used to
   continue unfolding. Notably, the value is never passed as an
