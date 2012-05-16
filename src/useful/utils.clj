@@ -69,7 +69,7 @@
     (into set map)))
 
 (defprotocol Adjoin
-  (adjoin [left right]
+  (adjoin-onto [left right]
     "Merge two data structures by combining the contents. For maps, merge recursively by
   adjoining values with the same key. For collections, combine the right and left using
   into or conj. If the left value is a set and the right value is a map, the right value
@@ -79,28 +79,38 @@
 
 (extend-protocol Adjoin
   IPersistentMap
-  (adjoin [this other]
-    (merge-with adjoin this other))
+  (adjoin-onto [this other]
+    (merge-with adjoin-onto this other))
 
   IPersistentSet
-  (adjoin [this other]
+  (adjoin-onto [this other]
     (into-set this other))
 
   ISeq
-  (adjoin [this other]
+  (adjoin-onto [this other]
     (concat this other))
 
   IPersistentCollection
-  (adjoin [this other]
+  (adjoin-onto [this other]
     (into this other))
 
   Object
-  (adjoin [this other]
+  (adjoin-onto [this other]
     other)
 
   nil
-  (adjoin [this other]
+  (adjoin-onto [this other]
     other))
+
+(defn adjoin
+  "Merge two data structures by combining the contents. For maps, merge recursively by
+  adjoining values with the same key. For collections, combine the right and left using
+  into or conj. If the left value is a set and the right value is a map, the right value
+  is assumed to be an existence map where the value determines whether the key is in the
+  merged set. This makes sets unique from other collections because items can be deleted
+  from them."
+  [a b]
+  (adjoin-onto a b))
 
 (defn pop-if
   "Pop item off the given stack if (pred? item) returns true, returning both the item and the
