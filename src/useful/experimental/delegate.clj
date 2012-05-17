@@ -1,27 +1,28 @@
 (ns useful.experimental.delegate)
 
-(letfn [;; given a mess of deftype specs, possibly with classes/interfaces
-        ;; specified multiple times, collapse it into a map like
-        ;; {interface => (method1 method2...)}.
-        ;; needed because core.deftype only allows specifying a class ONCE,
-        ;; so our delegating versions would clash with client's custom methods.
-        (aggregate [decls]
-          (loop [ret {}, curr-key nil, decls decls]
-            (if-let [[x & xs] (seq decls)]
-              (if (seq? x)
-                (recur (update-in ret [curr-key] conj x),
-                       curr-key, xs)
-                (recur (update-in ret [x] #(or % ())),
-                       x, xs))
-              ret)))
+(defn parse-deftype-specs
+  "Given a mess of deftype specs, possibly with classes/interfaces specified multiple times,
+  collapse it into a map like {interface => (method1 method2...)}.
+  Needed because core.deftype only allows specifying a class ONCE, so our delegating versions would
+  clash with client's custom methods."
+  [decls]
+  (loop [ret {}, curr-key nil, decls decls]
+    (if-let [[x & xs] (seq decls)]
+      (if (seq? x)
+        (recur (assoc-in ret [curr-key (first x)] x),
+               curr-key, xs)
+        (recur (update-in ret [x] #(or % {})),
+               x, xs))
+      ret)))
 
-        ;; Given a map returned by aggregate, spit out a flattened deftype body
-        (explode [aggregated]
-          (apply concat
-                 (for [[k v] aggregated]
-                   (cons k v))))
+(defn emit-deftype-specs
+  "Given a map returned by aggregate, spit out a flattened deftype body."
+  [specs]
+  (apply concat
+         (for [[interface methods] specs]
+           (cons interface (vals methods)))))
 
-        ;; Output the method body for a delegating implementation
+(letfn [;; Output the method body for a delegating implementation
         (delegating-method [method-name args delegate]
           `(~method-name [~'_ ~@args]
              (. ~delegate (~method-name ~@args))))
@@ -35,34 +36,41 @@
                                                          assoc :tag interface)]
                                 [name args] which]
                             [interface (delegating-method name args send-to)])]
-            (explode (aggregate (apply concat other-args our-stuff)))))]
+            (emit-deftype-specs
+             (parse-deftype-specs
+              (apply concat other-args our-stuff)))))]
 
   (defmacro delegating-deftype
-    "Shorthand for defining a new type with deftype, which delegates the methods
-you name to some other object or objects. Delegates are usually a member field,
-but can be any expression: the expression will be evaluated every time a method
-is delegated. The delegate object (or expression) will be type-hinted with the
-type of the interface being delegated.
+    "Shorthand for defining a new type with deftype, which delegates the methods you name to some
+    other object or objects. Delegates are usually a member field, but can be any expression: the
+    expression will be evaluated every time a method is delegated. The delegate object (or
+    expression) will be type-hinted with the type of the interface being delegated.
 
-The delegate-map argument should be structured like:
-{object-to-delegate-to {Interface1 [(method1 [])
-                                    (method2 [foo bar baz])]
-                        Interface2 [(otherMethod [other])]},
- another-object {Interface1 [(method3 [whatever])]}}.
+    The delegate-map argument should be structured like:
+      {object-to-delegate-to {Interface1 [(method1 [])
+                                          (method2 [foo bar baz])]
+                              Interface2 [(otherMethod [other])]},
+       another-object {Interface1 [(method3 [whatever])]}}.
 
-This will cause your deftype to include an implementation of Interface1.method1
-which does its work by forwarding to (.method1 object-to-delegate-to), and
-likewise for the other methods. Arguments will be forwarded on untouched, and
-you should not include a `this` parameter. Note especially that you can have
-methods from Interface1 implemented by delegating to multiple objects if you
-choose, and can also include custom implementations for the remaining methods of
-Interface1 if you have no suitable delegate.
+    This will cause your deftype to include an implementation of Interface1.method1 which does its
+    work by forwarding to (.method1 object-to-delegate-to), and likewise for the other
+    methods. Arguments will be forwarded on untouched, and you should not include a `this`
+    parameter. Note especially that you can have methods from Interface1 implemented by delegating
+    to multiple objects if you choose, and can also include custom implementations for the remaining
+    methods of Interface1 if you have no suitable delegate.
 
-Arguments after `delegate-map` are as with deftype, although if deftype ever has
-options defined for it, delegating-deftype may break with them."
+    Arguments after `delegate-map` are as with deftype, although if deftype ever has options defined
+    for it, delegating-deftype may break with them."
     [cname [& fields] delegate-map & deftype-args]
     `(deftype ~cname [~@fields]
        ~@(type-body delegate-map deftype-args)))
+
+  (defmacro delegating-defrecord
+    "Like delegating-deftype, but creates a defrecod body instead of a deftype."
+    [cname [& fields] delegate-map & deftype-args]
+    `(defrecord ~cname [~@fields]
+       ~@(type-body delegate-map deftype-args)))
+
   (defmacro delegating-reify
     "Like delegating-deftype, but creates a reify body instead of a deftype."
     [delegate-map & reify-args]
