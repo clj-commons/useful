@@ -186,6 +186,21 @@
   `(map force (list ~@(for [expr exprs]
                         `(delay ~expr)))))
 
+(defn glue
+  ([combine glue? unglue? coll]
+     (glue combine nil glue? unglue? coll))
+  ([combine init glue? unglue? coll]
+     (lazy-seq
+       (when-let [[x & more] (seq coll)]
+         (lazy-loop [glob (combine init x), coll more]
+           (if-let [[x & more] coll]
+             (or (and (glue? glob x)
+                      (let [glued (combine glob x)]
+                        (and (not (unglue? glued))
+                             (lazy-recur glued more))))
+                 (cons glob (lazy-recur (combine init x) more)))
+             (list glob)))))))
+
 (defn partition-between
   "Partition an input seq into multiple sequences, as with partition-by.
    Walks the collection two at a time, calling (split? [a b]) for each pair.
@@ -200,14 +215,11 @@
    (partition-between (fn [[a b]] (not (nil? a))) '[1 nil nil 2 nil 3])
    => ([1] [nil nil 2] [nil 3])"
   [split? coll]
-  (lazy-seq
-   (when-let [[x & more] (seq coll)]
-     (lazy-loop [items [x], coll more]
-       (if-let [[x & more] (seq coll)]
-         (if (split? [(peek items) x])
-           (cons items (lazy-recur [x] more))
-           (lazy-recur (conj items x) more))
-         [items])))))
+  (glue conj []
+        (fn [v x]
+          (not (split? [(peek v) x])))
+        (constantly false)
+        coll))
 
 (defn prefix-of?
   "Given prefix is N elements long, are the first N elements of coll equal to prefix?"
