@@ -111,15 +111,19 @@
   and (lazy-recur) will be defined for you. However, instead of doing
   actual tail recursion, lazy-recur trampolines through lazy-seq. In
   addition to enabling laziness, this means you can call lazy-recur
-  when not in the tail position."
+  when not in the tail position.
+
+  Regular recurs are also supported, if they are in tail position and don't
+  need any laziness."
   [bindings & body]
-  (let [inner-fn 'lazy-recur
+  (let [f 'lazy-recur
         [names values] (alternates bindings)]
-    `((fn ~inner-fn
-        ~(vec names)
-        (lazy-seq
-         ~@body))
-      ~@values)))
+    `(letfn [(~f [~@names]
+               (lazy-seq
+                 (iter# ~@names)))
+             (iter# [~@names]
+               ~@body)]
+       (~f ~@values))))
 
 (defn unfold
   "Traditionally unfold is the 'opposite of reduce': it turns a single
