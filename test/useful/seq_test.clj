@@ -29,6 +29,17 @@
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
 
 (deftest test-partition-between
+  (testing "returns a totally lazy sequence"
+    (is (= (lazy-seq nil)
+           (partition-between (fn [& _] (throw (Exception. "Never call me")))
+                              nil))))
+  (testing "doesn't force input sequence more than necessary"
+    ;; partition-between should be forcing elements 1 and 2 of this sequence
+    ;; to compute the first partition.
+    (let [input (list* 1 2 (lazy-seq (throw (Exception. "broken"))))
+          partitioned (partition-between (constantly true) input)]
+      (is (= [1] (first partitioned)))
+      (is (thrown? Exception (second partitioned)))))
   (let [input [1 nil nil 2 3 nil 4]]
     (are [f output] (= output (partition-between f input))
          (fn [[a b]] (not (nil? a)))           [[1] [nil nil 2] [3] [nil 4]],
