@@ -52,7 +52,7 @@
   (let [x (gensym)]
     `(let [~x ~expr]
        (condp instance? ~x
-         ~@(for [class classes
-                 clause [class `(let [~(with-meta name {:tag class}) ~x] ~@body)]]
-             clause)
+         ~@(interleave classes
+                       (for [class classes]
+                         `(let [~(vary-meta name assoc :tag class) ~x] ~@body)))
          (throw (IllegalArgumentException. (str "No matching class for " ~x " in " '~classes)))))))
