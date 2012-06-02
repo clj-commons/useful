@@ -28,6 +28,26 @@
   (is (= ['(5 1 7) '(2 4 6 2)] (separate odd?  [2 4 6 5 1 2 7])))
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
 
+(deftest test-glue
+  ;; Make sure all items of the same type wind up in the same batch,
+  ;; and each batch is as close to size 6 as possible without going over.
+
+  ;; The D batch is too large, and glue promises to return a too-large batch
+  ;; in preference to splitting up a batch.
+  (is (= '((a1 a2 a3 a4 b1)
+           (c1 c2)
+           (d1 d2 d3 d4 d5 d6 d7)
+           (e8))
+         (glue into []
+               (fn [batch more]
+                 (>= 6 (+ (count batch) (count more))))
+               (constantly false)
+               '((a1 a2 a3 a4)
+                 (b1)
+                 (c1 c2)
+                 (d1 d2 d3 d4 d5 d6 d7)
+                 (e8))))))
+
 (deftest test-partition-between
   (testing "returns a totally lazy sequence"
     (is (= (lazy-seq nil)
