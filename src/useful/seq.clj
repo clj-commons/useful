@@ -191,18 +191,35 @@
                         `(delay ~expr)))))
 
 (defn glue
+  "Walk over an input sequence, \"gluing\" together elements to create chunks,
+   or batches. Chunks may be of any type you like - they are not related to
+   chunked sequences, for example. Chunks are computed as follows:
+   - First, a chunk is initialized as init (default nil).
+   - Next, the first item in the input sequence is combined, unconditionally,
+     with (combine init x).
+   - For each additional element, functions glue? and unglue? are consulted to
+     decide whether the next item should be included into the current chunk.
+     If (glue? current-batch next-item) returns truthy, then a prospective
+     updated-batch is computed, as (combine current-batch next-item). If
+     (unglue? updated-batch) returns falsey, then the current batch is updated,
+     and additional sequence elements are considered.
+   - If glue? returned falsey, or unglue? returned truthy, then the current batch
+     is inserted into the output lazy sequence, and a new batch is started as
+     (combine init next-item)."
   ([combine glue? unglue? coll]
      (glue combine nil glue? unglue? coll))
   ([combine init glue? unglue? coll]
      (lazy-seq
-       (when-let [[x & more] (seq coll)]
-         (lazy-loop [glob (combine init x), coll more]
-           (if-let [[x & more] coll]
-             (or (and (glue? glob x)
-                      (let [glued (combine glob x)]
-                        (and (not (unglue? glued))
-                             (lazy-recur glued more))))
-                 (cons glob (lazy-recur (combine init x) more)))
+       (when-let [coll (seq coll)]
+         (lazy-loop [glob (combine init (first coll)), coll (rest coll)]
+           (if-let [coll (seq coll)]
+             (let [x (first coll)
+                   more (rest coll)
+                   glued (delay (combine glob x))]
+               (if (and (glue? glob x)
+                        (not (unglue? @glued)))
+                 (recur @glued more)
+                 (cons glob (lazy-recur (combine init x) more))))
              (list glob)))))))
 
 (defn partition-between
