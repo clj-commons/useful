@@ -1,4 +1,5 @@
 (ns useful.experimental.delegate
+  (:use useful.debug)
   (:require [useful.ns :as ns]))
 
 (defn canonical-name
@@ -24,7 +25,7 @@
   (loop [ret {}, curr-key nil, decls decls]
     (if-let [[x & xs] (seq decls)]
       (if (seq? x)
-        (recur (assoc-in ret [curr-key (first x)] x),
+        (recur (assoc-in ret [curr-key (symbol (name (first x)))] x),
                curr-key, xs)
         (let [interface-name (canonical-name x)]
           (recur (update-in ret [interface-name] #(or % {})),
