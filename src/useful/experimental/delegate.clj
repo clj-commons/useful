@@ -7,8 +7,8 @@
    namespace."
   [sym]
   (if-let [val (resolve sym)]
-    (case (class val)
-      java.lang.Class (symbol (str val))
+    (condp instance? val
+      java.lang.Class (symbol (pr-str val))
       clojure.lang.Var (ns/var-name val)
       (throw (IllegalArgumentException.
               (format "%s names %s, an instance of %s, which has no canonical name."

@@ -1,5 +1,8 @@
 (ns useful.experimental-test
-  (:use clojure.test useful.map useful.experimental))
+  (:use clojure.test useful.map
+        useful.experimental
+        useful.experimental.delegate)
+  (:require [useful.utils :as utils]))
 
 (deftest test-while-let
   (let [a (atom '(1 2 3 4 5))]
@@ -172,3 +175,8 @@
          "pursues" :pineapple ;; keywords should work
          "abbrev." :apple ;; should test in order, and short-circuit
          )))
+
+(deftest canonical-name-test
+  (is (= 'clojure.core/inc (canonical-name 'inc)))
+  (is (= 'java.lang.Object (canonical-name 'Object)))
+  (is (= 'useful.utils/adjoin (canonical-name `utils/adjoin))))
