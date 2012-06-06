@@ -191,21 +191,18 @@
                         `(delay ~expr)))))
 
 (defn glue
-  "Walk over an input sequence, \"gluing\" together elements to create chunks,
-   or batches. Chunks may be of any type you like - they are not related to
-   chunked sequences, for example. Chunks are computed as follows:
-   - First, a chunk is initialized as init (default nil).
-   - Next, the first item in the input sequence is combined, unconditionally,
-     with (combine init x).
-   - For each additional element, functions glue? and unglue? are consulted to
-     decide whether the next item should be included into the current chunk.
-     If (glue? current-batch next-item) returns truthy, then a prospective
-     updated-batch is computed, as (combine current-batch next-item). If
-     (unglue? updated-batch) returns falsey, then the current batch is updated,
-     and additional sequence elements are considered.
-   - If glue? returned falsey, or unglue? returned truthy, then the current batch
-     is inserted into the output lazy sequence, and a new batch is started as
-     (combine init next-item)."
+  "Walk over an input sequence, \"gluing\" together elements to create batches.
+   Batches may be of any type you like, and are computed as follows:
+   - Each batch is initialized by combining init (default false) with next-item.
+   - For each additional item in coll, functions glue? and unglue? are consulted to
+     decide whether the next item should be included into the current batch.
+     - If (glue? current-batch next-item) returns truthy, then a prospective
+       updated-batch is computed, as (combine current-batch next-item). If
+       (unglue? updated-batch) returns falsey, then updated-batch is accepted and
+       may be used as the target for further gluing.
+     - If glue? returned falsey, or unglue? returned truthy, then the current batch
+       is inserted into the output sequence, and a new batch is started as
+       (combine init next-item)."
   ([combine glue? unglue? coll]
      (glue combine nil glue? unglue? coll))
   ([combine init glue? unglue? coll]
