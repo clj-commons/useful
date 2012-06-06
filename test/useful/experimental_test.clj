@@ -160,3 +160,15 @@
   (let [m (lift-meta {:a 1 :b 2} :a)]
     (is (= {:b 2} m))
     (is (= {:a 1} (meta m)))))
+
+(deftest prefix-lookup-test
+  (let [lookup (prefix-lookup [["a" :apple]
+                               ["person" :person]
+                               [:p :pineapple]
+                               ["abbrev" :abbreviation]])]
+    (are [in out] (= out (lookup in))
+         "apropos" :apple
+         "persona" :person
+         "pursues" :pineapple ;; keywords should work
+         "abbrev." :apple ;; should test in order, and short-circuit
+         )))
