@@ -1,4 +1,19 @@
-(ns useful.experimental.delegate)
+(ns useful.experimental.delegate
+  (:require [useful.ns :as ns]))
+
+(defn canonical-name
+  "Resolve a symbol in the current namespace; but intead of returning its value,
+   return a canonical name that can be used to name the same thing in any
+   namespace."
+  [sym]
+  (if-let [val (resolve sym)]
+    (case (class val)
+      java.lang.Class (symbol (str val))
+      clojure.lang.Var (ns/var-name val)
+      (throw (IllegalArgumentException.
+              (format "%s names %s, an instance of %s, which has no canonical name."
+                      sym val (class val)))))
+    sym))
 
 (defn parse-deftype-specs
   "Given a mess of deftype specs, possibly with classes/interfaces specified multiple times,
@@ -11,8 +26,9 @@
       (if (seq? x)
         (recur (assoc-in ret [curr-key (first x)] x),
                curr-key, xs)
-        (recur (update-in ret [x] #(or % {})),
-               x, xs))
+        (let [interface-name (canonical-name x)]
+          (recur (update-in ret [interface-name] #(or % {})),
+                 interface-name, xs)))
       ret)))
 
 (defn emit-deftype-specs
