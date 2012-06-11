@@ -152,7 +152,7 @@
   (let [a [1 2 3], b [1 2], c [2 3], d []]
     (is (prefix-of? a b))
     (is (prefix-of? a a))
-    (is (not (prefix-of? b a)))
+    (is (prefix-of? b a))
     (is (not (prefix-of? a c)))
     (is (prefix-of? a d))
     (is (prefix-of? b d))))
