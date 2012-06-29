@@ -6,6 +6,6 @@
   :url "https://github.com/flatland/useful"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.macro "0.1.1"]]
-  :multi-deps {"1.3" [[org.clojure/clojure "1.3.0"]]
-               "1.2" [[org.clojure/clojure "1.2.1"]]
-               :all [[org.clojure/tools.macro "0.1.1"]]})
+  :aliases {"testall" ["with-profile" "dev,default:dev,1.3,default:dev,1.2,default" "test"]}
+  :profiles {:1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
+             :1.2 {:dependencies [[org.clojure/clojure "1.2.1"]]}})
