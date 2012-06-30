@@ -138,3 +138,19 @@
        (condp #(% %2) direction
          #{:desc :descending -} (comp - f)
          #{:asc :ascending +} f))))
+
+(defn rate-limited
+  "Create a version of a function which 'refuses' to be called too
+  frequently. If it has successfully been called in the last N milliseconds,
+  calls to it will return nil; if no calls have succeeded in that period, args
+  will be passed along to the base function."
+  [f ms-period]
+  (let [tracker (atom {:last-sent 0})]
+    (fn [& args]
+      (when (:accepted (swap! tracker
+                              (fn [{:keys [last-sent]}]
+                                (let [now (System/currentTimeMillis)
+                                      ok (< ms-period (- now last-sent))]
+                                  {:accepted ok
+                                   :last-sent (if ok now last-sent)}))))
+        (apply f args)))))
