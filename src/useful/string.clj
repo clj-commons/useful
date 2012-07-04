@@ -40,3 +40,12 @@
       (if (neg? idx)
         s ;; no match
         (subs s (+ (.length delim) idx))))))
+
+(defn substring-before
+  "Find the part of the string s which comes before the first instance of delim."
+  [^String delim]
+  (fn [^String s]
+    (let [idx (.indexOf s delim)]
+      (if (= -1 idx)
+        s
+        (subs s 0 idx)))))
