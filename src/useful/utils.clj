@@ -12,9 +12,12 @@
 
 (defmacro verify
   "Raise exception unless test returns true."
-  [test exception]
-  `(when-not ~test
-     (throw (fix ~exception string? #(Exception. ^String %)))))
+  ([test exception]
+     `(when-not ~test
+        (throw (fix ~exception string? #(Exception. ^String %)))))
+  ([test msg info]
+     `(when-not ~test
+        (throw (ex-info ~msg ~info)))))
 
 (defmacro returning
   "Compute a return value, then execute other forms for side effects.
