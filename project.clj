@@ -1,4 +1,4 @@
-(defproject useful "0.8.3-alpha6"
+(defproject useful "0.8.3-alpha7"
   :description "A collection of generally-useful Clojure utility functions"
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
