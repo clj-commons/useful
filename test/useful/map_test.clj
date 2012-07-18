@@ -125,3 +125,11 @@
          (multi-map {:foo 1, #{:foo :bar} #{2 3 4}, #{:baz :bar} #{5 6}})))
   (is (= {:foo #{1 2}, :bar #{2 3}}
          (multi-map {:foo #{1 2}, :bar #{2 3}}))))
+
+(deftest test-ordering-map
+  (let [template (ordering-map [:b :c :a])]
+    (is (= {} template))
+    (is (= [[:b 2] [:c 3] [:a 1]]
+           (seq (into template {:a 1 :b 2 :c 3}))))
+    (is (= [[:c 3] [:a 1] [1 :a] [5 :e]]
+           (seq (into template {:a 1, 5 :e, :c 3, 1 :a}))))))
