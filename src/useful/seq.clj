@@ -350,3 +350,12 @@ ineligible for garbage collection."
                         (cons (if (identical? x NIL) nil x) (drain)))))))]
      (send-off agt fill)
      (drain))))
+
+(defn take-until
+  "Take from coll up to and including the first item that satisfies pred."
+  [pred coll]
+  (lazy-seq
+   (when-let [coll (seq coll)]
+     (let [x (first coll)]
+       (cons x (when-not (pred x)
+                 (take-until pred (rest coll))))))))
