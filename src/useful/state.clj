@@ -1,5 +1,7 @@
 (ns useful.state
-  (:import [clojure.lang IDeref IObj]))
+  (:require [useful.time :as time])
+  (:import [clojure.lang IDeref IObj]
+           [java.util.concurrent ScheduledThreadPoolExecutor ThreadFactory]))
 
 (defprotocol Mutable
   (put! [self v]))
@@ -76,3 +78,38 @@
   `(let [start# (System/nanoTime)
          ret# ~(cons 'do body)]
      [ret# (/ (double (- (System/nanoTime) start#)) 1000000.0)]))
+
+(let [executor (delay (ScheduledThreadPoolExecutor. 1 (reify ThreadFactory
+                                                        (newThread [this r]
+                                                          (doto (Thread. r)
+                                                            (.setDaemon true))))))]
+  (defn periodic-recompute
+    "Takes a thunk and a duration (from useful.time), and yields a function
+   that attempts to pre-cache calls to that thunk. The first time you call
+   the returned function, it starts a background thread that re-computes the
+   thunk's result according to the requested duration.
+
+   If you call the returned function with no arguments, it blocks until
+   some cached value is available; with one not-found argument, it returns
+   the not-found value if no cached value has yet been computed."
+    [f duration]
+    (let [{:keys [unit num]} duration
+          worker (agent {:ready false})
+          task (delay (.scheduleAtFixedRate @executor
+                                            (fn []
+                                              (send worker
+                                                    (fn [_]
+                                                      {:ready true
+                                                       :value (f)})))
+                                            0, num unit))
+          get-ready (fn [] (do @task nil))]
+      (fn
+        ([]
+           (do (get-ready)
+               (:value (wait-until worker :ready))))
+        ([not-found]
+           (do (get-ready)
+               (let [{:keys [ready value]} @worker]
+                 (if ready
+                   value
+                   not-found))))))))
