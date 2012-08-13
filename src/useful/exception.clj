@@ -16,5 +16,5 @@
   "Return a map with the keys: :name, :message, and :trace. :trace is the cause trace as an array of lines "
   [exception]
   {:name    (.getName (class exception))
-   :message (.getMessage exception)
+   :message (.getMessage ^Throwable exception)
    :trace   (cause-trace exception)})
