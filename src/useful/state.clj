@@ -99,10 +99,10 @@
    than the duration you specified."
     [f duration]
     (let [{:keys [unit num]} duration
-          worker (agent {:ready false})
+          cache (agent {:ready false})
           task (delay (.scheduleAtFixedRate executor
                                             (fn []
-                                              (send worker
+                                              (send cache
                                                     (fn [_]
                                                       {:ready true
                                                        :value (f)})))
@@ -111,10 +111,10 @@
       (fn
         ([]
            (do (get-ready)
-               (:value (wait-until worker :ready))))
+               (:value (wait-until cache :ready))))
         ([not-found]
            (do (get-ready)
-               (let [{:keys [ready value]} @worker]
+               (let [{:keys [ready value]} @cache]
                  (if ready
                    value
                    not-found))))))))
