@@ -79,10 +79,10 @@
          ret# ~(cons 'do body)]
      [ret# (/ (double (- (System/nanoTime) start#)) 1000000.0)]))
 
-(let [executor (delay (ScheduledThreadPoolExecutor. 1 (reify ThreadFactory
-                                                        (newThread [this r]
-                                                          (doto (Thread. r)
-                                                            (.setDaemon true))))))]
+(let [executor (ScheduledThreadPoolExecutor. 1 (reify ThreadFactory
+                                                 (newThread [this r]
+                                                   (doto (Thread. r)
+                                                     (.setDaemon true)))))]
   (defn periodic-recompute
     "Takes a thunk and a duration (from useful.time), and yields a function
    that attempts to pre-cache calls to that thunk. The first time you call
@@ -95,7 +95,7 @@
     [f duration]
     (let [{:keys [unit num]} duration
           worker (agent {:ready false})
-          task (delay (.scheduleAtFixedRate @executor
+          task (delay (.scheduleAtFixedRate executor
                                             (fn []
                                               (send worker
                                                     (fn [_]
