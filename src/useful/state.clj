@@ -91,7 +91,12 @@
 
    If you call the returned function with no arguments, it blocks until
    some cached value is available; with one not-found argument, it returns
-   the not-found value if no cached value has yet been computed."
+   the not-found value if no cached value has yet been computed.
+
+   Take care: if the duration you specify causes your task to be scheduled
+   again while it is still running, the task will wait in a queue. That queue
+   will continue to grow unless your task is able to complete more quickly
+   than the duration you specified."
     [f duration]
     (let [{:keys [unit num]} duration
           worker (agent {:ready false})
