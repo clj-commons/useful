@@ -7,13 +7,10 @@
           forms (take-while (complement #{eof})
                             (repeatedly #(binding [*read-eval* false]
                                            (read in false eof))))]
-      (cond (not (seq forms))
-            (throw (IllegalArgumentException. (format "No config data in %s" filename)))
-
-            (next forms)
-            (throw (IllegalArgumentException. (format "Too many forms in %s" filename)))
-
-            :else (first forms)))))
+      (if-let [error (cond (empty? forms) "No config data in %s"
+                             (next forms) "Too many forms in %s")]
+        (throw (IllegalArgumentException. (format error filename)))
+        (first forms)))))
 
 (defn load-config [filename]
   (eval (read-config filename)))
