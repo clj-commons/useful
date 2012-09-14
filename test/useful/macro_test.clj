@@ -20,11 +20,3 @@
              (macro-do [x] `(print '~x)
                123
                abc))))))
-
-(def ^{:dynamic true} *value* 1)
-
-(deftest test-alter-var
-  (let [get-value (fn [] *value*)]
-    (is (= 1 *value*))
-    (is (= 4 (with-altered-var [*value* + 3]
-               (get-value))))))

@@ -1,5 +1,6 @@
 (ns useful.state
   (:require [useful.time :as time])
+  (:use [useful.utils :only [returning]])
   (:import [clojure.lang IDeref IObj]
            [java.util.concurrent ScheduledThreadPoolExecutor ThreadFactory]))
 
@@ -118,3 +119,37 @@
                  (if ready
                    value
                    not-found))))))))
+
+(defmacro with-altered-vars
+  "Binds each var-name to the result of (apply f current-value args) for the dynamic
+  scope of body. Basically like swap! or alter, but for vars. bindings should be a
+  vector, each element of which should look like a function call:
+
+  (with-altered-vars [(+ x 10)] body) ;; binds x to (+ x 10)"
+  [bindings & body]
+  `(binding [~@(for [[f var-name & args] bindings
+                     binding `[~var-name (~f ~var-name ~@args)]]
+                 binding)]
+     ~@body))
+
+(defmacro with-altered-roots
+  "Use alter-var-root to temporarily modify the root bindings of some vars.
+   For each var, the temporary value will be (apply f current-value args).
+
+   bindings should be a vector, each element of which should look like a function call:
+  (with-altered-roots [(+ x 10)] body) ;; sets x to (+ x 10)
+
+   Use with caution: this is not thread-safe, and multiple concurrent calls
+   can leave vars' root values in an unpredictable state."
+  [bindings & body]
+  (let [inits (gensym 'init-vals)]
+    `(let [~inits (atom {})]
+       ~@(for [[f var-name & args] bindings]
+           (let [v (gensym var-name)]
+             `(alter-var-root (var ~var-name)
+                              (fn [~v]
+                                (swap! ~inits assoc '~var-name ~v)
+                                (~f ~v ~@args)))))
+       (returning (do ~@body)
+         ~@(for [[f var-name & args] (reverse bindings)]
+             `(alter-var-root (var ~var-name) (constantly ('~var-name @~inits))))))))
