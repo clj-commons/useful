@@ -28,7 +28,38 @@
   (is (= ['(5 1 7) '(2 4 6 2)] (separate odd?  [2 4 6 5 1 2 7])))
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
 
+(deftest test-glue
+  ;; Make sure all items of the same type wind up in the same batch,
+  ;; and each batch is as close to size 6 as possible without going over.
+
+  ;; The D batch is too large, and glue promises to return a too-large batch
+  ;; in preference to splitting up a batch.
+  (is (= '((a1 a2 a3 a4 b1)
+           (c1 c2)
+           (d1 d2 d3 d4 d5 d6 d7)
+           (e8))
+         (glue into []
+               (fn [batch more]
+                 (>= 6 (+ (count batch) (count more))))
+               (constantly false)
+               '((a1 a2 a3 a4)
+                 (b1)
+                 (c1 c2)
+                 (d1 d2 d3 d4 d5 d6 d7)
+                 (e8))))))
+
 (deftest test-partition-between
+  (testing "returns a totally lazy sequence"
+    (is (= (lazy-seq nil)
+           (partition-between (fn [& _] (throw (Exception. "Never call me")))
+                              nil))))
+  (testing "doesn't force input sequence more than necessary"
+    ;; partition-between should be forcing elements 1 and 2 of this sequence
+    ;; to compute the first partition.
+    (let [input (list* 1 2 (lazy-seq (throw (Exception. "broken"))))
+          partitioned (partition-between (constantly true) input)]
+      (is (= [1] (first partitioned)))
+      (is (thrown? Exception (second partitioned)))))
   (let [input [1 nil nil 2 3 nil 4]]
     (are [f output] (= output (partition-between f input))
          (fn [[a b]] (not (nil? a)))           [[1] [nil nil 2] [3] [nil 4]],
@@ -121,7 +152,29 @@
   (let [a [1 2 3], b [1 2], c [2 3], d []]
     (is (prefix-of? a b))
     (is (prefix-of? a a))
-    (is (not (prefix-of? b a)))
+    (is (prefix-of? b a))
     (is (not (prefix-of? a c)))
     (is (prefix-of? a d))
     (is (prefix-of? b d))))
+
+(deftest test-sequeue
+  (testing "lookahead"
+    (let [a (atom 0)
+          xs (list* 1 2 3 4 5 6 7 8 9 [10]) ;; avoid chunking
+          coll (for [x xs] (do (swap! a inc) x))]
+      (is (zero? @a))
+      (let [s (sequeue 5 coll)]
+        (Thread/sleep 100)
+        (is (< 0 @a 10)) ;; should have some queued, but not all
+        (is (= coll (doall s)))
+        (is (= 10 @a)))))
+  (testing "error propagation"
+    (let [coll (lazy-seq
+                 (list* 1 2 3 4 5 6 7 8 9
+                        (lazy-seq
+                          (cons 10
+                                (lazy-seq
+                                  (throw (IllegalStateException. "Broken")))))))
+          s (sequeue 2 coll)]
+      (is (= 1 (first s)))
+      (is (thrown? Throwable (dorun s))))))

@@ -88,17 +88,48 @@
   (is (= [1] (-> (assoc-in! {:foo {}} [:foo :bar] [1])
                  :foo :bar))))
 
+(deftest test-dissoc-in*
+  (is (= {}
+         (dissoc-in* {:foo {:bar 3}} [:foo :bar])))
+  (is (= {:foo {:baz 8}}
+         (dissoc-in* {:foo {:bar 3 :baz 8}} [:foo :bar])))
+  (is (= {:bam 3}
+         (dissoc-in* {:foo {:bar 3 :baz 8} :bam 3} [:foo])))
+  (is (= {}
+         (dissoc-in* {:foo {:bar 3 :baz 8}} []))))
+
+(deftest test-assoc-in*
+  (is (= {:foo {:bar 1}}
+         (assoc-in* {} [:foo :bar] 1)))
+  (is (= {:foo {}}
+         (assoc-in* {:foo {:bar 3 :baz 8}} [:foo] {})))
+  (is (= {:foo {:bar 3 :baz 8} :bam 3}
+         (assoc-in* {:foo {:bar 3} :bam 3} [:foo :baz] 8)))
+  (is (= {:bar 1}
+         (assoc-in* {:foo 1} [] {:bar 1}))))
+
+(deftest test-update-in*
+  (is (= {:foo {:bar 1}}
+         (update-in* {} [:foo :bar] (constantly 1))))
+  (is (= {:foo 2}
+         (update-in* {:foo {:bar 3 :baz 8}} [:foo] count)))
+  (is (= {:foo {:bar 4} :bam 3}
+         (update-in* {:foo {:bar 3} :bam 3} [:foo :bar] inc)))
+  (is (= 2
+         (update-in* {:foo 1 :bar 2} [] count)))
+  (is (= {}
+         (update-in* {} [:foo :bar :baz] identity))))
+
 (deftest test-multi-map
   (is (= {:foo #{1 2 3 4}, :bar #{2 3 4 5 6}, :baz #{5 6}}
          (multi-map {:foo 1, #{:foo :bar} #{2 3 4}, #{:baz :bar} #{5 6}})))
   (is (= {:foo #{1 2}, :bar #{2 3}}
          (multi-map {:foo #{1 2}, :bar #{2 3}}))))
 
-(deftest test-assoc-levels
-  (let [init {:a 1}]
-    (is (= {:a 1 :b {:c 2}}
-           (assoc-levels init [:b :c] 2)))
-    (let [m {:c 2}]
-      (is (= m
-             (assoc-levels init [] m)
-             (assoc-levels init nil m))))))
+(deftest test-ordering-map
+  (let [template (ordering-map [:b :c :a])]
+    (is (= {} template))
+    (is (= [[:b 2] [:c 3] [:a 1]]
+           (seq (into template {:a 1 :b 2 :c 3}))))
+    (is (= [[:c 3] [:a 1] [1 :a] [5 :e]]
+           (seq (into template {:a 1, 5 :e, :c 3, 1 :a}))))))

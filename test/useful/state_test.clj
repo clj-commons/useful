@@ -23,3 +23,17 @@
       (is (= 2 @a))
       (is (= 2 (trade! a + 100)))
       (is (= 102 @a)))))
+
+(deftest test-wait-until
+  (let [a (atom 0)]
+    (is (zero? (wait-until a even?)))
+    (let [f (future (Thread/sleep 250)
+                    (swap! a inc))]
+      (is (odd? (wait-until a odd?))))))
+
+(deftest test-with-timing
+  (let [[ret ms] (with-timing
+                   (+ 2 2)
+                   (+ 3 3))]
+    (is (= ret 6))
+    (is (float? ms))))

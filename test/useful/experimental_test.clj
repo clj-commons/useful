@@ -1,5 +1,8 @@
 (ns useful.experimental-test
-  (:use clojure.test useful.map useful.experimental))
+  (:use clojure.test useful.map
+        useful.experimental
+        useful.experimental.delegate)
+  (:require [useful.utils :as utils]))
 
 (deftest test-while-let
   (let [a (atom '(1 2 3 4 5))]
@@ -155,3 +158,25 @@
                         identity #(swap! % inc)
                         identity)))
     (is (= 0 @a) "Should throw an exception before trying any clauses")))
+
+(deftest lift-meta-test
+  (let [m (lift-meta {:a 1 :b 2} :a)]
+    (is (= {:b 2} m))
+    (is (= {:a 1} (meta m)))))
+
+(deftest prefix-lookup-test
+  (let [lookup (prefix-lookup [["a" :apple]
+                               ["person" :person]
+                               [:p :pineapple]
+                               ["abbrev" :abbreviation]])]
+    (are [in out] (= out (lookup in))
+         "apropos" :apple
+         "persona" :person
+         "pursues" :pineapple ;; keywords should work
+         "abbrev." :apple ;; should test in order, and short-circuit
+         )))
+
+(deftest canonical-name-test
+  (is (= 'clojure.core/inc (canonical-name 'inc)))
+  (is (= 'java.lang.Object (canonical-name 'Object)))
+  (is (= 'useful.utils/adjoin (canonical-name `utils/adjoin))))

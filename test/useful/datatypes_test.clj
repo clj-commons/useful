@@ -1,6 +1,13 @@
 (ns useful.datatypes-test
   (:use clojure.test useful.datatypes))
 
+(deftest test-as-int
+  (are [in out] (= (as-int in) out)
+       "1" 1
+       2 2
+       4.5 4
+       nil nil))
+
 (defrecord Test [a b c])
 (defrecord Other [dash-thing question? bang!])
 (record-accessors Test Other)

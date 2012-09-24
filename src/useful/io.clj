@@ -38,9 +38,10 @@
   [bytes]
   (-> bytes (ByteArrayInputStream.) (DataInputStream.) (.readLong)))
 
-(defn long->bytes [long]
+(defn long->bytes
   "Create an eight-byte array from a Long, using the standard
    network order (by delegating to DataOutputStream)."
+  [long]
   (-> (ByteArrayOutputStream. 8)
       (doto (-> (DataOutputStream.) (.writeLong long)))
       (.toByteArray)))

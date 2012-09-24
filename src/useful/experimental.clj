@@ -1,9 +1,9 @@
 (ns useful.experimental
   (:use [useful.utils :only [split-vec]]
-        [useful.seq :only [alternates]]
+        [useful.seq :only [alternates find-first]]
         [useful.map :only [keyed]]
         [clojure.tools.macro :only [name-with-attributes]]
-        [useful.fn :only [any as-fn]]))
+        [useful.fn :only [any as-fn knit]]))
 
 (defn comp-partial
   "A version of comp that \"rescues\" the first N args, passing them to every composed function
@@ -215,9 +215,10 @@
   [wrappers-var wrap-fn & body]
   `(with-wrappers ~wrappers-var [~wrap-fn] ~@body))
 
-(defn fixes [x & clauses]
+(defn fixes
   "Like fix, but each clause is tested whether or not the previous clauses matched, so multiple
    transformations may be applied. Unlike fix, fixes does not support a final one-element \"pair\"."
+  [x & clauses]
   (if (odd? (count clauses))
     (throw (IllegalArgumentException. "Fixes does not support a fallback clause."))
     (reduce (fn [acc [pred transform]]
@@ -226,3 +227,25 @@
                 acc))
             x
             (partition 2 clauses))))
+
+(defn lift-meta
+  "Move some of the keys from m into its metadata, overriding existing values.
+   (lift-meta {:a 1 :b 2} [:a]) -> ^{:a 1} {:b 2]"
+  [m & ks]
+  (-> (apply dissoc m ks)
+      (vary-meta merge (select-keys m ks))))
+
+(defn prefix-lookup
+  "Takes a map whose keys are names, and returns a function that does fast prefix
+   matching on its input against the names in the original map, returning the
+   first value whose key is a prefix.
+
+   If order is important (eg because your prefixes overlap, or you want to test
+   common prefixes first for performance), you can pass a sequence of pairs
+   instead of a map."
+  [prefix-map]
+  (let [name-pairs (map (knit name identity) prefix-map)]
+    (fn [^String s]
+      (when-let [pair (find-first #(.startsWith s (first %))
+                                  name-pairs)]
+        (second pair)))))

@@ -7,3 +7,9 @@ classes/
 build/
 docs
 .lein*
+bin/
+target/
+.settings/
+.ritz*
+.project
+.classpath

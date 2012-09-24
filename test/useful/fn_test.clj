@@ -46,7 +46,12 @@
          (-> {:value 0}
              (given map? (update-in [:value] inc) ; matches
                     sequential? reverse ; these next two are never tested
-                    :value :value)))))
+                    :value :value))))
+  (is (= 4
+         (-> 3
+             (given map? (update-in [:value] inc) ; matches
+                    sequential? reverse ; these next two are never tested
+                    inc)))))
 
 (deftest test-any
   (is (= [0 2 3 4 6 8 9 10]
