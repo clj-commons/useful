@@ -359,3 +359,13 @@ ineligible for garbage collection."
      (let [x (first coll)]
        (cons x (when-not (pred x)
                  (take-until pred (rest coll))))))))
+
+(defn map-nth
+  "Calls f on every nth element of coll. If start is passed, starts
+   at that element (counting from zero), otherwise starts with zero."
+  ([f nth coll] (map-nth f 0 nth coll))
+  ([f start nth coll]
+     (map #(% %2)
+          (concat (repeat start identity)
+                  (cycle (cons f (repeat (dec nth) identity))))
+          coll)))

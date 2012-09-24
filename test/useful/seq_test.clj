@@ -178,3 +178,8 @@
           s (sequeue 2 coll)]
       (is (= 1 (first s)))
       (is (thrown? Throwable (dorun s))))))
+
+(deftest test-map-nth
+  (is (= [2 2 4 4 6 6 8 8 10 10]
+         (map-nth inc 2 [1 2 3 4 5 6 7 8 9 10])))
+  (is (= ["" "x" "" "x"] (map-nth #(str % "x") 1 2 ["" "" "" ""]))))
