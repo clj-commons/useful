@@ -39,10 +39,3 @@ myconst 10)."
                           (for [~macro-args arg#]
                             ~body))
                     ~(partition-params macro-args args)))))
-
-(defmacro with-altered-var
-  "Binds var-name to the result of (f current-value args) for the dynamic
-  scope of body. Basically like swap! or alter, but for vars."
-  [[var-name f & args] & body]
-  `(binding [~var-name (~f ~var-name ~@args)]
-     ~@body))

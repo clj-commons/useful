@@ -37,3 +37,21 @@
                    (+ 3 3))]
     (is (= ret 6))
     (is (float? ms))))
+
+
+
+(def ^{:dynamic true} *value* 1)
+
+(deftest test-alter-var
+  (let [get-value (fn [] *value*)]
+    (is (= 1 *value*))
+    (is (= 4 (with-altered-vars [(+ *value* 3)]
+               (get-value))))))
+
+(def const 20)
+(deftest test-alter-root
+  (let [get-value (fn [] const)]
+    (is (= 20 (get-value)))
+    (is (= 10 (with-altered-roots [(- const 10)]
+                (get-value))))
+    (is (= 20 (get-value)))))
