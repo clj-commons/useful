@@ -1,7 +1,7 @@
 (ns useful.config
   (:require [clojure.java.io :as io]))
 
-(defn read-config [filename & {:keys [optional?]}]
+(defn read-config [filename & {:keys [optional]}]
   (let [resource (io/resource filename)]
     (if resource
       (with-open [in (java.io.PushbackReader. (io/reader resource))]
@@ -13,7 +13,7 @@
                                  (next forms) "Too many forms in %s")]
             (throw (IllegalArgumentException. (format error filename)))
             (first forms))))
-      (when-not optional?
+      (when-not optional
         (throw (java.io.FileNotFoundException. (format "Cannot find config resource %s" filename)))))))
 
 (defn load-config [filename & args]
