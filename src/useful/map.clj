@@ -186,11 +186,14 @@
   [pred m]
   (filter-keys-by-val (complement pred) m))
 
-(defn filter-vals
-  "Returns a map that only contains values where (pred value) returns true."
-  [m pred]
+(defn filter-vals [m pred]
   (when m
-    (select-keys m (filter-keys-by-val pred m))))
+    (persistent! (reduce (fn [m [k v]]
+                           (if (pred v)
+                             m
+                             (dissoc! m k)))
+                         (transient m)
+                         m))))
 
 (defn remove-vals
   "Returns a map that only contains values where (pred value) returns false."
