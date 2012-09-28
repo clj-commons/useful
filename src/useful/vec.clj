@@ -10,7 +10,7 @@
                        avec)))
 
 (defn avec-find
-  "Return the first elment in association vector avec matching key."
+  "Return the first element in association vector avec matching key."
   [avec key]
   (get avec (avec-index avec key)))
 
