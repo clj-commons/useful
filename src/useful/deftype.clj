@@ -114,3 +114,6 @@
         meta)
   (withMeta [this meta]
             (AList. entries meta)))
+
+(defn alist [& kvs]
+  (AList. (apply list (map vec (partition 2 kvs))) nil))
