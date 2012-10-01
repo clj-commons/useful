@@ -103,7 +103,7 @@
   (seq [this]
        (seq entries))
   (assoc [this k v]
-    (AList. (cons (MapEntry. k v) entries) meta))
+    (AList. (conj entries (MapEntry. k v)) meta))
   (without [this k]
            (AList. (->> entries (remove #(= k (key %)))
                         (apply list))
