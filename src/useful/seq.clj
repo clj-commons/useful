@@ -369,3 +369,18 @@ ineligible for garbage collection."
           (concat (repeat start identity)
                   (cycle (cons f (repeat (dec nth) identity))))
           coll)))
+
+(defn update-first
+  "Returns a lazy-seq that is a version of coll with the first item matching
+  pred updated by calling f on it with the supplied args."
+  ([coll pred f]
+     (lazy-seq
+      (if-let [coll (seq coll)]
+        (let [x (first coll)
+              xs (rest coll)]
+          (if (pred x)
+            (cons (f x) xs)
+            (cons x (update-first xs pred f))))
+        (list (f nil)))))
+  ([coll pred f & args]
+     (update-first coll pred #(apply f % args))))

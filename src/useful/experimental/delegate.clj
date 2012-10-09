@@ -25,8 +25,10 @@
   (loop [ret {}, curr-key nil, decls decls]
     (if-let [[x & xs] (seq decls)]
       (if (seq? x)
-        (recur (assoc-in ret [curr-key (symbol (name (first x)))] x),
-               curr-key, xs)
+        (let [mname (symbol (name (first x)))
+              nargs (count (second x))]
+          (recur (assoc-in ret [curr-key [mname nargs]] x),
+                 curr-key, xs))
         (let [interface-name (canonical-name x)]
           (recur (update-in ret [interface-name] #(or % {})),
                  interface-name, xs)))
@@ -37,7 +39,9 @@
   [specs]
   (apply concat
          (for [[interface methods] specs]
-           (cons interface (vals methods)))))
+           (cons interface
+                 (for [[[method-name num-args] method] methods]
+                   method)))))
 
 (letfn [;; Output the method body for a delegating implementation
         (delegating-method [method-name args delegate]
