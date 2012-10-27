@@ -203,8 +203,10 @@
      - If glue? returned falsey, or unglue? returned truthy, then the current batch
        is inserted into the output sequence, and a new batch is started as
        (combine init next-item)."
-  ([combine glue? unglue? coll]
-     (glue combine nil glue? unglue? coll))
+  ([combine glue? coll]
+     (glue combine nil glue? coll))
+  ([combine init glue? coll]
+     (glue combine init glue? (constantly false) coll))
   ([combine init glue? unglue? coll]
      (lazy-seq
        (when-let [coll (seq coll)]
