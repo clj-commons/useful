@@ -239,14 +239,20 @@
         (constantly false)
         coll))
 
+(defn remove-prefix
+  "Remove prefix from coll, returning the remaining suffix. Returns nil if prefix does not
+  match coll."
+  [prefix coll]
+  (if (seq prefix)
+    (and (seq coll)
+         (= (first prefix) (first coll))
+         (recur (rest prefix) (rest coll)))
+    coll))
+
 (defn prefix-of?
   "Given prefix is N elements long, are the first N elements of coll equal to prefix?"
   [coll prefix]
-  (if-let [[n & ns] (seq prefix)]
-    (when-let [[h & hs] (seq coll)]
-      (and (= h (first prefix))
-           (recur hs (rest coll))))
-    true))
+  (boolean (remove-prefix prefix coll)))
 
 (defn merge-sorted
   "Merge N sorted sequences together, as in the merge phase of a merge-sort.

@@ -148,14 +148,21 @@
     (is (nil? (next (next the-list))))
     (is (= 2 @realized))))
 
-(deftest test-prefix-of?
+(deftest test-remove-prefix
   (let [a [1 2 3], b [1 2], c [2 3], d []]
-    (is (prefix-of? a b))
-    (is (prefix-of? a a))
-    (is (prefix-of? b a))
-    (is (not (prefix-of? a c)))
-    (is (prefix-of? a d))
-    (is (prefix-of? b d))))
+    (is (= [3]   (remove-prefix [1 2] [1 2 3])))
+    (is (= []    (remove-prefix [1 2] [1 2])))
+    (is (= [1 2] (remove-prefix [] [1 2])))
+    (is (= false (remove-prefix [1 2] [3 2])))
+    (is (= nil   (remove-prefix [1 2 3] [1 2])))))
+
+(deftest test-prefix-of?
+  (is (prefix-of? [1 2 3] [1 2]))
+  (is (prefix-of? [1 2] [1 2]))
+  (is (not (prefix-of? [1 2] [1 2 3])))
+  (is (not (prefix-of? [1 2 3] [2 3])))
+  (is (prefix-of? [1 2 3] []))
+  (is (prefix-of? [1 2] [])))
 
 (deftest test-sequeue
   (testing "lookahead"
