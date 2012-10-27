@@ -127,6 +127,12 @@
       [(pop stack) item]
       [stack default])))
 
+(defn update-peek
+  "Update the element in stack that would be returned by peek, returning a new stack."
+  [stack f & args]
+  (conj (pop stack)
+        (apply f (peek stack) args)))
+
 (defmacro with-adjustments
   "Create new bindings for binding args, by applying adjustment
   function to current values of bindings."
