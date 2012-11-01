@@ -393,6 +393,12 @@ ineligible for garbage collection."
   ([coll pred f & args]
      (update-first coll pred #(apply f % args))))
 
+(defn single?
+  "Does coll have only one element?"
+  [coll]
+  (and (seq coll)
+       (not (next coll))))
+
 (defn assert-length
   "Assert, as a side effect, that coll has exactly len elements, and then
    return coll."
