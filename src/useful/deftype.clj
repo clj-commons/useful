@@ -115,5 +115,8 @@
   (withMeta [this meta]
             (AList. entries meta)))
 
-(defn alist [& kvs]
+(defn alist
+  "A map stored like a common-lisp alist, ie a seq of [key, value] pairs. A new entry can simply be
+consed onto the front, without having to do any additional work to update the rest of the entries."
+  [& kvs]
   (AList. (apply list (map vec (partition 2 kvs))) nil))

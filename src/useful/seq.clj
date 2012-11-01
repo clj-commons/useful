@@ -392,3 +392,14 @@ ineligible for garbage collection."
         (list (f nil)))))
   ([coll pred f & args]
      (update-first coll pred #(apply f % args))))
+
+(defn assert-length
+  "Assert, as a side effect, that coll has exactly len elements, and then
+   return coll."
+  [len coll]
+  (if (zero? len)
+    (assert (empty? coll) "Too many elements")
+    (let [last-expected (nthnext coll (dec len))]
+      (assert last-expected "Too few elements")
+      (assert (not (next last-expected)) "Too many elements")))
+  coll)

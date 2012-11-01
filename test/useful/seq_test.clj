@@ -198,3 +198,7 @@
 
   (is (= [1 2 3 4 5 15]
          (update-first [1 2 3 4 5] zero? (fnil + 0) 1 2 3 4 5))))
+
+(deftest test-assert-length
+  (is (= [1 2 3] (assert-length 3 [1 2 3])))
+  (is (thrown? Throwable (assert-length 3 [1]))))
