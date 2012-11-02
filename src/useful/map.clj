@@ -129,12 +129,14 @@
             (apply update-in* m [key] f args))
           m keys))
 
-(defn merge-in
-  "Merge multiple nested maps."
-  [& args]
-  (if (map? (first args))
-    (apply merge-with merge-in args)
-    (last args)))
+(letfn [(merge-in* [a b]
+          (if (map? a)
+            (merge-with merge-in* a b)
+            b))]
+  (defn merge-in
+    "Merge multiple nested maps."
+    [& args]
+    (reduce merge-in* nil args)))
 
 (defn update-in!
   "'Updates' a value in a nested associative structure, where ks is a sequence of keys and

@@ -57,7 +57,14 @@
   (is (= {:a {:b {:c 1 :d 2} :e 2}}
          (merge-in {:a {:b {:c 1}}}
                    {:a {:b {:d 2}}}
-                   {:a {:b {} :e 2}}))))
+                   {:a {:b {} :e 2}})))
+  (is (= {:a 1 :b 2}
+         (merge-in nil
+                   {:a 1}
+                   {:b 2})))
+  (is (= nil (merge-in)))
+  (is (= nil (merge-in nil)))
+  (is (= {} (merge-in {}))))
 
 (deftest test-map-to
   (is (= {1 2 3 4 5 6} (map-to inc [1 3 5])))
