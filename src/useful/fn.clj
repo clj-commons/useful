@@ -154,3 +154,18 @@
                                   {:accepted ok
                                    :last-sent (if ok now last-sent)}))))
         (apply f args)))))
+
+(defn memoize-last
+  "A version of memoize that only remembers the result for a single input
+   argument at a time. eg, if you call (f 1) (f 1) (f 2) (f 1), only the
+   second call is memoized, because it is the same argument you just gave.
+   The third and fourth calls see a new argument, and therefore refresh the
+   cached value."
+  [f]
+  (let [cache (atom nil)]
+    (fn [& args]
+      (:value (swap! cache
+                     (fn [cache]
+                       (if (= args (get cache :args ::not-found))
+                         cache
+                         {:args args, :value (apply f args)})))))))
