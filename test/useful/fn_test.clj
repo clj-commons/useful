@@ -79,3 +79,9 @@
 
 (deftest test-ignoring-nils
   (is (= 6 ((ignoring-nils +) 1 nil 2 nil nil 3))))
+
+
+(deftest test-memoize-last
+  (let [a (atom 0)
+        f #(swap! a + %)]
+    ()))

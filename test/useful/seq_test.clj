@@ -28,6 +28,8 @@
   (is (= ['(5 1 7) '(2 4 6 2)] (separate odd?  [2 4 6 5 1 2 7])))
   (is (= ['(2 4 6 2) '(5 1 7)] (separate even? [2 4 6 5 1 2 7]))))
 
+;; TODO test unglue? option to glue
+
 (deftest test-glue
   ;; Make sure all items of the same type wind up in the same batch,
   ;; and each batch is as close to size 6 as possible without going over.
@@ -41,7 +43,6 @@
          (glue into []
                (fn [batch more]
                  (>= 6 (+ (count batch) (count more))))
-               (constantly false)
                '((a1 a2 a3 a4)
                  (b1)
                  (c1 c2)
@@ -148,14 +149,21 @@
     (is (nil? (next (next the-list))))
     (is (= 2 @realized))))
 
-(deftest test-prefix-of?
+(deftest test-remove-prefix
   (let [a [1 2 3], b [1 2], c [2 3], d []]
-    (is (prefix-of? a b))
-    (is (prefix-of? a a))
-    (is (prefix-of? b a))
-    (is (not (prefix-of? a c)))
-    (is (prefix-of? a d))
-    (is (prefix-of? b d))))
+    (is (= [3]   (remove-prefix [1 2] [1 2 3])))
+    (is (= []    (remove-prefix [1 2] [1 2])))
+    (is (= [1 2] (remove-prefix [] [1 2])))
+    (is (= false (remove-prefix [1 2] [3 2])))
+    (is (= nil   (remove-prefix [1 2 3] [1 2])))))
+
+(deftest test-prefix-of?
+  (is (prefix-of? [1 2 3] [1 2]))
+  (is (prefix-of? [1 2] [1 2]))
+  (is (not (prefix-of? [1 2] [1 2 3])))
+  (is (not (prefix-of? [1 2 3] [2 3])))
+  (is (prefix-of? [1 2 3] []))
+  (is (prefix-of? [1 2] [])))
 
 (deftest test-sequeue
   (testing "lookahead"
@@ -190,3 +198,7 @@
 
   (is (= [1 2 3 4 5 15]
          (update-first [1 2 3 4 5] zero? (fnil + 0) 1 2 3 4 5))))
+
+(deftest test-assert-length
+  (is (= [1 2 3] (assert-length 3 [1 2 3])))
+  (is (thrown? Throwable (assert-length 3 [1]))))

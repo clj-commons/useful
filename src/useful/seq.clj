@@ -203,8 +203,10 @@
      - If glue? returned falsey, or unglue? returned truthy, then the current batch
        is inserted into the output sequence, and a new batch is started as
        (combine init next-item)."
-  ([combine glue? unglue? coll]
-     (glue combine nil glue? unglue? coll))
+  ([combine glue? coll]
+     (glue combine nil glue? coll))
+  ([combine init glue? coll]
+     (glue combine init glue? (constantly false) coll))
   ([combine init glue? unglue? coll]
      (lazy-seq
        (when-let [coll (seq coll)]
@@ -239,14 +241,20 @@
         (constantly false)
         coll))
 
+(defn remove-prefix
+  "Remove prefix from coll, returning the remaining suffix. Returns nil if prefix does not
+  match coll."
+  [prefix coll]
+  (if (seq prefix)
+    (and (seq coll)
+         (= (first prefix) (first coll))
+         (recur (rest prefix) (rest coll)))
+    coll))
+
 (defn prefix-of?
   "Given prefix is N elements long, are the first N elements of coll equal to prefix?"
   [coll prefix]
-  (if-let [[n & ns] (seq prefix)]
-    (when-let [[h & hs] (seq coll)]
-      (and (= h (first prefix))
-           (recur hs (rest coll))))
-    true))
+  (boolean (remove-prefix prefix coll)))
 
 (defn merge-sorted
   "Merge N sorted sequences together, as in the merge phase of a merge-sort.
@@ -384,3 +392,20 @@ ineligible for garbage collection."
         (list (f nil)))))
   ([coll pred f & args]
      (update-first coll pred #(apply f % args))))
+
+(defn single?
+  "Does coll have only one element?"
+  [coll]
+  (and (seq coll)
+       (not (next coll))))
+
+(defn assert-length
+  "Assert, as a side effect, that coll has exactly len elements, and then
+   return coll."
+  [len coll]
+  (if (zero? len)
+    (assert (empty? coll) "Too many elements")
+    (let [last-expected (nthnext coll (dec len))]
+      (assert last-expected "Too few elements")
+      (assert (not (next last-expected)) "Too many elements")))
+  coll)

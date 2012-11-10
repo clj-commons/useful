@@ -59,6 +59,12 @@
   (is (= ['(2)      1]   (pop-if (cons 1 [2]) odd?)))
   (is (= ['(1 2)    nil] (pop-if (cons 1 [2]) neg?))))
 
+(deftest test-update-peek
+  (is (= [1 2 4] (update-peek [1 2 3] inc)))
+  (is (= [1 2 6] (update-peek [1 2 3] + 1 2)))
+  (is (= '(2 2 3) (update-peek '(1 2 3) inc)))
+  (is (= [{:foo 1}] (update-peek [{}] assoc :foo 1))))
+
 (deftest test-queue
   (let [q (queue)]
     (is (instance? clojure.lang.PersistentQueue q))
