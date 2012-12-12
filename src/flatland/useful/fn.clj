@@ -169,3 +169,33 @@
                        (if (= args (get cache :args ::not-found))
                          cache
                          {:args args, :value (apply f args)})))))))
+
+(defprotocol EquivChecker
+  "Given an object, produce a function for quickly testing equality with that object."
+  (=? [x] "Return a function of y which computes (= x y)."))
+
+(let [identity-checker {:=? (fn [x]
+                              (fn [y]
+                                (identical? x y)))}
+      equals-checker {:=? (fn [^Object x]
+                            (fn [^Object y]
+                              (.equals x y)))}]
+  (extend nil
+    EquivChecker identity-checker)
+  (extend clojure.lang.Keyword
+    EquivChecker identity-checker)
+  (extend clojure.lang.Symbol
+    EquivChecker equals-checker)
+  (extend String
+    EquivChecker equals-checker))
+
+(extend-protocol EquivChecker
+  Number
+  (=? [x]
+    (fn [y]
+      (and (instance? Number y)
+           (clojure.lang.Numbers/equal x y))))
+  Object
+  (=? [x]
+    (fn [y]
+      (= x y))))

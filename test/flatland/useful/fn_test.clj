@@ -79,3 +79,13 @@
 
 (deftest test-ignoring-nils
   (is (= 6 ((ignoring-nils +) 1 nil 2 nil nil 3))))
+
+(deftest test-=?
+  (let [objs [1 :x [2] "foo"]]
+    (doseq [i (range (count objs))
+            :let [x (objs i)
+                  f (=? x)]
+            j (range (count objs))
+            :let [y (objs j)]]
+      (is (= (boolean (f y))
+             (boolean (= i j)))))))
