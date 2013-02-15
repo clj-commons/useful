@@ -80,8 +80,8 @@
 
 (deftest map-filtering-tests
   (let [m '{a 0, b 1, c 11, d 92}]
-    (is (= '#{a d} (filter-keys-by-val even? m)))
-    (is (= '#{b c} (remove-keys-by-val even? m)))
+    (is (= '(a d) (filter-keys-by-val even? m)))
+    (is (= '(b c) (remove-keys-by-val even? m)))
     (is (= '{a 0} (filter-vals m zero?)))
     (is (= '{b 1, c 11, d 92} (remove-vals m zero?)))
     (is (= '{a 0} (filter-keys m '#{a})))
