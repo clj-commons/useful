@@ -11,8 +11,7 @@
 
 (deftest test-imported-functions
   (let [fn-name 'flatland.useful.dispatch-test/rename-keys
-        dispatch (dispatcher (constantly fn-name))]
-    (prn (dispatch {:a 1} {:a :b}))
+        dispatch (dispatcher (constantly fn-name))] 
     (is (thrown? Exception (dispatch {:a 1} {:a :b})))))
 
 (deftest test-dispatch
