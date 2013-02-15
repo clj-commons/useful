@@ -24,7 +24,8 @@
         (loop [[ns method] (map symbol ((juxt namespace name) (symbol fname)))]
           (if-let [f (if ns
                        (try (require ns)
-                            (ns-resolve ns method)
+                            (-> (ns-publics (find-ns ns))
+                                (get method))
                             (catch java.io.FileNotFoundException e))
                        default)]
             (let [wrap (if (:no-wrap (meta f))
