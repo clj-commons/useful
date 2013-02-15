@@ -1,10 +1,19 @@
 (ns flatland.useful.dispatch-test
   (:use clojure.test flatland.useful.dispatch
-        [clojure.walk :only [stringify-keys]]))
+        [clojure.walk :only [stringify-keys]])
+
+  ;; not used directly, but added to verify that imported functions aren't exposed via dispatcher
+  (:require [clojure.set :refer [rename-keys]]))
 
 (deftest test-dispatcher-fn
   (let [dispatch (dispatcher (fn [f & args] (symbol "clojure.core" f)))]
     (is (= "str5" (dispatch "str" 5)))))
+
+(deftest test-imported-functions
+  (let [fn-name 'flatland.useful.dispatch-test/rename-keys
+        dispatch (dispatcher (constantly fn-name))]
+    (prn (dispatch {:a 1} {:a :b}))
+    (is (thrown? Exception (dispatch {:a 1} {:a :b})))))
 
 (deftest test-dispatch
   (testing "simple dispatch"
