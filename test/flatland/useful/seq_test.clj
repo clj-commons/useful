@@ -202,3 +202,6 @@
 (deftest test-assert-length
   (is (= [1 2 3] (assert-length 3 [1 2 3])))
   (is (thrown? Throwable (assert-length 3 [1]))))
+
+(deftest test-flatten-all
+  (is (= [:a 1 2 :e 1 2] (flatten-all {:a [1 2 {:e '(1 2)}]}))))

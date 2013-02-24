@@ -409,3 +409,9 @@ ineligible for garbage collection."
       (assert last-expected "Too few elements")
       (assert (not (next last-expected)) "Too many elements")))
   coll)
+
+(defn flatten-all
+  "Takes a nested collection and flattens it into one flat collection.
+   Like clojure.core/flatten, but also works with maps and collections
+   containing nested maps."
+  [form] (remove coll? (tree-seq coll? seq form)))
