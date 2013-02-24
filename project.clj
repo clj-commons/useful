@@ -1,4 +1,4 @@
-(defproject org.flatland/useful "0.9.3"
+(defproject org.flatland/useful "0.9.4-SNAPSHOT"
   :description "A collection of generally-useful Clojure utility functions"
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
