@@ -1,9 +1,12 @@
 (ns flatland.useful.io
   (:use [clojure.java.io :only [reader]]
-        [flatland.useful.ns :only [defalias]])
+        [flatland.useful.ns :only [defalias]]
+        [flatland.useful.map :only [keyed]])
   (:import (java.io Reader PushbackReader
                     ByteArrayInputStream ByteArrayOutputStream
-                    DataOutputStream DataInputStream)))
+                    DataOutputStream DataInputStream
+                    RandomAccessFile)
+           (java.nio.channels FileChannel$MapMode)))
 
 (defprotocol PushbackFactory
   (^{:added "1.4"} pushback-reader [x] "Creates a PushbackReader from an object."))
@@ -57,3 +60,13 @@
           (if (zero? diff)
             (recur (unchecked-inc-int idx))
             diff))))))
+
+(defn mmap-file
+  "Memory map a file. Returns a map containing a :buffer key which holds the
+   mapped buffer and a :close key containing a function that, when called,
+   closes the file."
+  [^RandomAccessFile file]
+  (let [channel (.getChannel file)
+        buffer (.map channel FileChannel$MapMode/READ_WRITE 0 (.size channel))
+        close #(.close file)]
+    (keyed [buffer close])))
