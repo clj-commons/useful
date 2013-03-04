@@ -6,6 +6,7 @@
   :url "https://github.com/flatland/useful"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.macro "0.1.1"]]
+  :dependencies [[org.clojure/clojure "1.5.0"]
   :aliases {"testall" ["with-profile" "dev,default:dev,1.3,default:dev,1.5,default" "test"]}
-  :profiles {:1.5 {:dependencies [[org.clojure/clojure "1.5.0-RC16"]]}
+  :profiles {:1.4 {:dependecnies [[org.clojure/clojure "1.4.0"]]}
              :1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}})
