@@ -2,6 +2,7 @@
   (:use [clojure.java.io :only [reader]]
         [flatland.useful.ns :only [defalias]]
         [flatland.useful.map :only [keyed]])
+  (:require [clojure.tools.reader.edn :as edn])
   (:import (java.io Reader PushbackReader
                     ByteArrayInputStream ByteArrayOutputStream
                     DataOutputStream DataInputStream
@@ -33,7 +34,7 @@
     [in]
     (let [in (pushback-reader in)]
       (take-while valid?
-                  (repeatedly #(read in false sentinel))))))
+                  (repeatedly #(edn/read {:eof sentinel} in))))))
 
 (defn bytes->long
   "Read the first eight bytes of a byte-array and convert them to a Long using the standard
