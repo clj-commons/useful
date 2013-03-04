@@ -8,5 +8,5 @@
                  [org.clojure/tools.macro "0.1.1"]
                  [org.clojure/tools.reader "0.7.2"]]
   :aliases {"testall" ["with-profile" "dev,default:dev,1.3,default:dev,1.5,default" "test"]}
-  :profiles {:1.4 {:dependecnies [[org.clojure/clojure "1.4.0"]]}
+  :profiles {:1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}
              :1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}})
