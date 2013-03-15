@@ -190,3 +190,10 @@
     (is (= :b (switch 3,    #{1} :a, (2 3) :b, inc :c, :d)))
     (is (= :c (switch inc,  #{1} :a, (2 3) :b, inc :c, :d)))
     (is (= :d (switch :foo, #{1} :a, (2 3) :b, inc :c, :d)))))
+
+(deftest test-with-timing
+  (let [[ret ms] (with-timing
+                   (+ 2 2)
+                   (+ 3 3))]
+    (is (= ret 6))
+    (is (float? ms))))

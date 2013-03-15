@@ -263,3 +263,12 @@
                    [(fix val, list? set, hash-set) form])
                  (partition 2 clauses))
        ~default)))
+
+(defmacro with-timing
+  "Same as clojure.core/time but returns a vector of a the result of
+   the code and the milliseconds rather than printing a string. Runs
+   the code in an implicit do."
+  [& body]
+  `(let [start# (System/nanoTime)
+         ret# ~(cons 'do body)]
+     [ret# (/ (double (- (System/nanoTime) start#)) 1000000.0)]))

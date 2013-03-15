@@ -31,15 +31,6 @@
                     (swap! a inc))]
       (is (odd? (wait-until a odd?))))))
 
-(deftest test-with-timing
-  (let [[ret ms] (with-timing
-                   (+ 2 2)
-                   (+ 3 3))]
-    (is (= ret 6))
-    (is (float? ms))))
-
-
-
 (def ^{:dynamic true} *value* 1)
 
 (deftest test-alter-var
