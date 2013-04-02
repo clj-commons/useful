@@ -79,3 +79,14 @@
 
 (deftest test-ignoring-nils
   (is (= 6 ((ignoring-nils +) 1 nil 2 nil nil 3))))
+
+(deftest test-key-comparator
+  (let [subtract-comparator-fn-breaks-on-this [2147483650 2147483651
+                                               2147483652 4 2 3 1]
+        normal-cmp (key-comparator identity)]
+    (is (= (sort subtract-comparator-fn-breaks-on-this)
+           (sort normal-cmp subtract-comparator-fn-breaks-on-this))))
+  (let [square (fn [x] (* x x))
+        by-square (key-comparator :ascending square)]
+    (is (= (sort-by square [-9 -5 1 -2])
+           (sort by-square [-9 -5 1 -2])))))
