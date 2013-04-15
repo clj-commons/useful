@@ -14,7 +14,10 @@
   [dispatch-fn & options]
   (let [{:keys [hierarchy wrap default]} (into-map options)
         wrap    (or wrap identity)
-        require (memoize require)]
+        publics (memoize (fn [ns]
+                           (try (require ns)
+                                (ns-publics (find-ns ns))
+                                (catch java.io.FileNotFoundException e))))]
     (fn [& args]
       (let [fname   (apply dispatch-fn args)
             default (or default
@@ -23,10 +26,7 @@
                           {:no-wrap true}))]
         (loop [[ns method] (map symbol ((juxt namespace name) (symbol fname)))]
           (if-let [f (if ns
-                       (try (require ns)
-                            (-> (ns-publics (find-ns ns))
-                                (get method))
-                            (catch java.io.FileNotFoundException e))
+                       (get (publics ns) method)
                        default)]
             (let [wrap (if (:no-wrap (meta f))
                          identity
