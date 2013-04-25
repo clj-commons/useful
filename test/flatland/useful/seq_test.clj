@@ -205,3 +205,10 @@
 
 (deftest test-flatten-all
   (is (= [:a 1 2 :e 1 2] (flatten-all {:a [1 2 {:e '(1 2)}]}))))
+
+(deftest test-groupings
+  (is (= {true ["0" "2" "4" "6" "8"]
+          false ["1" "3" "5" "7" "9"]}
+         (groupings even? str (range 10))))
+  (is (= {true 20, false 25}
+         (groupings even? + 0 (range 10)))))

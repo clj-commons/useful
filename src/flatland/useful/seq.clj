@@ -415,3 +415,22 @@ ineligible for garbage collection."
    Like clojure.core/flatten, but also works with maps and collections
    containing nested maps."
   [form] (remove coll? (tree-seq coll? seq form)))
+
+(defn groupings
+  "Similar to clojure.core/group-by, but allowing you to specify how to add items to each group.
+   For example, if you are grouping by :name, you may want to remove the :name key from each map
+   before adding it to the list. So, you can specify #(dissoc % :name) as your transform.
+
+   If you need finer-grained control, you can specify a reduce function for accumulating each group,
+   rather than mapping over the items in it. For example, (groupings even? + 0 coll) finds you the
+   sum of all odd numbers in coll and the sum of all even numbers in coll."
+  ([group transform coll]
+     (groupings group #(conj %1 (transform %2)) [] coll))
+  ([group reductor init coll]
+     (loop [ret {}, coll (seq coll)]
+       (if-not coll
+         ret
+         (let [x (first coll)
+               category (group x)]
+           (recur (assoc ret category (reductor (get ret category init) x))
+                  (next coll)))))))
