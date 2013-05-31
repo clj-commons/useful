@@ -154,13 +154,17 @@
 (deftest test-let-later
   (let-later [a (atom 0)
               b (swap! a inc)
-              ^{:delay true} c (swap! a inc)]
+              ^{:delay true} c (swap! a inc)
+              ^{:delay true} [x y] [@a (swap! a inc)]]
     (is (= 1 b))
     (is (= 1 @a) "delay shouldn't have been forced yet")
     (is (= 2 c) "delay should fire when its value is needed")
     (is (= 2 @a) "and now the atom should have changed")
     (is (= 2 c) "shouldn't be eval'd again")
-    (is (= 2 @a))))
+    (is (= 2 @a))
+
+    (is (= 2 x))
+    (is (= 3 y))))
 
 (deftest test-copy-meta
   (let [x (-> [1 2 3]

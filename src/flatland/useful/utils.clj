@@ -218,7 +218,7 @@
        (cons form (read-seq))))))
 
 (defmacro let-later
-  "Behaves like let, but symbols which have :delay metadata on them are
+  "Behaves like let, but bindings which have :delay metadata on them are
    evaluated lazily, by placing their values in a delay and forcing the
    delay whenever the body of the let-later needs the value. For example,
 
@@ -228,11 +228,17 @@
    will only evaluate (do-stuff) if (whatever) is true."
   [bindings & body]
   (reduce (fn [body [name val]]
-            (if (and (symbol? name) (:delay (meta name)))
-              (let [delay-sym (gensym (str "delay-" name))]
-                `(let [~delay-sym (delay ~val)]
-                   (symbol-macrolet [~name (force ~delay-sym)]
-                     ~body)))
+            (if (:delay (meta name))
+              (if (symbol? name)
+                (let [delay-sym (gensym (str "delay-" name))]
+                  `(let [~delay-sym (delay ~val)]
+                     (symbol-macrolet [~name (force ~delay-sym)]
+                       ~body)))
+                `(let-later [~@(apply concat
+                                      (for [[k v] (partition 2 (destructure [name val]))]
+                                        [(vary-meta k assoc :delay true)
+                                         v]))]
+                   ~body))
               `(let [~name ~val]
                  ~body)))
           `(do ~@body)
