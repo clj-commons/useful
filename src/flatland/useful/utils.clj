@@ -227,22 +227,26 @@
 
    will only evaluate (do-stuff) if (whatever) is true."
   [bindings & body]
-  (reduce (fn [body [name val]]
-            (if (:delay (meta name))
-              (if (symbol? name)
-                (let [delay-sym (gensym (str "delay-" name))]
-                  `(let [~delay-sym (delay ~val)]
-                     (symbol-macrolet [~name (force ~delay-sym)]
-                       ~body)))
-                `(let-later [~@(apply concat
-                                      (for [[k v] (partition 2 (destructure [name val]))]
-                                        [(vary-meta k assoc :delay true)
-                                         v]))]
-                   ~body))
-              `(let [~name ~val]
-                 ~body)))
-          `(do ~@body)
-          (reverse (partition 2 bindings))))
+  (letfn [(let-delayed [body name val]
+            (let [delay-sym (gensym (str "delay-" name))]
+              `(let [~delay-sym (delay ~val)]
+                 (symbol-macrolet [~name (force ~delay-sym)]
+                   ~body))))
+          (destructure-delayed [body name val]
+            `(let-later [~@(apply concat
+                                  (for [[k v] (partition 2 (destructure [name val]))]
+                                    [(vary-meta k assoc :delay true)
+                                     v]))]
+               ~body))]
+    (reduce (fn [body [name val]]
+              (if (:delay (meta name))
+                (if (symbol? name)
+                  (let-delayed body name val)
+                  (destructure-delayed body name val))
+                `(let [~name ~val]
+                   ~body)))
+            `(do ~@body)
+            (reverse (partition 2 bindings)))))
 
 (defn copy-meta
   "Copy all the metadata from src to dest."
