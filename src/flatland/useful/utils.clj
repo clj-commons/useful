@@ -275,7 +275,7 @@
        ~default)))
 
 (defmacro with-timing
-  "Same as clojure.core/time but returns a vector of a the result of
+  "Same as clojure.core/time but returns a vector of the result of
    the code and the milliseconds rather than printing a string. Runs
    the code in an implicit do."
   [& body]
