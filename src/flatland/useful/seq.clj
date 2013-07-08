@@ -268,11 +268,12 @@
      xs)
   ([comparator xs ys]
      (lazy-loop [xs xs, ys ys]
-       (if-let [[x & more-xs] (seq xs)]
-         (if-let [[y & more-ys] (seq ys)]
-           (if (comparator x y)
-             (cons x (lazy-recur more-xs ys))
-             (cons y (lazy-recur xs more-ys)))
+       (if-let [xs (seq xs)]
+         (if-let [ys (seq ys)]
+           (let [x (first xs), y (first ys)]
+             (if (comparator x y)
+               (cons x (lazy-recur (rest xs) ys))
+               (cons y (lazy-recur xs (rest ys)))))
            xs)
          ys)))
   ([comparator xs ys & more]
