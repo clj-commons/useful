@@ -262,6 +262,8 @@
    its first argument belongs before its second element in the merged sequence.
    The collections themselves should already be sorted in the order your
    comparator would put them; otherwise ordering is undefined."
+  ([comparator]
+     nil)
   ([comparator xs]
      xs)
   ([comparator xs ys]
