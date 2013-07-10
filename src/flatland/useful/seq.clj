@@ -440,20 +440,20 @@ ineligible for garbage collection."
 
 (defn increasing*
   "Scans through a collection, comparing items via (comp (keyfn x) (keyfn y)), and finding those
-  which are in increasing order. Each input item x is output once, tagged as either {:included x} or
-  {:excluded x}. Those items which are part of an increasing sequence will be :included, while any
-  that go \"backwards\" from the current max will be :excluded."
+  which are in increasing order. Each input item x is output once, as part of a pair, [included?
+  x]. Those items which are part of an increasing sequence will have included? true, while any that
+  go \"backwards\" from the current max will have included? false."
   [keyfn comp coll]
   (lazy-seq
     (when-first [x coll]
       (let [max (keyfn x)]
-        (cons {:included x}
+        (cons [true x]
               (lazy-loop [max max, coll (rest coll)]
                 (when-first [x coll]
                   (let [key (keyfn x)]
                     (if (neg? (comp key max))
-                      (cons {:excluded x} (lazy-recur max (rest coll)))
-                      (cons {:included x} (lazy-recur key (rest coll))))))))))))
+                      (cons [false x] (lazy-recur max (rest coll)))
+                      (cons [true x] (lazy-recur key (rest coll))))))))))))
 
 (defn increasing
   "Throw away any elements from coll which are not in increasing order, according to keyfn and
@@ -463,4 +463,4 @@ ineligible for garbage collection."
   ([keyfn coll]
      (increasing keyfn compare coll))
   ([keyfn comp coll]
-     (keep :included (increasing* keyfn comp coll))))
+     (map second (filter first (increasing* keyfn comp coll)))))
