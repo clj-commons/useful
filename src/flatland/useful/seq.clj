@@ -437,3 +437,30 @@ ineligible for garbage collection."
                category (group x)]
            (recur (assoc ret category (reductor (get ret category init) x))
                   (next coll)))))))
+
+(defn increasing*
+  "Scans through a collection, comparing items via (comp (keyfn x) (keyfn y)), and finding those
+  which are in increasing order. Each input item x is output once, tagged as either {:included x} or
+  {:excluded x}. Those items which are part of an increasing sequence will be :included, while any
+  that go \"backwards\" from the current max will be :excluded."
+  [keyfn comp coll]
+  (lazy-seq
+    (when-first [x coll]
+      (let [max (keyfn x)]
+        (cons {:included x}
+              (lazy-loop [max max, coll (rest coll)]
+                (when-first [x coll]
+                  (let [key (keyfn x)]
+                    (if (neg? (comp key max))
+                      (cons {:excluded x} (lazy-recur max (rest coll)))
+                      (cons {:included x} (lazy-recur key (rest coll))))))))))))
+
+(defn increasing
+  "Throw away any elements from coll which are not in increasing order, according to keyfn and
+   comp (used similarly to the arguments to sort-by)."
+  ([coll]
+     (increasing identity compare coll))
+  ([keyfn coll]
+     (increasing keyfn compare coll))
+  ([keyfn comp coll]
+     (keep :included (increasing* keyfn comp coll))))

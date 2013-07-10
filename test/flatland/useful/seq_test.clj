@@ -212,3 +212,17 @@
          (groupings even? str (range 10))))
   (is (= {true 20, false 25}
          (groupings even? + 0 (range 10)))))
+
+(deftest test-increasing
+  (let [input [3 4 2 3 5 9 1]]
+    (are [args output] (= output (apply increasing (conj args input)))
+         [] [3 4 5 9]
+         [-] [3 2 1]
+         [identity #(if (< %2 %) -1 1)] [3 2 1]
+
+         [- ;; descending, but even numbers sort before odds
+          (fn [a b]
+            (cond (and (even? a) (odd? b)) -1
+                  (and (even? b) (odd? a)) 1
+                  :else (compare a b)))]
+         [3 3 1])))
