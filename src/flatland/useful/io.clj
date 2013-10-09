@@ -61,7 +61,7 @@
               bi (long (aget b idx))
               diff (if (neg? ai)
                      (if (neg? bi)
-                       (unchecked-subtract bi ai)
+                       (unchecked-subtract ai bi)
                        1)
                      (if (neg? bi)
                        -1
