@@ -53,11 +53,11 @@
 (defn compare-bytes [^"[B" a ^"[B" b]
   (let [alen (alength a)
         blen (alength b)
-        len (int (min alen blen))]
+        len (min alen blen)]
     (loop [idx 0]
       (if (= idx len)
         (compare alen blen)
-        (let [diff (unchecked-subtract (aget a idx) (aget b idx))]
+        (let [diff (unchecked-byte (unchecked-subtract (aget a idx) (aget b idx)))]
           (if (zero? diff)
             (recur (unchecked-inc-int idx))
             diff))))))
