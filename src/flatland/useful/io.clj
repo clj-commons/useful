@@ -59,13 +59,10 @@
         (compare alen blen)
         (let [ai (long (aget a idx))
               bi (long (aget b idx))
-              diff (if (neg? ai)
-                     (if (neg? bi)
-                       (unchecked-subtract ai bi)
-                       1)
-                     (if (neg? bi)
-                       -1
-                       (unchecked-subtract ai bi)))]
+              neg-ai? (neg? ai)
+              diff (if (= neg-ai? (neg? bi))
+                     (unchecked-subtract ai bi)
+                     (if neg-ai? 1 -1))] ;; cannot subtract if signs are different
           (if (zero? diff)
             (recur (unchecked-inc-int idx))
             diff))))))
