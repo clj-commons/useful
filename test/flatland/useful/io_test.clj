@@ -23,3 +23,25 @@
            (do (.get buffer a 0 (alength a))
                (apply str (map char a)))))
     (close)))
+
+(deftest test-compare-bytes
+  (letfn [(bytes [& xs]
+            (byte-array (map unchecked-byte xs)))]
+    (is (neg? (compare-bytes (bytes 1 2 3)
+                             (bytes 3))))
+    (is (neg? (compare-bytes (bytes 1 2 3)
+                             (bytes 1 2 3 4))))
+    (is (zero? (compare-bytes (bytes 1 2 3)
+                              (bytes 1 2 3))))
+    (is (pos? (compare-bytes (bytes 1 2 -3)
+                             (bytes 1 2 3))))
+    (is (pos? (compare-bytes (bytes 1 2 -3)
+                             (bytes 1 2 -4))))
+    (is (neg? (compare-bytes (bytes 100)
+                             (bytes -100))))
+    (is (pos? (compare-bytes (bytes -100)
+                             (bytes 100))))
+    (is (pos? (compare-bytes (bytes -1)
+                             (bytes 0))))
+    (is (neg? (compare-bytes (bytes 0)
+                             (bytes -128))))))
