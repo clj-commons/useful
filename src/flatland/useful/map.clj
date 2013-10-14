@@ -47,31 +47,35 @@
 (defn map-vals
   "Create a new map from m by calling function f on each value to get a new value."
   [m f & args]
-  (into {}
-        (for [[k v] m]
-          (map-entry k (apply f v args)))))
+  (when m
+    (into {}
+          (for [[k v] m]
+            (map-entry k (apply f v args))))))
 
 (defn map-keys
   "Create a new map from m by calling function f on each key to get a new key."
   [m f & args]
-  (into {}
-        (for [[k v] m]
-          (map-entry (apply f k args) v))))
+  (when m
+    (into {}
+          (for [[k v] m]
+            (map-entry (apply f k args) v)))))
 
 (defn map-vals-with-keys
   "Create a new map from m by calling function f, with two arguments (the key and value)
   to get a new value."
   [m f & args]
-  (into {}
-        (for [[k v] m]
-          (map-entry k (apply f k v args)))))
+  (when m
+    (into {}
+          (for [[k v] m]
+            (map-entry k (apply f k v args))))))
 
 (defn map-keys-and-vals
   "Create a new map from m by calling function f on each key & each value to get a new key & value"
   [m f & args]
-  (into {}
-        (for [[k v] m]
-          (map-entry (apply f k args) (apply f v args)))))
+  (when m
+    (into {}
+          (for [[k v] m]
+            (map-entry (apply f k args) (apply f v args))))))
 
 (defn dissoc-in*
   "Dissociates a value in a nested associative structure, where ks is a sequence of keys and returns
