@@ -169,3 +169,10 @@
                        (if (= args (get cache :args ::not-found))
                          cache
                          {:args args, :value (apply f args)})))))))
+
+(defn applied
+  "A version of f that uses apply on its args."
+  [f]
+  (partial apply f))
+
+(def ap "A shorthand version of applied" applied)
