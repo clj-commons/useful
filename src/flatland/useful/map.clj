@@ -133,6 +133,18 @@
             (apply update-in* m [key] f args))
           m keys))
 
+(defn update-within
+  "Like update-in*, but don't call f at all unless the map contains something at the given keyseq."
+  [m keyseq f & args]
+  (if (seq keyseq)
+    (update-in* m (butlast keyseq)
+                (fn [m*]
+                  (let [k (last keyseq)]
+                    (if (contains? m* k)
+                      (apply update m* k f args)
+                      m*))))
+    (apply f m args)))
+
 (letfn [(merge-in* [a b]
           (if (map? a)
             (merge-with merge-in* a b)

@@ -50,6 +50,12 @@
   (let [m {:a 1 :b 2}]
     (is (identical? m (update-each m [:a :b] identity)))))
 
+(deftest test-update-within
+  (is (= {:foo 1}
+         (update-within {:foo 0} [] update :foo inc)
+         (update-within {:foo 0} [:foo] inc)
+         (update-within {:foo 1} [:bar] inc))))
+
 (deftest test-merge-in
   (is (= {:a {:b {:c 4} :d 2 :e 3} :e 3 :f 2 :g 1}
          (merge-in {:a {:b {:c 1} :d 2} :e 3 :f 4}
