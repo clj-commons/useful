@@ -15,9 +15,9 @@
   ([test exception]
      `(when-not ~test
         (throw (fix ~exception string? #(Exception. ^String %)))))
-  ([test msg info]
-     `(when-not ~test
-        (throw (ex-info ~msg ~info)))))
+  ([test string & args]
+     `(verify ~test
+              (format ~string ~@args))))
 
 (defmacro returning
   "Compute a return value, then execute other forms for side effects.

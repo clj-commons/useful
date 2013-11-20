@@ -94,7 +94,10 @@
     (is (= 4 @count))))
 
 (deftest test-verify
-  (is (thrown? Throwable (verify false "Test"))))
+  (is (thrown? Throwable
+               (verify false "Test")))
+  (is (thrown-with-msg? Throwable #"foo bar 2"
+                        (verify false "%s bar %d" "foo" 2))))
 
 (def memo-called (atom 0))
 (defm sample-memoized [x]
