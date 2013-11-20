@@ -10,14 +10,18 @@
   ([f x] (f x))
   ([f x & more] (apply f x more)))
 
+(defn fail
+  "Raise an exception. Takes an exception or a string with format args."
+  ([exception]
+     (throw (fix exception string? #(Exception. ^String %))))
+  ([string & args]
+     (fail (apply format string args))))
+
 (defmacro verify
   "Raise exception unless test returns true."
-  ([test exception]
-     `(when-not ~test
-        (throw (fix ~exception string? #(Exception. ^String %)))))
-  ([test string & args]
-     `(verify ~test
-              (format ~string ~@args))))
+  [test & args]
+  `(when-not ~test
+     (fail ~@args)))
 
 (defmacro returning
   "Compute a return value, then execute other forms for side effects.

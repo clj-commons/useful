@@ -93,11 +93,20 @@
         (is (= -2 (incr -3)))))
     (is (= 4 @count))))
 
+(deftest test-fail
+  (is (thrown? Throwable
+               (fail "Test")))
+  (is (thrown-with-msg? Throwable #"foo bar 2"
+                        (fail "%s bar %d" "foo" 2))))
+
 (deftest test-verify
   (is (thrown? Throwable
                (verify false "Test")))
-  (is (thrown-with-msg? Throwable #"foo bar 2"
-                        (verify false "%s bar %d" "foo" 2))))
+  (is (thrown-with-msg? Throwable #"error 10"
+                        (verify nil "error %d" 10)))
+  (testing "exception clause is not evaluated when verify succeeds"
+    (is (= nil (verify true
+                       (throw (Exception.)))))))
 
 (def memo-called (atom 0))
 (defm sample-memoized [x]
