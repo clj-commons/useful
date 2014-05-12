@@ -1,0 +1,16 @@
+.cake
+pom.xml
+*.jar
+*~
+lib/
+classes/
+build/
+docs
+.lein*
+bin/
+target/
+.settings/
+.ritz*
+.project
+.classpath
+doc/
