@@ -8,6 +8,7 @@ tmpdir=`mktemp -d /tmp/flatland-useful.XXXXXX`
 mv doc/** $tmpdir
 rmdir doc
 git checkout gh-pages
+git rm -rf .
 mv $tmpdir/** .
 git add -Av .
 git commit -m "Updated docs"
