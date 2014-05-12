@@ -13,3 +13,4 @@ target/
 .ritz*
 .project
 .classpath
+doc/
