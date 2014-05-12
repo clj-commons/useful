@@ -10,4 +10,6 @@
   :aliases {"testall" ["with-profile" "dev,default:dev,1.3,default:dev,1.4,default" "test"]}
   :profiles {:1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}
              :1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}}
-  :plugins [[codox "0.8.0"]])
+  :plugins [[codox "0.8.0"]]
+  :codox {:src-dir-uri "http://github.com/flatland/useful/blob/develop/"
+          :src-linenum-anchor-prefix "L"})
