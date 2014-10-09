@@ -12,8 +12,8 @@
   (is (= nil  (find-with even? [1 3 5 9] [:bar :baz :foo :bap]))))
 
 (deftest test-cross
-  (is (= '((0 0) (0 1) (1 0) (1 1))          (cross [0 1] [0 1])))
-  (is (= '((0 0 2) (0 1 2) (1 0 2) (1 1 2))) (cross [0 1] [0 1] [2])))
+  (is (= '((0 0) (0 1) (1 0) (1 1))         (cross [0 1] [0 1])))
+  (is (= '((0 0 2) (0 1 2) (1 0 2) (1 1 2)) (cross [0 1] [0 1] [2]))))
 
 (deftest test-lazy-cross
   (is (= '((0 0) (1 0) (0 1) (1 1))         (lazy-cross [0 1] [0 1])))
