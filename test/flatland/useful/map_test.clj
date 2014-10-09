@@ -1,4 +1,5 @@
 (ns flatland.useful.map-test
+  (:refer-clojure :exclude [update])
   (:use clojure.test flatland.useful.map))
 
 (deftest test-assoc-or

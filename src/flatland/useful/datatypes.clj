@@ -1,4 +1,5 @@
 (ns flatland.useful.datatypes
+  (:refer-clojure :exclude [update])
   (:use [flatland.useful.map :only [position into-map update]]
         [flatland.useful.utils :only [invoke]]
         [flatland.useful.fn :only [fix]])
