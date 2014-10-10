@@ -1,4 +1,5 @@
 (ns flatland.useful.cli
+  (:refer-clojure :exclude [update])
   (:use [flatland.useful.experimental :only [cond-let]]
         [flatland.useful.map :only [update]]))
 

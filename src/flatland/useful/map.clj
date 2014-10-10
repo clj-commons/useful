@@ -1,4 +1,5 @@
 (ns flatland.useful.map
+  (:refer-clojure :exclude [update])
   (:use [flatland.useful.utils :only [map-entry pop-if]]
         [flatland.useful.fn :only [to-fix !]]))
 
