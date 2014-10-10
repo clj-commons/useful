@@ -13,3 +13,5 @@ target/
 .ritz*
 .project
 .classpath
+doc/
+/.nrepl-port

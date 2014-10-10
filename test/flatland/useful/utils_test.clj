@@ -130,7 +130,7 @@
 
 (deftest test-pair
   (testing "map-entry is a macro (for performance)"
-    (let [form '(map-entry 1 2)]
+    (let [form `(map-entry 1 2)]
       (is (not= form (macroexpand form)))))
   (testing "map-entry works, and is a MapEntry"
     (let [p (map-entry 1 2)
