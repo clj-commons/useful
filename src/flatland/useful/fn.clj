@@ -132,9 +132,9 @@
   (transform y)."
   ([modifier]
      (fn [a b]
-       (- (modifier a) (modifier b))))
+       (compare (modifier a) (modifier b))))
   ([direction modifier]
-     (let [f (comparator modifier)]
+     (let [f (key-comparator modifier)]
        (condp #(% %2) direction
          #{:desc :descending -} (comp - f)
          #{:asc :ascending +} f))))
