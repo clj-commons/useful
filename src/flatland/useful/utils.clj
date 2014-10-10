@@ -10,14 +10,18 @@
   ([f x] (f x))
   ([f x & more] (apply f x more)))
 
+(defn fail
+  "Raise an exception. Takes an exception or a string with format args."
+  ([exception]
+     (throw (fix exception string? #(Exception. ^String %))))
+  ([string & args]
+     (fail (apply format string args))))
+
 (defmacro verify
   "Raise exception unless test returns true."
-  ([test exception]
-     `(when-not ~test
-        (throw (fix ~exception string? #(Exception. ^String %)))))
-  ([test msg info]
-     `(when-not ~test
-        (throw (ex-info ~msg ~info)))))
+  [test & args]
+  `(when-not ~test
+     (fail ~@args)))
 
 (defmacro returning
   "Compute a return value, then execute other forms for side effects.
@@ -218,7 +222,7 @@
        (cons form (read-seq))))))
 
 (defmacro let-later
-  "Behaves like let, but symbols which have :delay metadata on them are
+  "Behaves like let, but bindings which have :delay metadata on them are
    evaluated lazily, by placing their values in a delay and forcing the
    delay whenever the body of the let-later needs the value. For example,
 
@@ -227,16 +231,26 @@
 
    will only evaluate (do-stuff) if (whatever) is true."
   [bindings & body]
-  (reduce (fn [body [name val]]
-            (if (and (symbol? name) (:delay (meta name)))
-              (let [delay-sym (gensym (str "delay-" name))]
-                `(let [~delay-sym (delay ~val)]
-                   (symbol-macrolet [~name (force ~delay-sym)]
-                     ~body)))
-              `(let [~name ~val]
-                 ~body)))
-          `(do ~@body)
-          (reverse (partition 2 bindings))))
+  (letfn [(let-delayed [body name val]
+            (let [delay-sym (gensym (str "delay-" name))]
+              `(let [~delay-sym (delay ~val)]
+                 (symbol-macrolet [~name (force ~delay-sym)]
+                   ~body))))
+          (destructure-delayed [body name val]
+            `(let-later [~@(apply concat
+                                  (for [[k v] (partition 2 (destructure [name val]))]
+                                    [(vary-meta k assoc :delay true)
+                                     v]))]
+               ~body))]
+    (reduce (fn [body [name val]]
+              (if (:delay (meta name))
+                (if (symbol? name)
+                  (let-delayed body name val)
+                  (destructure-delayed body name val))
+                `(let [~name ~val]
+                   ~body)))
+            `(do ~@body)
+            (reverse (partition 2 bindings)))))
 
 (defn copy-meta
   "Copy all the metadata from src to dest."
@@ -265,7 +279,7 @@
        ~default)))
 
 (defmacro with-timing
-  "Same as clojure.core/time but returns a vector of a the result of
+  "Same as clojure.core/time but returns a vector of the result of
    the code and the milliseconds rather than printing a string. Runs
    the code in an implicit do."
   [& body]

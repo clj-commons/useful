@@ -1,4 +1,5 @@
 (ns flatland.useful.map
+  (:refer-clojure :exclude [update])
   (:use [flatland.useful.utils :only [map-entry pop-if]]
         [flatland.useful.fn :only [to-fix !]]))
 
@@ -47,31 +48,35 @@
 (defn map-vals
   "Create a new map from m by calling function f on each value to get a new value."
   [m f & args]
-  (into {}
-        (for [[k v] m]
-          (map-entry k (apply f v args)))))
+  (when m
+    (into {}
+          (for [[k v] m]
+            (map-entry k (apply f v args))))))
 
 (defn map-keys
   "Create a new map from m by calling function f on each key to get a new key."
   [m f & args]
-  (into {}
-        (for [[k v] m]
-          (map-entry (apply f k args) v))))
+  (when m
+    (into {}
+          (for [[k v] m]
+            (map-entry (apply f k args) v)))))
 
 (defn map-vals-with-keys
   "Create a new map from m by calling function f, with two arguments (the key and value)
   to get a new value."
   [m f & args]
-  (into {}
-        (for [[k v] m]
-          (map-entry k (apply f k v args)))))
+  (when m
+    (into {}
+          (for [[k v] m]
+            (map-entry k (apply f k v args))))))
 
 (defn map-keys-and-vals
   "Create a new map from m by calling function f on each key & each value to get a new key & value"
   [m f & args]
-  (into {}
-        (for [[k v] m]
-          (map-entry (apply f k args) (apply f v args)))))
+  (when m
+    (into {}
+          (for [[k v] m]
+            (map-entry (apply f k args) (apply f v args))))))
 
 (defn dissoc-in*
   "Dissociates a value in a nested associative structure, where ks is a sequence of keys and returns
@@ -80,12 +85,13 @@
   correct if keys is empty."
   [m keys]
   (if-let [[k & ks] (seq keys)]
-    (if-let [old (get m k)]
-      (let [new (dissoc-in* old ks)]
-        (if (seq new)
-          (assoc m k new)
-          (dissoc m k)))
-      m)
+    (let [old (get m k ::sentinel)]
+      (if-not (= old ::sentinel)
+        (let [new (dissoc-in* old ks)]
+          (if (seq new)
+            (assoc m k new)
+            (dissoc m k)))
+        m))
     {}))
 
 (defn assoc-in*
@@ -128,6 +134,18 @@
   (reduce (fn [m key]
             (apply update-in* m [key] f args))
           m keys))
+
+(defn update-within
+  "Like update-in*, but don't call f at all unless the map contains something at the given keyseq."
+  [m keyseq f & args]
+  (if (seq keyseq)
+    (update-in* m (butlast keyseq)
+                (fn [m*]
+                  (let [k (last keyseq)]
+                    (if (contains? m* k)
+                      (apply update m* k f args)
+                      m*))))
+    (apply f m args)))
 
 (letfn [(merge-in* [a b]
           (if (map? a)
@@ -188,11 +206,14 @@
   [pred m]
   (filter-keys-by-val (complement pred) m))
 
-(defn filter-vals
-  "Returns a map that only contains values where (pred value) returns true."
-  [m pred]
+(defn filter-vals [m pred]
   (when m
-    (select-keys m (filter-keys-by-val pred m))))
+    (persistent! (reduce (fn [m [k v]]
+                           (if (pred v)
+                             m
+                             (dissoc! m k)))
+                         (transient m)
+                         m))))
 
 (defn remove-vals
   "Returns a map that only contains values where (pred value) returns false."

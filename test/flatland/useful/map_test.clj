@@ -1,4 +1,5 @@
 (ns flatland.useful.map-test
+  (:refer-clojure :exclude [update])
   (:use clojure.test flatland.useful.map))
 
 (deftest test-assoc-or
@@ -49,6 +50,12 @@
 
   (let [m {:a 1 :b 2}]
     (is (identical? m (update-each m [:a :b] identity)))))
+
+(deftest test-update-within
+  (is (= {:foo 1}
+         (update-within {:foo 0} [] update :foo inc)
+         (update-within {:foo 0} [:foo] inc)
+         (update-within {:foo 1} [:bar] inc))))
 
 (deftest test-merge-in
   (is (= {:a {:b {:c 4} :d 2 :e 3} :e 3 :f 2 :g 1}
@@ -103,7 +110,11 @@
   (is (= {:bam 3}
          (dissoc-in* {:foo {:bar 3 :baz 8} :bam 3} [:foo])))
   (is (= {}
-         (dissoc-in* {:foo {:bar 3 :baz 8}} []))))
+         (dissoc-in* {:foo {:bar 3 :baz 8}} [])))
+  (is (= {}
+         (dissoc-in* {:foo {:bar false}} [:foo :bar])))
+  (is (= {}
+         (dissoc-in* {:foo {:bar nil}} [:foo :bar]))))
 
 (deftest test-assoc-in*
   (is (= {:foo {:bar 1}}

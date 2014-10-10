@@ -1,4 +1,5 @@
 (ns flatland.useful.experimental-test
+  (:refer-clojure :exclude [update])
   (:use clojure.test flatland.useful.map
         flatland.useful.experimental
         flatland.useful.experimental.delegate)

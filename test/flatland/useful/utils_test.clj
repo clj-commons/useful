@@ -93,8 +93,20 @@
         (is (= -2 (incr -3)))))
     (is (= 4 @count))))
 
+(deftest test-fail
+  (is (thrown? Throwable
+               (fail "Test")))
+  (is (thrown-with-msg? Throwable #"foo bar 2"
+                        (fail "%s bar %d" "foo" 2))))
+
 (deftest test-verify
-  (is (thrown? Throwable (verify false "Test"))))
+  (is (thrown? Throwable
+               (verify false "Test")))
+  (is (thrown-with-msg? Throwable #"error 10"
+                        (verify nil "error %d" 10)))
+  (testing "exception clause is not evaluated when verify succeeds"
+    (is (= nil (verify true
+                       (throw (Exception.)))))))
 
 (def memo-called (atom 0))
 (defm sample-memoized [x]
@@ -118,7 +130,7 @@
 
 (deftest test-pair
   (testing "map-entry is a macro (for performance)"
-    (let [form '(map-entry 1 2)]
+    (let [form `(map-entry 1 2)]
       (is (not= form (macroexpand form)))))
   (testing "map-entry works, and is a MapEntry"
     (let [p (map-entry 1 2)
@@ -154,13 +166,17 @@
 (deftest test-let-later
   (let-later [a (atom 0)
               b (swap! a inc)
-              ^{:delay true} c (swap! a inc)]
+              ^{:delay true} c (swap! a inc)
+              ^{:delay true} [x y] [@a (swap! a inc)]]
     (is (= 1 b))
     (is (= 1 @a) "delay shouldn't have been forced yet")
     (is (= 2 c) "delay should fire when its value is needed")
     (is (= 2 @a) "and now the atom should have changed")
     (is (= 2 c) "shouldn't be eval'd again")
-    (is (= 2 @a))))
+    (is (= 2 @a))
+
+    (is (= 2 x))
+    (is (= 3 y))))
 
 (deftest test-copy-meta
   (let [x (-> [1 2 3]

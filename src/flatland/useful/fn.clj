@@ -132,9 +132,9 @@
   (transform y)."
   ([modifier]
      (fn [a b]
-       (- (modifier a) (modifier b))))
+       (compare (modifier a) (modifier b))))
   ([direction modifier]
-     (let [f (comparator modifier)]
+     (let [f (key-comparator modifier)]
        (condp #(% %2) direction
          #{:desc :descending -} (comp - f)
          #{:asc :ascending +} f))))
@@ -169,3 +169,10 @@
                        (if (= args (get cache :args ::not-found))
                          cache
                          {:args args, :value (apply f args)})))))))
+
+(defn applied
+  "A version of f that uses apply on its args."
+  [f]
+  (partial apply f))
+
+(def ap "A shorthand version of applied" applied)

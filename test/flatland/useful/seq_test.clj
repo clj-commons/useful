@@ -12,8 +12,8 @@
   (is (= nil  (find-with even? [1 3 5 9] [:bar :baz :foo :bap]))))
 
 (deftest test-cross
-  (is (= '((0 0) (0 1) (1 0) (1 1))          (cross [0 1] [0 1])))
-  (is (= '((0 0 2) (0 1 2) (1 0 2) (1 1 2))) (cross [0 1] [0 1] [2])))
+  (is (= '((0 0) (0 1) (1 0) (1 1))         (cross [0 1] [0 1])))
+  (is (= '((0 0 2) (0 1 2) (1 0 2) (1 1 2)) (cross [0 1] [0 1] [2]))))
 
 (deftest test-lazy-cross
   (is (= '((0 0) (1 0) (0 1) (1 1))         (lazy-cross [0 1] [0 1])))
@@ -205,3 +205,24 @@
 
 (deftest test-flatten-all
   (is (= [:a 1 2 :e 1 2] (flatten-all {:a [1 2 {:e '(1 2)}]}))))
+
+(deftest test-groupings
+  (is (= {true ["0" "2" "4" "6" "8"]
+          false ["1" "3" "5" "7" "9"]}
+         (groupings even? str (range 10))))
+  (is (= {true 20, false 25}
+         (groupings even? + 0 (range 10)))))
+
+(deftest test-increasing
+  (let [input [3 4 2 3 5 9 1]]
+    (are [args output] (= output (apply increasing (conj args input)))
+         [] [3 4 5 9]
+         [-] [3 2 1]
+         [identity #(if (< %2 %) -1 1)] [3 2 1]
+
+         [- ;; descending, but even numbers sort before odds
+          (fn [a b]
+            (cond (and (even? a) (odd? b)) -1
+                  (and (even? b) (odd? a)) 1
+                  :else (compare a b)))]
+         [3 3 1])))

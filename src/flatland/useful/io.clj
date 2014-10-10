@@ -54,10 +54,15 @@
   (let [alen (alength a)
         blen (alength b)
         len (int (min alen blen))]
-    (loop [idx 0]
+    (loop [idx (int 0)]
       (if (= idx len)
         (compare alen blen)
-        (let [diff (unchecked-subtract (aget a idx) (aget b idx))]
+        (let [ai (long (aget a idx))
+              bi (long (aget b idx))
+              neg-ai? (neg? ai)
+              diff (if (= neg-ai? (neg? bi))
+                     (unchecked-subtract ai bi)
+                     (if neg-ai? 1 -1))] ;; cannot subtract if signs are different
           (if (zero? diff)
             (recur (unchecked-inc-int idx))
             diff))))))
