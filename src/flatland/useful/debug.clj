@@ -28,7 +28,7 @@
   wrap a form with ?, and the form will be printed alongside
   its result. The result will still be passed along."
     [val]
-    (interrogate-form `(print) val))
+    (interrogate-form `(#(do (print %) (flush))) val))
 
   (defmacro ^{:dont-test "Complicated to test, and should work if ? does"}
     ?!
