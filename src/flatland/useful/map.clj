@@ -85,12 +85,13 @@
   correct if keys is empty."
   [m keys]
   (if-let [[k & ks] (seq keys)]
-    (if-let [old (get m k)]
-      (let [new (dissoc-in* old ks)]
-        (if (seq new)
-          (assoc m k new)
-          (dissoc m k)))
-      m)
+    (let [old (get m k ::sentinel)]
+      (if-not (= old ::sentinel)
+        (let [new (dissoc-in* old ks)]
+          (if (seq new)
+            (assoc m k new)
+            (dissoc m k)))
+        m))
     {}))
 
 (defn assoc-in*

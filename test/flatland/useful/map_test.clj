@@ -110,7 +110,11 @@
   (is (= {:bam 3}
          (dissoc-in* {:foo {:bar 3 :baz 8} :bam 3} [:foo])))
   (is (= {}
-         (dissoc-in* {:foo {:bar 3 :baz 8}} []))))
+         (dissoc-in* {:foo {:bar 3 :baz 8}} [])))
+  (is (= {}
+         (dissoc-in* {:foo {:bar false}} [:foo :bar])))
+  (is (= {}
+         (dissoc-in* {:foo {:bar nil}} [:foo :bar]))))
 
 (deftest test-assoc-in*
   (is (= {:foo {:bar 1}}
