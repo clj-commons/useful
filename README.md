@@ -1,5 +1,7 @@
 [![Build Status](https://secure.travis-ci.org/flatland/useful.png)](http://travis-ci.org/flatland/useful)
 
+![lein dependency](https://clojars.org/org.flatland/useful/latest-version.svg)
+
 These two repositories are usually identical:
 
 * https://github.com/amalloy/useful
