@@ -90,3 +90,9 @@
         by-square (key-comparator :ascending square)]
     (is (= (sort-by square [-9 -5 1 -2])
            (sort by-square [-9 -5 1 -2])))))
+
+(deftest test-=to
+  (let [objs [1 :x "x" [5] nil (Object.) {:x 1} '((a b c) d)]]
+    (doseq [x objs
+            y objs]
+      (is (= (= x y) ((=to x) y))))))
