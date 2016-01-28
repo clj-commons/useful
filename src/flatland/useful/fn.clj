@@ -177,18 +177,22 @@
 
 (def ap "A shorthand version of applied" applied)
 
-(defn =to
-  "Produces an equality predicate from a single object. ((=to x) y) is
+(let [impl (delay (try (eval `(fn [x#]
+                                (if (keyword? x) ;; a case myssteriously not covered in equivPred
+                                  (fn [y#]
+                                    (identical? x# y#))
+                                  (let [p# (clojure.lang.Util/equivPred x#)]
+                                    (fn [y#]
+                                      (.equiv p# x# y#))))))
+                       (catch Exception e ;; running some version prior to equivPred
+                         (fn [x] (fn [y] (= x y))))))]
+  (defn =to
+    "Produces an equality predicate from a single object. ((=to x) y) is
 the same as (= x y), but if the returned function will be called many
 times it may be more efficient than repeated calls to =, because =to
 can short-circuit many irrelevant code paths based on knowing the type
 of x.
 
 Just a wrapper for clojure.lang.Util/equivPred."
-  [x]
-  (if (keyword? x) ;; a case myssteriously not covered in equivPred
-    (fn [y]
-      (identical? x y))
-    (let [p (clojure.lang.Util/equivPred x)]
-      (fn [y]
-        (.equiv p x y)))))
+    [x]
+    (@impl x)))
