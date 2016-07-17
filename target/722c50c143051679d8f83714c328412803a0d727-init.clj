@@ -1,0 +1,1 @@
+nil (do (set! *warn-on-reflection* nil) (require (quote swank.swank)) (do (clojure.core/when-let [repl-init__683__auto__ (quote nil)] (clojure.core/require repl-init__683__auto__)) (swank.swank/start-server :repl-out-root true :block true :host "localhost" :port 65384 :colors? true :message ";;; proceed to jack in")))

@@ -1,0 +1,30 @@
+(last (range))
+#{1 1}
+(pst)
+#{1 1}
+(pst)
+#{1 1}
+(pst)
+(macroexpand-1 '(letfn [(x []) (y [] (x))]))
+(require '[clojure.data.xml :as xml]
+               '[clojure.java.io :as io])
+(def r (io/reader "/Users/alanmalloy/Downloads/standard"))
+r
+(def c (char-array 20))
+c
+(.read r c)
+c
+(String. c)
+(.read r c)
+(String. c)
+(def r (io/reader "/Users/alanmalloy/Downloads/standard"))
+(def x (xml/parse r))
+(defn walk [tree] (when (coll? tree) (doseq [x tree] (walk x))))
+(walk x)
+(def r (io/reader "/Users/alanmalloy/Downloads/standard"))
+(def x (xml/parse r))
+(def r (io/reader "/Users/alanmalloy/Downloads/standard"))
+(walk (xml/parse r))
+(def r (io/reader "/Users/alanmalloy/Downloads/standard"))
+(time (walk (xml/parse r)))
+inc
