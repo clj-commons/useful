@@ -117,10 +117,11 @@
   need any laziness."
   [bindings & body]
   (let [f 'lazy-recur
-        [names values] (alternates bindings)]
-    `(letfn [(~f [~@names]
+        [names values] (alternates bindings)
+        blob-names (repeatedly (count names) gensym)]
+    `(letfn [(~f [~@blob-names]
                (lazy-seq
-                 (iter# ~@names)))
+                 (iter# ~@blob-names)))
              (iter# [~@names]
                ~@body)]
        (~f ~@values))))

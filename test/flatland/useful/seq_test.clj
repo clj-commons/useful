@@ -98,7 +98,14 @@
   (testing "0-arg lazy-loop"
     (is (= [1 1 1] (take 3
                          (lazy-loop []
-                           (cons 1 (lazy-recur))))))))
+                           (cons 1 (lazy-recur)))))))
+  (testing "destructuring support"
+    (is (= (range 1 6)
+           ((fn my-map [f xs] (lazy-loop [[x & xs :as coll] xs]
+                                (when (seq coll)
+                                  (cons (f x)
+                                        (lazy-recur xs)))))
+            inc (range 5))))))
 
 (deftest test-alternates
   (is (= '[[a b] [1 2]]
