@@ -37,3 +37,10 @@
     (is (= s ((substring-after "Q") s)))
     (is (= "z-10" ((substring-after "ba") s)))
     (is (= "" ((substring-after "0") s)))))
+
+(deftest indexes-of-test
+  (let [s "a string xx a string"]
+    (is (= [2 14] (indexes-of s "string")))
+    (is (= [] (indexes-of s "foo")))
+    (is (= [9 10] (indexes-of s "x")))
+    (is (= (range (count s)) (indexes-of s "")))))

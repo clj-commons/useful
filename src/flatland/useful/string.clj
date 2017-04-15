@@ -49,3 +49,17 @@
       (if (= -1 idx)
         s
         (subs s 0 idx)))))
+
+(defn indexes-of
+  "Returns a lazy seq of the the indexes within s of occurrences of the given substring,
+   starting at the specified index"
+  ([s substr]
+    (indexes-of s substr 0))
+  ([^String s ^String substr ^Integer index]
+    (lazy-seq
+      (let [next-index (.indexOf s substr index)]
+        (when-not (or (neg? next-index)
+                      (>= index (count s)))
+          (cons
+            next-index
+            (indexes-of s substr (inc next-index))))))))
