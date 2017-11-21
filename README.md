@@ -2,6 +2,8 @@
 
 ![lein dependency](https://clojars.org/org.flatland/useful/latest-version.svg)
 
+[![Dependencies Status](https://jarkeeper.com/amalloy/useful/status.svg)](https://jarkeeper.com/amalloy/useful)
+
 These two repositories are usually identical:
 
 * https://github.com/amalloy/useful
