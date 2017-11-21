@@ -15,6 +15,6 @@
                                   [org.clojure/tools.reader "0.7.2"]]}
              :1.3 {:dependencies [[org.clojure/clojure "1.3.0"]
                                   [org.clojure/tools.reader "0.7.2"]]}}
-  :plugins [[codox "0.8.0"]]
+  :plugins [[codox "0.10.3"]]
   :codox {:src-dir-uri "http://github.com/flatland/useful/blob/develop/"
           :src-linenum-anchor-prefix "L"})
