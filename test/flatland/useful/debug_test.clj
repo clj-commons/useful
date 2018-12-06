@@ -1,5 +1,5 @@
 (ns flatland.useful.debug-test
-  (use flatland.useful.debug clojure.test))
+  (:use flatland.useful.debug clojure.test))
 
 (defmacro test-? [form]
   `(let [form# '~form
