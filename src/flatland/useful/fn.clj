@@ -123,7 +123,7 @@
            (f a)
            (f a b))))
     ([a b & more]
-       (when-let [items (seq (remove nil? (list* a b more)))]
+       (let [items (seq (remove nil? (list* a b more)))]
          (apply f items)))))
 
 (defn key-comparator
