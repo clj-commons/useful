@@ -6,7 +6,7 @@ A collection of generally-useful Clojure utility functions.
 
 ![lein dependency](https://clojars.org/org.flatland/useful/latest-version.svg)
 
-
+[![cljdoc badge](https://cljdoc.org/badge/org.flatland/useful)](https://cljdoc.org/d/org.flatland/useful/CURRENT)
 
 ## History
 
