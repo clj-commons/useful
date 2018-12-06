@@ -1,12 +1,15 @@
-[![Build Status](https://secure.travis-ci.org/flatland/useful.png)](http://travis-ci.org/flatland/useful)
+# Useful
+
+A collection of generally-useful Clojure utility functions.
+
+[![Build Status](https://www.travis-ci.com/clj-commons/useful.svg)](https://www.travis-ci.com/clj-commons/useful)
 
 ![lein dependency](https://clojars.org/org.flatland/useful/latest-version.svg)
 
-These two repositories are usually identical:
 
-* https://github.com/amalloy/useful
-* https://github.com/flatland/useful
 
-The first is the canonical one.  Fixes tend to appear there first, and
-that is the preferred repository for filing issues on Github.  Fixes
-are backported to the second one periodically.
+## History
+
+useful was originally created by [Alan Malloy](https://github.com/amalloy) and was part of the [flatland](https://github.com/flatland) organisation. In December 2018 it was moved to CLJ Commons for continued maintenance.
+
+It could previously be found at [amalloy/useful](https://github.com/amalloy/useful) and [flatland/useful](https://github.com/flatland/useful). [clj-commons/useful](https://github.com/clj-commons/useful) is the canonical repository now.
