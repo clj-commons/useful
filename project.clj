@@ -13,6 +13,8 @@
              :1.8  {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :1.7  {:dependencies [[org.clojure/clojure "1.7.0"]]}
              :1.6  {:dependencies [[org.clojure/clojure "1.6.0"]]}}
+  :deploy-repositories [["releases" :clojars]
+                        ["snapshots" :clojars]]
   :plugins [[codox "0.8.0"]]
   :codox {:src-dir-uri "http://github.com/flatland/useful/blob/develop/"
           :src-linenum-anchor-prefix "L"})
