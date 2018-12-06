@@ -1,2 +1,6 @@
 language: clojure
 script: lein testall
+jdk:
+- oraclejdk8
+- oraclejdk11
+- openjdk-ea
