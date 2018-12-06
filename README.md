@@ -2,7 +2,7 @@
 
 A collection of generally-useful Clojure utility functions.
 
-[![Build Status](https://www.travis-ci.com/clj-commons/useful.svg)](https://www.travis-ci.com/clj-commons/useful)
+[![Build Status](https://www.travis-ci.org/clj-commons/useful.svg)](https://www.travis-ci.org/clj-commons/useful)
 
 ![lein dependency](https://clojars.org/org.flatland/useful/latest-version.svg)
 
