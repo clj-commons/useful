@@ -78,7 +78,10 @@
   (is (= 5 (thrush 1 inc inc inc inc))))
 
 (deftest test-ignoring-nils
-  (is (= 6 ((ignoring-nils +) 1 nil 2 nil nil 3))))
+  (is (= 6 ((ignoring-nils +) 1 nil 2 nil nil 3)))
+  (is (= 0 ((ignoring-nils +) nil nil)))
+  (is (= 0 ((ignoring-nils +) nil nil nil)))
+  (is (= 0 ((ignoring-nils +) nil nil nil nil))))
 
 (deftest test-key-comparator
   (let [subtract-comparator-fn-breaks-on-this [2147483650 2147483651
