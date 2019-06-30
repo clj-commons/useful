@@ -3,7 +3,7 @@
   (:require [flatland.useful.ns :as ns]))
 
 (defn canonical-name
-  "Resolve a symbol in the current namespace; but intead of returning its value,
+  "Resolve a symbol in the current namespace; but instead of returning its value,
    return a canonical name that can be used to name the same thing in any
    namespace."
   [sym]
