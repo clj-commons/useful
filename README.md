@@ -4,7 +4,7 @@ A collection of generally-useful Clojure utility functions.
 
 [![Clojars Project](https://img.shields.io/clojars/v/org.flatland/useful.svg)](https://clojars.org/org.flatland/useful)
 [![cljdoc badge](https://cljdoc.org/badge/org.flatland/useful)](https://cljdoc.org/d/org.flatland/useful/CURRENT)
-[![Build Status](https://www.travis-ci.org/clj-commons/useful.svg)](https://www.travis-ci.org/clj-commons/useful)
+[![CircleCI](https://circleci.com/gh/clj-commons/useful.svg?style=svg)](https://circleci.com/gh/clj-commons/useful)
 
 ## History
 
