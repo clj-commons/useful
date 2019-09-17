@@ -7,11 +7,9 @@
   :dependencies [[org.clojure/clojure "1.8.0"  :scope "provided"]
                  [org.clojure/tools.macro "0.1.5"]
                  [org.clojure/tools.reader "1.3.2"]]
-  :aliases {"testall" ["with-profile" "1.6:1.7:1.8:1.9:1.10" "test"]}
+  :aliases {"testall" ["with-profile" ":1.8:1.9:1.10" "test"]}
 
-  :profiles {:provided {:dependencies [[org.clojure/clojure "1.8.0" :scope "provided"]]}
-             :dev      {:dependencies [[org.clojure/clojure "1.10.1"]]}
-
+  :profiles {:dev      {:dependencies [[org.clojure/clojure "1.10.1"]]}
              :1.10     {:dependencies [[org.clojure/clojure "1.10.1"]]}
              :1.9      {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8      {:dependencies [[org.clojure/clojure "1.8.0"]]}}
