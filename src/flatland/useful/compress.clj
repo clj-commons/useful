@@ -1,17 +1,19 @@
 (ns flatland.useful.compress
-  (:import [java.util.zip DeflaterOutputStream InflaterInputStream]
-           [java.io ByteArrayOutputStream ByteArrayInputStream]
-           [sun.misc BASE64Decoder BASE64Encoder]))
+  (:import
+    [java.io ByteArrayOutputStream ByteArrayInputStream]
+    [java.util Base64]
+    [java.util.zip DeflaterOutputStream InflaterInputStream] ))
 
-(defn smash [^String str]
+(defn smash [str]
   (let [out (ByteArrayOutputStream.)]
     (doto (DeflaterOutputStream. out)
       (.write (.getBytes str))
       (.finish))
-    (-> (BASE64Encoder.)
-        (.encodeBuffer (.toByteArray out)))))
+    (-> (Base64/getEncoder)
+      (.encode (.toByteArray out)))))
 
-(defn unsmash [^String str]
-  (let [bytes (-> (BASE64Decoder.) (.decodeBuffer str))
+(defn unsmash [str]
+  (let [bytes (-> (Base64/getDecoder) (.decode str))
         in    (ByteArrayInputStream. bytes)]
     (slurp (InflaterInputStream. in))))
+
